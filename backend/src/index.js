@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import connectDB from './config/database.js';
 
 dotenv.config();
 
@@ -14,6 +15,9 @@ app.use(express.json());
 app.get('/', (req, res) => {
     res.send('Hitbox API is running');
 });
+
+// Connect to MongoDB
+connectDB();
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
