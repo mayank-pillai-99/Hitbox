@@ -1,0 +1,54 @@
+import Link from 'next/link';
+import { Gamepad2, Search } from 'lucide-react';
+
+const Navbar = () => {
+    return (
+        <nav className="bg-zinc-900 border-b border-zinc-800 text-white">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16">
+                    {/* Logo */}
+                    <div className="flex-shrink-0">
+                        <Link href="/" className="flex items-center gap-2 font-bold text-xl tracking-tighter text-emerald-500">
+                            <Gamepad2 className="w-8 h-8" />
+                            HITBOX
+                        </Link>
+                    </div>
+
+                    {/* Search Bar (Visual Only) */}
+                    <div className="hidden md:block flex-1 max-w-md mx-8">
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-5 w-5 text-zinc-400" />
+                            </div>
+                            <input
+                                type="text"
+                                className="block w-full pl-10 pr-3 py-2 border border-zinc-700 rounded-full leading-5 bg-zinc-800 text-zinc-300 placeholder-zinc-400 focus:outline-none focus:bg-zinc-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 sm:text-sm transition-colors"
+                                placeholder="Search games..."
+                            />
+                        </div>
+                    </div>
+
+                    {/* Navigation Links */}
+                    <div className="hidden md:block">
+                        <div className="ml-10 flex items-baseline space-x-4">
+                            <Link href="/games" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Games
+                            </Link>
+                            <Link href="/profile" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Lists
+                            </Link>
+                            <Link href="/login" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Log In
+                            </Link>
+                            <Link href="/signup" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                                Create Account
+                            </Link>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
+};
+
+export default Navbar;

@@ -1,65 +1,85 @@
-import Image from "next/image";
+import GameCard from '@/components/GameCard';
+import Navbar from '@/components/Navbar';
+import { TrendingUp, Calendar } from 'lucide-react';
+
+// Mock Data
+const TRENDING_GAMES = [
+    { id: 1, title: "Elden Ring", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", rating: 4.8, releaseYear: 2022 },
+    { id: 2, title: "Baldur's Gate 3", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg", rating: 4.9, releaseYear: 2023 },
+    { id: 3, title: "Cyberpunk 2077", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co848y.jpg", rating: 4.2, releaseYear: 2020 },
+    { id: 4, title: "God of War Ragnarök", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg", rating: 4.7, releaseYear: 2022 },
+    { id: 5, title: "The Legend of Zelda: Tears of the Kingdom", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", rating: 4.8, releaseYear: 2023 },
+    { id: 6, title: "Hades II", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co84j3.jpg", rating: 4.6, releaseYear: 2024 },
+];
+
+const NEW_RELEASES = [
+    { id: 7, title: "Final Fantasy VII Rebirth", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7i7a.jpg", rating: 4.7, releaseYear: 2024 },
+    { id: 8, title: "Helldivers 2", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co798v.jpg", rating: 4.5, releaseYear: 2024 },
+    { id: 9, title: "Dragon's Dogma 2", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7x3j.jpg", rating: 4.0, releaseYear: 2024 },
+    { id: 10, title: "Persona 3 Reload", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6ozh.jpg", rating: 4.6, releaseYear: 2024 },
+];
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    return (
+        <div className="min-h-screen bg-zinc-950 text-zinc-100">
+            <Navbar />
+
+            <div className="space-y-12 pb-12">
+                {/* Hero Section */}
+                <section className="relative bg-zinc-900 py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+                    <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=2000&auto=format&fit=crop')] bg-cover bg-center opacity-10"></div>
+                    <div className="relative max-w-7xl mx-auto text-center">
+                        <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight text-white mb-6">
+                            Track your <span className="text-emerald-500">gaming journey</span>.
+                        </h1>
+                        <p className="text-lg sm:text-xl text-zinc-300 max-w-2xl mx-auto mb-10">
+                            Hitbox is the social network for gamers. Rate games, write reviews, and create lists of your favorites.
+                        </p>
+                        <div className="flex justify-center gap-4">
+                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors">
+                                Get Started
+                            </button>
+                            <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors border border-zinc-700">
+                                Browse Games
+                            </button>
+                        </div>
+                    </div>
+                </section>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
+                    {/* Trending Section */}
+                    <section>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <TrendingUp className="text-emerald-500" />
+                                <h2 className="text-2xl font-bold text-white">Trending This Week</h2>
+                            </div>
+                            <span className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            {TRENDING_GAMES.map(game => (
+                                <GameCard key={game.id} game={game} />
+                            ))}
+                        </div>
+                    </section>
+
+                    {/* New Releases Section */}
+                    <section>
+                        <div className="flex items-center justify-between mb-6">
+                            <div className="flex items-center gap-2">
+                                <Calendar className="text-emerald-500" />
+                                <h2 className="text-2xl font-bold text-white">New Releases</h2>
+                            </div>
+                            <span className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</span>
+                        </div>
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                            {NEW_RELEASES.map(game => (
+                                <GameCard key={game.id} game={game} />
+                            ))}
+                        </div>
+                    </section>
+                </div>
+            </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+    );
 }
