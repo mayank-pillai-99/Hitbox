@@ -95,4 +95,45 @@ router.get('/me', auth, async (req, res) => {
     }
 });
 
+// Update User Profile
+router.put('/me', auth, async (req, res) => {
+    try {
+        const { username, email, bio, profilePicture } = req.body;
+        const userId = req.user.id;
+
+        // Check availability if changing
+        if (username) {
+            const existingUser = await User.findOne({ username });
+            if (existingUser && existingUser.id !== userId) {
+                return res.status(400).json({ message: 'Username is already taken' });
+            }
+        }
+
+        if (email) {
+            const existingEmail = await User.findOne({ email });
+            if (existingEmail && existingEmail.id !== userId) {
+                return res.status(400).json({ message: 'Email is already taken' });
+            }
+        }
+
+        // Initialize update object
+        const updateFields = {};
+        if (username) updateFields.username = username;
+        if (email) updateFields.email = email;
+        if (bio !== undefined) updateFields.bio = bio;
+        if (profilePicture !== undefined) updateFields.profilePicture = profilePicture;
+
+        const user = await User.findByIdAndUpdate(
+            userId,
+            { $set: updateFields },
+            { new: true }
+        ).select('-password');
+
+        res.json(user);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 export default router;
