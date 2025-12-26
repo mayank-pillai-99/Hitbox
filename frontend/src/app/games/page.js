@@ -1,26 +1,36 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import GameCard from '@/components/GameCard';
-import { Filter, SlidersHorizontal } from 'lucide-react';
-
-// Mock Data
-const ALL_GAMES = [
-    { id: 1, title: "Elden Ring", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", rating: 4.8, releaseYear: 2022, genre: "RPG" },
-    { id: 2, title: "Baldur's Gate 3", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg", rating: 4.9, releaseYear: 2023, genre: "RPG" },
-    { id: 3, title: "Cyberpunk 2077", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co848y.jpg", rating: 4.2, releaseYear: 2020, genre: "RPG" },
-    { id: 4, title: "God of War Ragnarök", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg", rating: 4.7, releaseYear: 2022, genre: "Action" },
-    { id: 5, title: "The Legend of Zelda: Tears of the Kingdom", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", rating: 4.8, releaseYear: 2023, genre: "Adventure" },
-    { id: 6, title: "Hades II", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co84j3.jpg", rating: 4.6, releaseYear: 2024, genre: "Roguelike" },
-    { id: 7, title: "Final Fantasy VII Rebirth", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7i7a.jpg", rating: 4.7, releaseYear: 2024, genre: "RPG" },
-    { id: 8, title: "Helldivers 2", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co798v.jpg", rating: 4.5, releaseYear: 2024, genre: "Shooter" },
-    { id: 9, title: "Dragon's Dogma 2", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7x3j.jpg", rating: 4.0, releaseYear: 2024, genre: "RPG" },
-    { id: 10, title: "Persona 3 Reload", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6ozh.jpg", rating: 4.6, releaseYear: 2024, genre: "RPG" },
-];
+import { Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
+import api from '@/utils/api';
 
 const GENRES = ["All", "RPG", "Action", "Adventure", "Shooter", "Roguelike", "Strategy"];
 const PLATFORMS = ["All", "PC", "PlayStation", "Xbox", "Nintendo"];
 
 export default function BrowseGames() {
+    const [games, setGames] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        const fetchGames = async () => {
+            try {
+                const res = await api.get('/games');
+                setGames(res.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to fetch games", err);
+                setError('Failed to load games. Please try again later.');
+                setLoading(false);
+            }
+        };
+
+        fetchGames();
+    }, []);
+
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
             <Navbar />
@@ -82,20 +92,32 @@ export default function BrowseGames() {
 
                     {/* Games Grid */}
                     <div className="flex-1">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                            {ALL_GAMES.map(game => (
-                                <GameCard key={game.id} game={game} />
-                            ))}
-                        </div>
+                        {loading ? (
+                            <div className="flex justify-center items-center h-64">
+                                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                            </div>
+                        ) : error ? (
+                            <div className="text-center text-red-400 py-12">{error}</div>
+                        ) : games.length === 0 ? (
+                            <div className="text-center text-zinc-500 py-12">No games found.</div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                                {games.map(game => (
+                                    <GameCard key={game._id} game={game} />
+                                ))}
+                            </div>
+                        )}
 
-                        {/* Pagination (Mock) */}
-                        <div className="mt-12 flex justify-center gap-2">
-                            <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800 disabled:opacity-50" disabled>Previous</button>
-                            <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">1</button>
-                            <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800">2</button>
-                            <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800">3</button>
-                            <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800">Next</button>
-                        </div>
+                        {/* Pagination (Mock - Hidden if no games) */}
+                        {!loading && !error && games.length > 0 && (
+                            <div className="mt-12 flex justify-center gap-2">
+                                <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800 disabled:opacity-50" disabled>Previous</button>
+                                <button className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium">1</button>
+                                <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800">2</button>
+                                <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800">3</button>
+                                <button className="px-4 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-sm hover:bg-zinc-800">Next</button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
