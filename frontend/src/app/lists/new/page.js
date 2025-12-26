@@ -1,8 +1,35 @@
+'use client';
+
+import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { X, Plus, Search } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
+import api from '@/utils/api';
 
 export default function ListEditor() {
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [submitting, setSubmitting] = useState(false);
+    const router = useRouter();
+
+    const handleSubmit = async () => {
+        if (!name.trim()) return;
+
+        setSubmitting(true);
+        try {
+            await api.post('/lists', {
+                name,
+                description
+            });
+            router.push('/profile');
+        } catch (err) {
+            console.error("Failed to create list", err);
+            alert("Failed to create list. Please try again.");
+            setSubmitting(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100">
             <Navbar />
@@ -27,6 +54,8 @@ export default function ListEditor() {
                             <input
                                 type="text"
                                 id="name"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
                                 className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
                                 placeholder="e.g., Top 10 RPGs of All Time"
                             />
@@ -40,50 +69,16 @@ export default function ListEditor() {
                             <textarea
                                 id="description"
                                 rows={3}
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
                                 className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors resize-none"
                                 placeholder="What is this list about?"
                             ></textarea>
                         </div>
 
-                        {/* Add Games */}
-                        <div>
-                            <label className="block text-sm font-medium text-zinc-300 mb-2">
-                                Add Games
-                            </label>
-                            <div className="relative mb-4">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <Search className="h-5 w-5 text-zinc-500" />
-                                </div>
-                                <input
-                                    type="text"
-                                    className="block w-full pl-10 pr-3 py-3 border border-zinc-700 rounded-lg bg-zinc-950 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
-                                    placeholder="Search for a game to add..."
-                                />
-                            </div>
-
-                            {/* Added Games List (Mock) */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-zinc-500 font-mono w-6 text-center">1</span>
-                                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg" alt="Elden Ring" className="w-8 h-12 object-cover rounded" />
-                                        <span className="text-white font-medium">Elden Ring</span>
-                                    </div>
-                                    <button className="text-zinc-500 hover:text-red-500 transition-colors">
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                                <div className="flex items-center justify-between bg-zinc-950 p-3 rounded-lg border border-zinc-800">
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-zinc-500 font-mono w-6 text-center">2</span>
-                                        <img src="https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg" alt="Baldur's Gate 3" className="w-8 h-12 object-cover rounded" />
-                                        <span className="text-white font-medium">Baldur's Gate 3</span>
-                                    </div>
-                                    <button className="text-zinc-500 hover:text-red-500 transition-colors">
-                                        <X className="w-5 h-5" />
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Note: Game addition is handled in List Details view for simplicity in this MVP */}
+                        <div className="bg-zinc-950/50 p-4 rounded-lg border border-zinc-800 text-sm text-zinc-400">
+                            Games can be added to this list from individual game pages or the list details page after creation.
                         </div>
 
                         {/* Actions */}
@@ -91,7 +86,12 @@ export default function ListEditor() {
                             <Link href="/profile" className="px-6 py-2 text-zinc-400 hover:text-white font-medium transition-colors">
                                 Cancel
                             </Link>
-                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg font-bold transition-colors">
+                            <button
+                                onClick={handleSubmit}
+                                disabled={submitting || !name.trim()}
+                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
+                            >
+                                {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                 Save List
                             </button>
                         </div>

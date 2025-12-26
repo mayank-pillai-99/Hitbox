@@ -1,29 +1,63 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
 import GameCard from '@/components/GameCard';
-import { User, Calendar, MoreHorizontal } from 'lucide-react';
-
-// Mock Data
-const LIST_DATA = {
-    id: 1,
-    name: "Top 10 RPGs of All Time",
-    description: "A collection of the best Role-Playing Games I've ever played. From turn-based classics to modern action RPGs.",
-    author: {
-        username: "PixelPioneer",
-        avatar: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop"
-    },
-    createdAt: "Dec 2023",
-    games: [
-        { id: 1, title: "Elden Ring", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", rating: 4.8, releaseYear: 2022 },
-        { id: 2, title: "Baldur's Gate 3", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg", rating: 4.9, releaseYear: 2023 },
-        { id: 3, title: "Cyberpunk 2077", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co848y.jpg", rating: 4.2, releaseYear: 2020 },
-        { id: 7, title: "Final Fantasy VII Rebirth", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7i7a.jpg", rating: 4.7, releaseYear: 2024 },
-        { id: 10, title: "Persona 3 Reload", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6ozh.jpg", rating: 4.6, releaseYear: 2024 },
-    ]
-};
+import { User, Calendar, MoreHorizontal, Loader2 } from 'lucide-react';
+import api from '@/utils/api';
 
 export default function ListDetails({ params }) {
-    const list = LIST_DATA;
+    const [list, setList] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [listId, setListId] = useState(null);
+
+    // Unwrap params using React.use() or await if necessary in newer Next.js, but params is a promise in the latest versions.
+    // However, for this client component structure, assuming basic params usage.
+    useEffect(() => {
+        // safely unwrap params
+        const unwrapParams = async () => {
+            const resolvedParams = await params;
+            setListId(resolvedParams.id);
+        };
+        unwrapParams();
+    }, [params]);
+
+    useEffect(() => {
+        if (!listId) return;
+
+        const fetchList = async () => {
+            try {
+                const res = await api.get(`/lists/${listId}`);
+                setList(res.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to fetch list", err);
+                setError('Failed to load list details.');
+                setLoading(false);
+            }
+        };
+
+        fetchList();
+    }, [listId]);
+
+    if (loading) {
+        return (
+            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            </div>
+        );
+    }
+
+    if (error || !list) {
+        return (
+            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center flex-col gap-4">
+                <p className="text-red-400">{error || 'List not found'}</p>
+                <Link href="/profile" className="text-emerald-500 hover:underline">Back to Profile</Link>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
@@ -38,12 +72,16 @@ export default function ListDetails({ params }) {
 
                             <div className="flex items-center gap-6 text-sm text-zinc-500">
                                 <div className="flex items-center gap-2">
-                                    <img src={list.author.avatar} alt={list.author.username} className="w-6 h-6 rounded-full" />
-                                    <span className="text-zinc-300 font-medium">Created by {list.author.username}</span>
+                                    {list.user.profilePicture ? (
+                                        <img src={list.user.profilePicture} alt={list.user.username} className="w-6 h-6 rounded-full" />
+                                    ) : (
+                                        <User className="w-6 h-6 p-1 bg-zinc-800 rounded-full" />
+                                    )}
+                                    <span className="text-zinc-300 font-medium">Created by {list.user.username}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />
-                                    <span>{list.createdAt}</span>
+                                    <span>{new Date(list.createdAt).toLocaleDateString()}</span>
                                 </div>
                                 <div>
                                     <span className="text-white font-bold">{list.games.length}</span> games
@@ -64,34 +102,41 @@ export default function ListDetails({ params }) {
             </div>
 
             <div className="max-w-5xl mx-auto px-4 py-12">
-                <div className="grid grid-cols-1 gap-4">
-                    {list.games.map((game, index) => (
-                        <div key={game.id} className="flex items-center gap-4 bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 hover:bg-zinc-900 transition-colors group">
-                            <div className="flex-shrink-0 w-8 text-center font-mono text-zinc-500 text-lg">
-                                {index + 1}
-                            </div>
+                {list.games.length === 0 ? (
+                    <div className="text-center py-12 bg-zinc-900/50 rounded-lg border border-zinc-800 border-dashed">
+                        <p className="text-zinc-500">No games added to this list yet.</p>
+                        <p className="text-zinc-600 text-sm mt-2">Go to a game page to add it to this list.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 gap-4">
+                        {list.games.map((game, index) => (
+                            <div key={game._id} className="flex items-center gap-4 bg-zinc-900/50 p-4 rounded-lg border border-zinc-800 hover:bg-zinc-900 transition-colors group">
+                                <div className="flex-shrink-0 w-8 text-center font-mono text-zinc-500 text-lg">
+                                    {index + 1}
+                                </div>
 
-                            <Link href={`/games/${game.id}`} className="flex-shrink-0 w-16 h-24 rounded overflow-hidden shadow-lg">
-                                <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
-                            </Link>
-
-                            <div className="flex-1 min-w-0">
-                                <Link href={`/games/${game.id}`} className="text-lg font-bold text-white hover:text-emerald-500 transition-colors truncate block">
-                                    {game.title}
+                                <Link href={`/games/${game._id}`} className="flex-shrink-0 w-16 h-24 rounded overflow-hidden shadow-lg">
+                                    <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
                                 </Link>
-                                <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
-                                    <span>{game.releaseYear}</span>
-                                    <span>•</span>
-                                    <span className="text-emerald-500 font-medium">★ {game.rating}</span>
+
+                                <div className="flex-1 min-w-0">
+                                    <Link href={`/games/${game._id}`} className="text-lg font-bold text-white hover:text-emerald-500 transition-colors truncate block">
+                                        {game.title}
+                                    </Link>
+                                    <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
+                                        {game.releaseDate && <span>{new Date(game.releaseDate).getFullYear()}</span>}
+                                        <span>•</span>
+                                        <span className="text-emerald-500 font-medium">★ {game.averageRating ? game.averageRating.toFixed(1) : 'NR'}</span>
+                                    </div>
+                                </div>
+
+                                <div className="opacity-0 group-hover:opacity-100 transition-opacity px-4">
+                                    <button className="text-zinc-500 hover:text-white transition-colors text-sm">Remove</button>
                                 </div>
                             </div>
-
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity px-4">
-                                <button className="text-zinc-500 hover:text-white transition-colors text-sm">Remove</button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </div>
     );

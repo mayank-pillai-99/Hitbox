@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import GameCard from '@/components/GameCard';
 import { Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
@@ -14,22 +15,28 @@ export default function BrowseGames() {
     const [games, setGames] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const searchParams = useSearchParams();
+    const searchQuery = searchParams.get('search');
 
     useEffect(() => {
         const fetchGames = async () => {
+            setLoading(true);
             try {
-                const res = await api.get('/games');
+                // If query param exists, pass it to api
+                const params = {};
+                if (searchQuery) params.search = searchQuery;
+
+                const res = await api.get('/games', { params });
                 setGames(res.data);
                 setLoading(false);
             } catch (err) {
-                console.error("Failed to fetch games", err);
                 setError('Failed to load games. Please try again later.');
                 setLoading(false);
             }
         };
 
         fetchGames();
-    }, []);
+    }, [searchQuery]);
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
@@ -37,7 +44,9 @@ export default function BrowseGames() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                    <h1 className="text-3xl font-bold text-white">Browse Games</h1>
+                    <h1 className="text-3xl font-bold text-white">
+                        {searchQuery ? `Search Results for "${searchQuery}"` : 'Browse Games'}
+                    </h1>
 
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Sort Dropdown (Mock) */}
