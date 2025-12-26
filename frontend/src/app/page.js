@@ -1,25 +1,35 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
-import { TrendingUp, Calendar } from 'lucide-react';
-
-// Mock Data
-const TRENDING_GAMES = [
-    { id: 1, title: "Elden Ring", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co4jni.jpg", rating: 4.8, releaseYear: 2022 },
-    { id: 2, title: "Baldur's Gate 3", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co670h.jpg", rating: 4.9, releaseYear: 2023 },
-    { id: 3, title: "Cyberpunk 2077", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co848y.jpg", rating: 4.2, releaseYear: 2020 },
-    { id: 4, title: "God of War Ragnarök", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5s5v.jpg", rating: 4.7, releaseYear: 2022 },
-    { id: 5, title: "The Legend of Zelda: Tears of the Kingdom", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co5vmg.jpg", rating: 4.8, releaseYear: 2023 },
-    { id: 6, title: "Hades II", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co84j3.jpg", rating: 4.6, releaseYear: 2024 },
-];
-
-const NEW_RELEASES = [
-    { id: 7, title: "Final Fantasy VII Rebirth", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7i7a.jpg", rating: 4.7, releaseYear: 2024 },
-    { id: 8, title: "Helldivers 2", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co798v.jpg", rating: 4.5, releaseYear: 2024 },
-    { id: 9, title: "Dragon's Dogma 2", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co7x3j.jpg", rating: 4.0, releaseYear: 2024 },
-    { id: 10, title: "Persona 3 Reload", coverImage: "https://images.igdb.com/igdb/image/upload/t_cover_big/co6ozh.jpg", rating: 4.6, releaseYear: 2024 },
-];
+import { TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import api from '@/utils/api';
+import Link from 'next/link';
 
 export default function Home() {
+    const [trendingGames, setTrendingGames] = useState([]);
+    const [newReleases, setNewReleases] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const [trendingRes, newRes] = await Promise.all([
+                    api.get('/games', { params: { ordering: '-added', page_size: 6 } }),
+                    api.get('/games', { params: { ordering: '-released', page_size: 4 } })
+                ]);
+                setTrendingGames(trendingRes.data);
+                setNewReleases(newRes.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Failed to fetch home data", err);
+                setLoading(false);
+            }
+        };
+        fetchData();
+    }, []);
+
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100">
             <Navbar />
@@ -36,12 +46,12 @@ export default function Home() {
                             Hitbox is the social network for gamers. Rate games, write reviews, and create lists of your favorites.
                         </p>
                         <div className="flex justify-center gap-4">
-                            <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors">
+                            <Link href="/signup" className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors">
                                 Get Started
-                            </button>
-                            <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors border border-zinc-700">
+                            </Link>
+                            <Link href="/games" className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors border border-zinc-700">
                                 Browse Games
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </section>
@@ -54,13 +64,17 @@ export default function Home() {
                                 <TrendingUp className="text-emerald-500" />
                                 <h2 className="text-2xl font-bold text-white">Trending This Week</h2>
                             </div>
-                            <span className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</span>
+                            <Link href="/games?ordering=-added" className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</Link>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                            {TRENDING_GAMES.map(game => (
-                                <GameCard key={game.id} game={game} />
-                            ))}
-                        </div>
+                        {loading ? (
+                            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                {trendingGames.map(game => (
+                                    <GameCard key={game._id} game={game} />
+                                ))}
+                            </div>
+                        )}
                     </section>
 
                     {/* New Releases Section */}
@@ -70,13 +84,17 @@ export default function Home() {
                                 <Calendar className="text-emerald-500" />
                                 <h2 className="text-2xl font-bold text-white">New Releases</h2>
                             </div>
-                            <span className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</span>
+                            <Link href="/games?ordering=-released" className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</Link>
                         </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                            {NEW_RELEASES.map(game => (
-                                <GameCard key={game.id} game={game} />
-                            ))}
-                        </div>
+                        {loading ? (
+                            <div className="flex justify-center py-12"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>
+                        ) : (
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                {newReleases.map(game => (
+                                    <GameCard key={game._id} game={game} />
+                                ))}
+                            </div>
+                        )}
                     </section>
                 </div>
             </div>

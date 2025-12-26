@@ -3,7 +3,7 @@ import { Star } from 'lucide-react';
 
 const GameCard = ({ game }) => {
     return (
-        <Link href={`/games/${game.id}`} className="group block cursor-pointer">
+        <Link href={`/games/${game._id || game.id}`} className="group block cursor-pointer">
             <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-zinc-800 shadow-lg transition-transform duration-300 group-hover:-translate-y-1 group-hover:shadow-xl border border-zinc-800 group-hover:border-emerald-500/50">
                 {/* Image Placeholder */}
                 <img
@@ -25,7 +25,9 @@ const GameCard = ({ game }) => {
                 <h3 className="text-sm font-medium text-zinc-200 group-hover:text-emerald-400 transition-colors truncate">
                     {game.title}
                 </h3>
-                <p className="text-xs text-zinc-500 truncate">{game.releaseYear}</p>
+                <p className="text-xs text-zinc-500 truncate">
+                    {game.releaseYear || (game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'TBA')}
+                </p>
             </div>
         </Link>
     );
