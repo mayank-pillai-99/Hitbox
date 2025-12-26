@@ -51,9 +51,9 @@ export default function Profile() {
 
     // Calculate basic stats
     const stats = {
-        gamesPlayed: 0, // Placeholder
-        reviews: 0, // Placeholder
-        lists: lists.length
+        gamesPlayed: user.stats?.gamesPlayed || 0,
+        reviews: user.stats?.reviews || 0,
+        lists: user.stats?.lists || lists.length || 0
     };
 
     return (
@@ -65,16 +65,16 @@ export default function Profile() {
                     {/* Avatar */}
                     <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-zinc-800 shadow-xl bg-zinc-800 flex items-center justify-center">
                         {user.profilePicture ? (
-                            <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
+                            <img src={user.profilePicture} alt={user.username || 'User'} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-4xl font-bold text-zinc-500">{user.username.charAt(0).toUpperCase()}</span>
+                            <span className="text-4xl font-bold text-zinc-500">{(user.username ? user.username.charAt(0) : 'U').toUpperCase()}</span>
                         )}
                     </div>
 
                     {/* User Info */}
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                            <h1 className="text-3xl font-bold text-white">{user.username}</h1>
+                            <h1 className="text-3xl font-bold text-white">{user.username || 'User'}</h1>
                             <Link href="/settings" className="flex items-center gap-2 px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-sm text-zinc-300 transition-colors border border-zinc-700">
                                 <Settings className="w-4 h-4" /> Edit Profile
                             </Link>

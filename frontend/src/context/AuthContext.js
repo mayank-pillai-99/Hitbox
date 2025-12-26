@@ -17,16 +17,14 @@ export const AuthProvider = ({ children }) => {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    // We don't have a /me endpoint yet, but usually we'd fetch user data here.
-                    // For now, we'll decode the token or just trust it exists until it fails.
-                    // Ideally, add a GET /api/auth/me endpoint to backend.
-                    // Assuming we might add that later, strictly for now let's just keep 'loading' false if no token.
-                    // Actually, let's keep it simple: if token exists, we are "logged in" for UI purposes,
-                    // but real verification happens on API calls.
-                    // BETTER: Let's assume we store user info in localStorage too for now or fetch it.
+                    api.defaults.headers.common['x-auth-token'] = token;
+                    const res = await api.get('/auth/me');
+                    setUser(res.data);
                 } catch (error) {
                     console.error("Auth load error", error);
                     localStorage.removeItem('token');
+                    delete api.defaults.headers.common['x-auth-token'];
+                    setUser(null);
                 }
             }
             setLoading(false);
@@ -37,9 +35,15 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         const res = await api.post('/auth/login', { email, password });
         localStorage.setItem('token', res.data.token);
-        // Ideally fetch user data here
-        setUser({ email }); // Temporary, update when we have user data endpoint
-        router.push('/');
+        api.defaults.headers.common['x-auth-token'] = res.data.token;
+
+        try {
+            const userRes = await api.get('/auth/me');
+            setUser(userRes.data);
+            router.push('/');
+        } catch (err) {
+            console.error("Failed to fetch user data after login", err);
+        }
     };
 
     const signup = async (username, email, password) => {
