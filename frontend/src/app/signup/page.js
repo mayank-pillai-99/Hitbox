@@ -1,6 +1,26 @@
+'use client';
+
 import Link from 'next/link';
+import { useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Signup() {
+    const [username, setUsername] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const { signup } = useAuth();
+    const [error, setError] = useState('');
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError('');
+        try {
+            await signup(username, email, password);
+        } catch (err) {
+            setError('Failed to create account. Please try again.');
+        }
+    };
+
     return (
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-zinc-950 px-4">
             <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl border border-zinc-800 shadow-2xl">
@@ -9,7 +29,8 @@ export default function Signup() {
                     <p className="text-zinc-400">Join the Hitbox community today</p>
                 </div>
 
-                <form className="space-y-6">
+                <form className="space-y-6" onSubmit={handleSubmit}>
+                    {error && <div className="text-red-500 text-sm text-center">{error}</div>}
                     <div>
                         <label htmlFor="username" className="block text-sm font-medium text-zinc-300 mb-2">
                             Username
@@ -17,8 +38,11 @@ export default function Signup() {
                         <input
                             type="text"
                             id="username"
+                            value={username}
+                            onChange={(e) => setUsername(e.target.value)}
                             className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
                             placeholder="gamer123"
+                            required
                         />
                     </div>
 
@@ -29,8 +53,11 @@ export default function Signup() {
                         <input
                             type="email"
                             id="email"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
                             className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
                             placeholder="you@example.com"
+                            required
                         />
                     </div>
 
@@ -41,13 +68,16 @@ export default function Signup() {
                         <input
                             type="password"
                             id="password"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
                             placeholder="••••••••"
+                            required
                         />
                     </div>
 
                     <button
-                        type="button"
+                        type="submit"
                         className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-lg transition-colors"
                     >
                         Create Account

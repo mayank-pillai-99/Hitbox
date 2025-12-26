@@ -1,7 +1,10 @@
 import Link from 'next/link';
-import { Gamepad2, Search } from 'lucide-react';
+import { Gamepad2, Search, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
+    const { user, logout } = useAuth();
+
     return (
         <nav className="bg-zinc-900 border-b border-zinc-800 text-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,15 +37,26 @@ const Navbar = () => {
                             <Link href="/games" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 Games
                             </Link>
-                            <Link href="/profile" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                Lists
-                            </Link>
-                            <Link href="/login" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
-                                Log In
-                            </Link>
-                            <Link href="/signup" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
-                                Create Account
-                            </Link>
+
+                            {user ? (
+                                <>
+                                    <Link href="/profile" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                        Profile
+                                    </Link>
+                                    <button onClick={logout} className="hover:text-red-400 px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1">
+                                        <LogOut className="w-4 h-4" /> Logout
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <Link href="/login" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                        Log In
+                                    </Link>
+                                    <Link href="/signup" className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-full text-sm font-medium transition-colors">
+                                        Create Account
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>
