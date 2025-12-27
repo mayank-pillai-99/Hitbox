@@ -23,24 +23,75 @@ const mapRawgGame = (data) => ({
 // Search/Browse Games (Proxy to RAWG)
 router.get('/', async (req, res) => {
     try {
-        const { search, ordering, dates, platforms } = req.query;
+        const { search, ordering, dates, platforms, genres, page } = req.query;
         const RAWG_API_KEY = process.env.RAWG_API_KEY;
 
-        // If we have a specific search or filters, hit RAWG
-        // Default to RAWG for browsing to get "popular" games
+        // Simple platform mapping to RAWG IDs (mock list -> real IDs)
+        // PC: 4, PlayStation 5: 187, PlayStation 4: 18, Xbox One: 1, Xbox Series S/X: 186, Nintendo Switch: 7
+        // For simplicity, we'll map broad terms to a few primary IDs
+        const platformMap = {
+            'pc': '4',
+            'playstation': '187,18',
+            'xbox': '1,186',
+            'nintendo': '7',
+            'ios': '3',
+            'android': '21'
+        };
+
+        const genreMap = {
+            'rpg': 'role-playing-games-rpg',
+            'action': 'action',
+            'adventure': 'adventure',
+            'shooter': 'shooter',
+            'strategy': 'strategy',
+            'roguelike': 'tag:roguelike' // Handle as tag
+        };
+
+        let rawgPlatforms = platforms;
+        if (platforms && platformMap[platforms.toLowerCase()]) {
+            rawgPlatforms = platformMap[platforms.toLowerCase()];
+        }
+
+        let rawgGenres = genres;
+        let rawgTags = undefined;
+
+        if (genres) {
+            const lowerGenre = genres.toLowerCase();
+            if (genreMap[lowerGenre]) {
+                const mapped = genreMap[lowerGenre];
+                // Check if mapped value implies it's a tag (custom logic or simple check)
+                if (mapped === 'tag:roguelike') {
+                    rawgTags = 'roguelike';
+                    rawgGenres = undefined;
+                } else {
+                    rawgGenres = mapped;
+                }
+            } else {
+                rawgGenres = lowerGenre;
+            }
+        }
+
         const params = {
             key: RAWG_API_KEY,
             page_size: 20,
+            page: page || 1,
             search: search,
-            ordering: ordering || '-added', // Default to popular
+            ordering: ordering || '-added',
             dates: dates,
-            platforms: platforms
+            platforms: rawgPlatforms,
+            genres: rawgGenres,
+            tags: rawgTags
         };
 
         const response = await axios.get(`${RAWG_BASE_URL}/games`, { params });
 
         const games = response.data.results.map(mapRawgGame);
-        res.json(games);
+        res.json({
+            results: games,
+            count: response.data.count,
+            next: response.data.next ? true : false,
+            previous: response.data.previous ? true : false
+        });
     } catch (err) {
         console.error("RAWG API Error:", err.message);
         res.status(500).json({ message: 'Failed to fetch games' });

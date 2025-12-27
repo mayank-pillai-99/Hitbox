@@ -19,8 +19,8 @@ export default function Home() {
                     api.get('/games', { params: { ordering: '-added', page_size: 6 } }),
                     api.get('/games', { params: { ordering: '-released', page_size: 4 } })
                 ]);
-                setTrendingGames(trendingRes.data);
-                setNewReleases(newRes.data);
+                setTrendingGames(trendingRes.data.results || trendingRes.data);
+                setNewReleases(newRes.data.results || newRes.data);
                 setLoading(false);
             } catch (err) {
                 console.error("Failed to fetch home data", err);
