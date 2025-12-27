@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Star, Calendar, Globe, User, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import AddToListModal from '@/components/AddToListModal';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -16,7 +17,9 @@ export default function GameDetails({ params }) {
     // Unwrap params using React.use() or await if necessary in newer Next.js, but params is a promise in the latest versions.
     // However, for this client component structure, assuming basic params usage.
     // NOTE: In Next.js 15+, params is async. Let's handle it safely.
+    // NOTE: In Next.js 15+, params is async. Let's handle it safely.
     const [gameId, setGameId] = useState(null);
+    const [isListModalOpen, setIsListModalOpen] = useState(false);
 
     useEffect(() => {
         // safely unwrap params
@@ -132,7 +135,10 @@ export default function GameDetails({ params }) {
                                 </Link>
                             )}
 
-                            <button className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-lg font-medium transition-colors border border-zinc-700">
+                            <button
+                                onClick={() => user ? setIsListModalOpen(true) : alert("Please login to add to lists")}
+                                className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-lg font-medium transition-colors border border-zinc-700"
+                            >
                                 Add to List
                             </button>
                         </div>
@@ -208,6 +214,12 @@ export default function GameDetails({ params }) {
                     </div>
                 </div>
             </div>
+
+            <AddToListModal
+                isOpen={isListModalOpen}
+                onClose={() => setIsListModalOpen(false)}
+                gameId={gameId}
+            />
         </div>
     );
 }
