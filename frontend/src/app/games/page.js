@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
@@ -11,9 +11,9 @@ import api from '@/utils/api';
 const GENRES = ["All", "RPG", "Action", "Adventure", "Shooter", "Roguelike", "Strategy"];
 const PLATFORMS = ["All", "PC", "PlayStation", "Xbox", "Nintendo"];
 
-export default function BrowseGames() {
+function BrowseGamesContent() {
     const [games, setGames] = useState([]);
-    const [totalCount, setTotalCount] = useState(0); // Not used yet but good to have
+    const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
@@ -177,5 +177,17 @@ export default function BrowseGames() {
                 </div>
             </div>
         </div>
+    );
+}
+
+export default function BrowseGames() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            </div>
+        }>
+            <BrowseGamesContent />
+        </Suspense>
     );
 }

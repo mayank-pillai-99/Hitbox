@@ -58,6 +58,18 @@ router.post('/', auth, async (req, res) => {
         });
 
         const review = await newReview.save();
+
+        // Calculate new average rating
+        const stats = await Review.aggregate([
+            { $match: { game: targetGameId } },
+            { $group: { _id: '$game', averageRating: { $avg: '$rating' } } }
+        ]);
+
+        // Update game with new average
+        if (stats.length > 0) {
+            await Game.findByIdAndUpdate(targetGameId, { averageRating: stats[0].averageRating });
+        }
+
         res.json(review);
     } catch (err) {
         console.error(err.message);

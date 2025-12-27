@@ -85,7 +85,29 @@ router.get('/', async (req, res) => {
 
         const response = await axios.get(`${RAWG_BASE_URL}/games`, { params });
 
-        const games = response.data.results.map(mapRawgGame);
+        const rawgGames = response.data.results;
+
+        // Get RAWG IDs to check against local DB
+        const rawgIds = rawgGames.map(g => g.id);
+        const localGames = await Game.find({ rawgId: { $in: rawgIds } });
+
+        // Create map for faster lookup: rawgId -> localGame
+        const localGameMap = {};
+        localGames.forEach(g => {
+            localGameMap[g.rawgId] = g;
+        });
+
+        const games = rawgGames.map(g => {
+            const mapped = mapRawgGame(g);
+            // Override rating with local data if exists, else 0 (unrated on Hitbox)
+            if (localGameMap[g.id]) {
+                mapped.averageRating = localGameMap[g.id].averageRating || 0;
+            } else {
+                mapped.averageRating = 0;
+            }
+            return mapped;
+        });
+
         res.json({
             results: games,
             count: response.data.count,

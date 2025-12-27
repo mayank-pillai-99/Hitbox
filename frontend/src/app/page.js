@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
-import { TrendingUp, Calendar, Loader2 } from 'lucide-react';
+import { Trophy, Calendar, Loader2 } from 'lucide-react';
 import api from '@/utils/api';
 import Link from 'next/link';
 
@@ -17,7 +17,7 @@ export default function Home() {
             try {
                 const [trendingRes, newRes] = await Promise.all([
                     api.get('/games', { params: { ordering: '-added', page_size: 6 } }),
-                    api.get('/games', { params: { ordering: '-released', page_size: 4 } })
+                    api.get('/games', { params: { ordering: '-added', dates: '2025-01-01,2025-12-31', page_size: 4 } })
                 ]);
                 setTrendingGames(trendingRes.data.results || trendingRes.data);
                 setNewReleases(newRes.data.results || newRes.data);
@@ -57,12 +57,12 @@ export default function Home() {
                 </section>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-                    {/* Trending Section */}
+                    {/* Top Games Section */}
                     <section>
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-2">
-                                <TrendingUp className="text-emerald-500" />
-                                <h2 className="text-2xl font-bold text-white">Trending This Week</h2>
+                                <Trophy className="text-emerald-500" />
+                                <h2 className="text-2xl font-bold text-white">Top Games of All Time</h2>
                             </div>
                             <Link href="/games?ordering=-added" className="text-sm text-zinc-400 hover:text-white transition-colors cursor-pointer">View all</Link>
                         </div>
