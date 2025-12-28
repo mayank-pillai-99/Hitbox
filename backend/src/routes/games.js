@@ -14,7 +14,7 @@ const mapRawgGame = (data) => ({
     description: data.description_raw || data.description,
     coverImage: data.background_image,
     releaseDate: data.released,
-    averageRating: data.rating, // RAWG rating (out of 5)
+    averageRating: 0, // Default to 0 (ignore RAWG rating), strictly use local Move data
     genre: data.genres?.map(g => g.name) || [],
     platforms: data.platforms?.map(p => p.platform.name) || [],
     isRemote: true // Flag to tell frontend this is from RAWG
