@@ -6,8 +6,10 @@ import Navbar from '@/components/Navbar';
 import { Trophy, Calendar, Loader2 } from 'lucide-react';
 import api from '@/utils/api';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
+    const { user } = useAuth();
     const [trendingGames, setTrendingGames] = useState([]);
     const [newReleases, setNewReleases] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -46,9 +48,11 @@ export default function Home() {
                             Hitbox is the social network for gamers. Rate games, write reviews, and create lists of your favorites.
                         </p>
                         <div className="flex justify-center gap-4">
-                            <Link href="/signup" className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors">
-                                Get Started
-                            </Link>
+                            {!user && (
+                                <Link href="/signup" className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors">
+                                    Get Started
+                                </Link>
+                            )}
                             <Link href="/games" className="bg-zinc-800 hover:bg-zinc-700 text-white px-8 py-3 rounded-full font-bold text-lg transition-colors border border-zinc-700">
                                 Browse Games
                             </Link>
