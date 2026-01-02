@@ -88,11 +88,12 @@ export default function GameDetails({ params }) {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 relative z-20">
                 <div className="flex flex-col md:flex-row gap-8">
                     {/* Cover Image */}
-                    <div className="flex-shrink-0 mx-auto md:mx-0 w-64 rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900">
+                    {/* Cover Image */}
+                    <div className="flex-shrink-0 mx-auto md:mx-0 w-64 aspect-[3/4] rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 relative">
                         {game.coverImage ? (
-                            <img src={game.coverImage} alt={game.title} className="w-full h-auto" />
+                            <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
                         ) : (
-                            <div className="w-full h-96 flex items-center justify-center text-zinc-700">No Image</div>
+                            <div className="w-full h-full flex items-center justify-center text-zinc-700">No Image</div>
                         )}
                     </div>
 

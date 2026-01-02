@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const gameSchema = new mongoose.Schema({
-    rawgId: { type: Number, unique: true, sparse: true }, // External ID from RAWG
+    igdbId: { type: Number, unique: true, sparse: true }, // External ID from IGDB
     title: { type: String, required: true },
     slug: { type: String }, // URL friendly slug
     description: { type: String },

@@ -1,53 +1,75 @@
 import express from 'express';
-import axios from 'axios';
+import igdb from '../utils/igdb.js';
 import Review from '../models/Review.js';
 import Game from '../models/Game.js';
 import auth from '../middleware/auth.js';
+import { mapIGDBGame } from '../utils/mappers.js';
 
 const router = express.Router();
-const RAWG_BASE_URL = 'https://api.rawg.io/api';
 
 // Add a review
 router.post('/', auth, async (req, res) => {
     try {
         const { gameId, rating, text } = req.body;
-        const RAWG_API_KEY = process.env.RAWG_API_KEY;
         let targetGameId = gameId;
 
-        // Check if gameId is numeric (RAWG ID) and not an ObjectId
+        // Check if gameId is a valid ObjectId (Internal DB)
         if (!String(gameId).match(/^[0-9a-fA-F]{24}$/)) {
-            // It's likely a RAWG ID. Check if we have it in DB.
-            let game = await Game.findOne({ rawgId: gameId });
+            // It's likely an IGDB ID (numeric).
+            const igdbId = parseInt(gameId);
 
-            if (!game) {
-                // Not in DB, fetch from RAWG and create it
-                try {
-                    const rawgRes = await axios.get(`${RAWG_BASE_URL}/games/${gameId}`, {
-                        params: { key: RAWG_API_KEY }
-                    });
+            if (!isNaN(igdbId)) {
+                // Check if we have it in DB
+                let game = await Game.findOne({ igdbId: igdbId });
 
-                    const data = rawgRes.data;
-                    const newGame = new Game({
-                        rawgId: data.id,
-                        title: data.name,
-                        slug: data.slug,
-                        description: data.description_raw || data.description,
-                        coverImage: data.background_image,
-                        releaseDate: data.released,
-                        averageRating: data.rating,
-                        genre: data.genres?.map(g => g.name) || [],
-                        platforms: data.platforms?.map(p => p.platform.name) || [],
-                        developer: data.developers?.[0]?.name,
-                        publisher: data.publishers?.[0]?.name,
-                    });
+                if (!game) {
+                    // Not in DB, fetch from IGDB and create it
+                    try {
+                        // We need to fetch detailed info to save it
+                        const query = `
+                            fields name, cover.url, first_release_date, total_rating, summary, genres.name, platforms.name, slug, involved_companies.company.name, involved_companies.developer, involved_companies.publisher;
+                            where id = ${igdbId};
+                        `;
+                        const response = await igdb.post('/games', query);
 
-                    game = await newGame.save();
-                } catch (fetchErr) {
-                    console.error("Failed to fetch/save RAWG game:", fetchErr.message);
-                    return res.status(404).json({ message: 'Game not found' });
+                        if (response.data && response.data.length > 0) {
+                            const params = mapIGDBGame(response.data[0]);
+
+                            // mapIGDBGame returns an object suitable for response, but for Mongoose we need to be explicit or pass proper object
+                            // _id should NOT be set manually for Mongoose if we want auto ObjectId, 
+                            // BUT our previous design used External IDs as _id sometimes? 
+                            // Wait, 'games.js' line 100: games = rawgGames.map(g => ... _id: data.id)
+                            // This was for frontend display. The DB Schema has _id as ObjectId by default unless overwritten.
+                            // In 'mapRawgGame' (old): _id: data.id.
+                            // In 'reviews.js' (old): rawgId: data.id... it didn't set _id manually.
+
+                            const newGame = new Game({
+                                igdbId: params.igdbId,
+                                title: params.title,
+                                slug: params.slug,
+                                description: params.description,
+                                coverImage: params.coverImage,
+                                releaseDate: params.releaseDate,
+                                averageRating: 0, // Reset rating for new local entry
+                                genre: params.genre,
+                                platforms: params.platforms,
+                                developer: params.developer,
+                                publisher: params.publisher
+                            });
+
+                            game = await newGame.save();
+                        } else {
+                            return res.status(404).json({ message: 'Game not found on IGDB' });
+                        }
+                    } catch (fetchErr) {
+                        console.error("Failed to fetch/save IGDB game:", fetchErr.message);
+                        return res.status(404).json({ message: 'Game not found' });
+                    }
                 }
+                targetGameId = game._id;
+            } else {
+                return res.status(400).json({ message: 'Invalid Game ID' });
             }
-            targetGameId = game._id;
         }
 
         const newReview = new Review({
@@ -86,15 +108,18 @@ router.get('/game/:gameId', async (req, res) => {
         const { gameId } = req.params;
         let queryGameId = gameId;
 
-        // Validating if it's a RAWG ID (numeric) or Mongo ID
-        if (!gameId.match(/^[0-9a-fA-F]{24}$/)) {
-            // It's a RAWG ID. Find the internal Game _id
-            const game = await Game.findOne({ rawgId: gameId });
-            if (!game) {
-                // Game doesn't exist in DB yet, so validly, there are NO reviews.
-                return res.json([]);
+        // Validating if it's a MongoDB ID
+        if (!String(gameId).match(/^[0-9a-fA-F]{24}$/)) {
+            // It's an IGDB ID. Find the internal Game _id
+            const igdbId = parseInt(gameId);
+            if (!isNaN(igdbId)) {
+                const game = await Game.findOne({ igdbId });
+                if (!game) {
+                    // Game doesn't exist in DB yet, so validly, there are NO reviews.
+                    return res.json([]);
+                }
+                queryGameId = game._id;
             }
-            queryGameId = game._id;
         }
 
         const reviews = await Review.find({ game: queryGameId })

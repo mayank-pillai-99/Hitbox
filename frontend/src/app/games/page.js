@@ -20,11 +20,29 @@ function BrowseGamesContent() {
     // Filter States
     const [selectedGenre, setSelectedGenre] = useState('All');
     const [selectedPlatform, setSelectedPlatform] = useState('All');
+    const [sortBy, setSortBy] = useState('-added'); // Default: Popularity
+    const [isSortOpen, setIsSortOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
 
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get('search');
+
+    const toggleSort = () => setIsSortOpen(!isSortOpen);
+
+    const handleSortChange = (value) => {
+        setSortBy(value);
+        setIsSortOpen(false);
+        setPage(1);
+    };
+
+    const SORT_OPTIONS = [
+        { label: 'Popularity', value: '-added' },
+        { label: 'Newest Releases', value: '-released' },
+        { label: 'Oldest Releases', value: 'released' },
+        { label: 'Top Rated', value: '-rating' },
+        { label: 'Name', value: 'name' },
+    ];
 
     useEffect(() => {
         const fetchGames = async () => {
@@ -32,7 +50,8 @@ function BrowseGamesContent() {
             try {
                 const params = {
                     page,
-                    page_size: 20
+                    page_size: 20,
+                    ordering: sortBy
                 };
 
                 if (searchQuery) params.search = searchQuery;
@@ -55,7 +74,7 @@ function BrowseGamesContent() {
         };
 
         fetchGames();
-    }, [searchQuery, selectedGenre, selectedPlatform, page]);
+    }, [searchQuery, selectedGenre, selectedPlatform, page, sortBy]);
 
     // Reset page on filter change
     const handleGenreChange = (genre) => {
@@ -79,12 +98,30 @@ function BrowseGamesContent() {
                     </h1>
 
                     <div className="flex flex-wrap items-center gap-4">
-                        {/* Sort Dropdown (Mock - could be implemented similarly) */}
                         <div className="relative">
-                            <button className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors">
+                            <button
+                                onClick={toggleSort}
+                                className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors"
+                            >
                                 <SlidersHorizontal className="w-4 h-4" />
-                                Sort by: Popularity
+                                Sort by: {SORT_OPTIONS.find(opt => opt.value === sortBy)?.label}
                             </button>
+
+                            {/* Dropdown Menu */}
+                            {isSortOpen && (
+                                <div className="absolute right-0 mt-2 w-48 bg-zinc-900 border border-zinc-800 rounded-lg shadow-xl z-50 overflow-hidden">
+                                    {SORT_OPTIONS.map((option) => (
+                                        <button
+                                            key={option.value}
+                                            onClick={() => handleSortChange(option.value)}
+                                            className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-zinc-800 ${sortBy === option.value ? 'text-emerald-500 font-medium' : 'text-zinc-300'
+                                                }`}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

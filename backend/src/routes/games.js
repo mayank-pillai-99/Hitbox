@@ -1,156 +1,215 @@
 import express from 'express';
-import axios from 'axios';
+import igdb from '../utils/igdb.js';
 import Game from '../models/Game.js';
+import { mapIGDBGame } from '../utils/mappers.js';
 
 const router = express.Router();
-const RAWG_BASE_URL = 'https://api.rawg.io/api';
 
-// Helper to map RAWG data to our schema shape
-const mapRawgGame = (data) => ({
-    _id: data.id, // Use RAWG ID as _id for frontend consistency (passed as string/number)
-    rawgId: data.id,
-    title: data.name,
-    slug: data.slug,
-    description: data.description_raw || data.description,
-    coverImage: data.background_image,
-    releaseDate: data.released,
-    averageRating: 0, // Default to 0 (ignore RAWG rating), strictly use local Move data
-    genre: data.genres?.map(g => g.name) || [],
-    platforms: data.platforms?.map(p => p.platform.name) || [],
-    isRemote: true // Flag to tell frontend this is from RAWG
-});
-
-// Search/Browse Games (Proxy to RAWG)
+// Search/Browse Games (IGDB)
 router.get('/', async (req, res) => {
     try {
-        const { search, ordering, dates, platforms, genres, page } = req.query;
-        const RAWG_API_KEY = process.env.RAWG_API_KEY;
+        const { search, ordering, platforms, genres, page } = req.query;
 
-        // Simple platform mapping to RAWG IDs (mock list -> real IDs)
-        // PC: 4, PlayStation 5: 187, PlayStation 4: 18, Xbox One: 1, Xbox Series S/X: 186, Nintendo Switch: 7
-        // For simplicity, we'll map broad terms to a few primary IDs
+        // --- Filter Mapping (Frontend Slugs -> IGDB IDs) ---
+        // TODO: In a real app, we'd fetch these from IGDB /genres and /platforms endpoints dynamically or cache them.
+
         const platformMap = {
-            'pc': '4',
-            'playstation': '187,18',
-            'xbox': '1,186',
-            'nintendo': '7',
-            'ios': '3',
-            'android': '21'
+            'pc': 6,
+            'playstation': 48, // PS4 (Simpler to just map "PlayStation" to PS4 for now, or use [48, 167] for PS4+PS5)
+            'xbox': 49, // Xbox One
+            'nintendo': 130, // Switch
+            'mac': 14,
+            'ios': 39,
+            'android': 34
         };
 
         const genreMap = {
-            'rpg': 'role-playing-games-rpg',
-            'action': 'action',
-            'adventure': 'adventure',
-            'shooter': 'shooter',
-            'strategy': 'strategy',
-            'roguelike': 'tag:roguelike' // Handle as tag
+            'rpg': 12,
+            'action': 5,
+            'adventure': 31,
+            'shooter': 5, // IGDB 'Shooter' is 5
+            'strategy': 15,
+            'simulator': 13,
+            'puzzle': 9,
+            'racing': 10,
+            'sport': 14
         };
 
-        let rawgPlatforms = platforms;
+        // --- Query Construction ---
+
+        let whereClauses = [
+            // 'category = (0, 8, 9, 10)', // Disabled: Causes 0 results with sorting
+        ];
+
+        if (genres && genreMap[genres.toLowerCase()]) {
+            whereClauses.push(`genres = [${genreMap[genres.toLowerCase()]}]`);
+        }
+
         if (platforms && platformMap[platforms.toLowerCase()]) {
-            rawgPlatforms = platformMap[platforms.toLowerCase()];
+            whereClauses.push(`platforms = [${platformMap[platforms.toLowerCase()]}]`);
         }
 
-        let rawgGenres = genres;
-        let rawgTags = undefined;
+        // Note: 'search' in IGDB is a separate statement, not a where clause filter usually.
+        // It acts as a fuzzy finder.
 
-        if (genres) {
-            const lowerGenre = genres.toLowerCase();
-            if (genreMap[lowerGenre]) {
-                const mapped = genreMap[lowerGenre];
-                // Check if mapped value implies it's a tag (custom logic or simple check)
-                if (mapped === 'tag:roguelike') {
-                    rawgTags = 'roguelike';
-                    rawgGenres = undefined;
-                } else {
-                    rawgGenres = mapped;
-                }
-            } else {
-                rawgGenres = lowerGenre;
+        let query = `fields name, cover.url, first_release_date, total_rating, total_rating_count, hypes, summary, genres.name, platforms.name, slug;`;
+
+        // ... (sorting logic remains) ...
+
+        // ... (query construction remains) ...
+
+        // RE-INJECT LOGIC TO MATCH FILE CONTEXT IF NEEDED, BUT HERE WE JUST EDIT THE QUERY DEFINITION LINE OR ADD LOGGING
+        // SINCE I CAN'T EASILY JUMP, I'LL USE TARGETCONTENT FOR THE QUERY LINE
+
+
+        // Sorting
+        // Map frontend 'ordering' to IGDB fields
+        // rawg: -added, -released, released, -rating, name
+        let sortStatement = '';
+        if (ordering) {
+            switch (ordering) {
+                case '-added': // Popularity
+                    sortStatement = 'sort total_rating_count desc;';
+                    break;
+                case '-released':
+                    sortStatement = 'sort first_release_date desc;';
+                    break;
+                case 'released':
+                    sortStatement = 'sort first_release_date asc;';
+                    break;
+                case '-rating':
+                    sortStatement = 'sort total_rating desc;';
+                    break;
+                case 'name':
+                    sortStatement = 'sort name asc;';
+                    break;
+                default:
+                    sortStatement = 'sort total_rating_count desc;';
             }
+        } else {
+            sortStatement = 'sort total_rating_count desc;';
         }
 
-        const params = {
-            key: RAWG_API_KEY,
-            page_size: 20,
-            page: page || 1,
-            search: search,
-            ordering: ordering || '-added',
-            dates: dates,
-            platforms: rawgPlatforms,
-            genres: rawgGenres,
-            tags: rawgTags
-        };
+        // Pagination
+        const pageSize = 20;
+        const pageNum = parseInt(page) || 1;
+        const offset = (pageNum - 1) * pageSize;
+        query += ` limit ${pageSize}; offset ${offset};`;
 
-        const response = await axios.get(`${RAWG_BASE_URL}/games`, { params });
+        // Search Handling
+        // Logic Construction:
+        // 1. Search (optional)
+        // 2. Where (filters)
+        // 3. Sort (ordering) - IGDB advises against sort with search, but we'll include it if filters exist or if specifically requested.
 
-        const rawgGames = response.data.results;
+        if (search) {
+            query += ` search "${search}";`;
+        }
 
-        // Get RAWG IDs to check against local DB
-        const rawgIds = rawgGames.map(g => g.id);
-        const localGames = await Game.find({ rawgId: { $in: rawgIds } });
+        // Apply filters
+        if (whereClauses.length > 0) {
+            query += ` where ${whereClauses.join(' & ')};`;
+        }
 
-        // Create map for faster lookup: rawgId -> localGame
+        // Apply sorting (Only if NOT searching, to rely on search relevance, OR if we want to force it)
+        // For now, let's only sort if NOT searching. or if the user explicitly picked a sort?
+        // IGDB: "When using search, results are sorted by relevance by default."
+        // If we verify that sorting works with search, we can enable it.
+        // Let's keep it simple: strict sort if no search. If search, rely on relevance (default).
+        if (!search) {
+            query += ` ${sortStatement}`;
+        }
+
+        console.log("IGDB Query:", query);
+
+        const response = await igdb.post('/games', query);
+        console.log("IGDB Response Items:", response.data.length);
+        const igdbGames = response.data;
+
+        // Get IGDB IDs to check against local DB
+        const igdbIds = igdbGames.map(g => g.id);
+        const localGames = await Game.find({ igdbId: { $in: igdbIds } });
+
+        // Map local games
         const localGameMap = {};
         localGames.forEach(g => {
-            localGameMap[g.rawgId] = g;
+            localGameMap[g.igdbId] = g;
         });
 
-        const games = rawgGames.map(g => {
-            const mapped = mapRawgGame(g);
-            // Override rating with local data if exists, else 0 (unrated on Hitbox)
+        const games = igdbGames.map(g => {
+            const mapped = mapIGDBGame(g);
             if (localGameMap[g.id]) {
                 mapped.averageRating = localGameMap[g.id].averageRating || 0;
-            } else {
-                mapped.averageRating = 0;
+                // If local rating exists, use it for display 'rating' too?
+                // The prompt requirements said: "prioritize local Hitbox ratings".
+                // So if local averageRating > 0, show it.
+                if (mapped.averageRating > 0) {
+                    mapped.rating = mapped.averageRating;
+                }
             }
             return mapped;
         });
 
         res.json({
             results: games,
-            count: response.data.count,
-            next: response.data.next ? true : false,
-            previous: response.data.previous ? true : false
+            // IGDB doesn't return total count in the same query. We'd need a separate /count query.
+            // For now, we'll just assume 'next' is true if we got full page_size items.
+            next: games.length === pageSize
         });
+
     } catch (err) {
-        console.error("RAWG API Error:", err.message);
+        console.error("IGDB API Error:", err.message);
+        if (err.response) console.error(err.response.data);
         res.status(500).json({ message: 'Failed to fetch games' });
     }
 });
 
-// Get Game Details (Local DB -> RAWG Fallback)
+// Get Game Details
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
         let game;
 
-        // 1. Check if ID is a standard valid ObjectId (Internal DB)
+        // 1. Check Local DB (ObjectId)
         if (id.match(/^[0-9a-fA-F]{24}$/)) {
             game = await Game.findById(id);
         } else {
-            // 2. Check if it's a numeric RAWG ID stored in our DB
-            game = await Game.findOne({ rawgId: id });
+            // 2. Check Local DB (IGDB ID)
+            // Note: req.params.id is string, DB igdbId is Number. Cast it.
+            const numericId = parseInt(id);
+            if (!isNaN(numericId)) {
+                game = await Game.findOne({ igdbId: numericId });
+            }
         }
 
-        // 3. If found in DB, return it (reviews handled separately)
         if (game) {
             return res.json(game);
         }
 
-        // 4. Not in DB, fetch from RAWG
+        // 3. Fetch from IGDB
         try {
-            const RAWG_API_KEY = process.env.RAWG_API_KEY;
-            const rawgRes = await axios.get(`${RAWG_BASE_URL}/games/${id}`, {
-                params: { key: RAWG_API_KEY }
-            });
-            game = mapRawgGame(rawgRes.data);
-            res.json(game);
-        } catch (apiErr) {
-            if (apiErr.response && apiErr.response.status === 404) {
+            const query = `
+                fields name, cover.url, first_release_date, total_rating, summary, genres.name, platforms.name, slug, involved_companies.company.name;
+                where id = ${id};
+            `;
+            const response = await igdb.post('/games', query);
+
+            if (response.data && response.data.length > 0) {
+                game = mapIGDBGame(response.data[0]);
+
+                // Add developer if available
+                if (response.data[0].involved_companies) {
+                    const devs = response.data[0].involved_companies.map(c => c.company.name);
+                    game.developer = devs.join(', ');
+                }
+
+                res.json(game);
+            } else {
                 return res.status(404).json({ message: 'Game not found' });
             }
+
+        } catch (apiErr) {
+            console.error(apiErr);
             throw apiErr;
         }
 
