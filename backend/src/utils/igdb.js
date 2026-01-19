@@ -27,7 +27,7 @@ const getAccessToken = async () => {
                         client_secret: process.env.TWITCH_CLIENT_SECRET,
                         grant_type: 'client_credentials'
                     },
-                    timeout: 15000 // Increased to 15s
+                    timeout: 15000 // 15s timeout
                 });
 
                 accessToken = response.data.access_token;
@@ -41,20 +41,17 @@ const getAccessToken = async () => {
                     if (error.response) {
                         console.error('Final Auth Error Response:', error.response.data);
                     }
-                    throw new Error('IGDB Auth Failed after multiple attempts');
+                    console.error('IGDB Auth Failed after multiple attempts - returning null');
+                    return null; // Return null instead of throwing to prevent crash
                 }
                 // Wait 2s before retry
                 await new Promise(resolve => setTimeout(resolve, 2000));
             }
         }
+        return null;
     })();
-    // Always clear the promise after it settles (success or fail) so future calls can retry
+
     tokenPromise.finally(() => {
-        // If it failed, we want to clear it. If it succeeded, we still ideally clear it 
-        // IF we want to allow re-fetching later when it expires? 
-        // Actually, valid optimization: keep the promise if it resolved successfully? 
-        // But our logic at the top checks `accessToken` variable.
-        // So clearing this promise is fine/correct.
         tokenPromise = null;
     });
 
@@ -68,6 +65,12 @@ const igdb = axios.create({
 // Interceptor to add auth headers just before sending
 igdb.interceptors.request.use(async (config) => {
     const token = await getAccessToken();
+    if (!token) {
+        // If no token, reject the request gracefully
+        const error = new Error('IGDB authentication unavailable');
+        error.code = 'IGDB_AUTH_FAILED';
+        return Promise.reject(error);
+    }
     config.headers['Client-ID'] = process.env.TWITCH_CLIENT_ID;
     config.headers['Authorization'] = `Bearer ${token}`;
     config.headers['Accept'] = 'application/json';
@@ -76,3 +79,4 @@ igdb.interceptors.request.use(async (config) => {
 });
 
 export default igdb;
+

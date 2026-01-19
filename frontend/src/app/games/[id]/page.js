@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Star, Calendar, Globe, User, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AddToListModal from '@/components/AddToListModal';
+import GameStatusButtons from '@/components/GameStatusButtons';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -142,6 +143,11 @@ export default function GameDetails({ params }) {
                             >
                                 Add to List
                             </button>
+                        </div>
+
+                        {/* Game Status Buttons */}
+                        <div className="mb-8">
+                            <GameStatusButtons gameId={gameId} />
                         </div>
 
                         {/* Description */}

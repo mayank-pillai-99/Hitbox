@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Settings, Loader2, Plus } from 'lucide-react';
+import { Settings, Loader2, Plus, Check, Play, BookmarkPlus } from 'lucide-react';
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
 import api from '@/utils/api';
@@ -11,25 +11,33 @@ import { useAuth } from '@/context/AuthContext';
 export default function Profile() {
     const { user, logout } = useAuth();
     const [lists, setLists] = useState([]);
+    const [gameCounts, setGameCounts] = useState({ total: 0, played: 0, playing: 0, want_to_play: 0 });
+    const [gameStatuses, setGameStatuses] = useState({ played: [], playing: [], want_to_play: [] });
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (!user) return;
 
-        const fetchLists = async () => {
+        const fetchData = async () => {
             try {
-                const res = await api.get('/lists');
-                setLists(res.data);
+                const [listsRes, countsRes, statusesRes] = await Promise.all([
+                    api.get('/lists'),
+                    api.get('/game-status/counts'),
+                    api.get('/game-status')
+                ]);
+                setLists(listsRes.data);
+                setGameCounts(countsRes.data);
+                setGameStatuses(statusesRes.data);
                 setLoading(false);
             } catch (err) {
-                console.error("Failed to fetch lists", err);
+                console.error("Failed to fetch profile data", err);
                 setError('Failed to load profile.');
                 setLoading(false);
             }
         };
 
-        fetchLists();
+        fetchData();
     }, [user]);
 
     if (!user) {
@@ -51,7 +59,7 @@ export default function Profile() {
 
     // Calculate basic stats
     const stats = {
-        gamesPlayed: user.stats?.gamesPlayed || 0,
+        gamesPlayed: gameCounts.total || 0,
         reviews: user.stats?.reviews || 0,
         lists: user.stats?.lists || lists.length || 0
     };
@@ -101,6 +109,52 @@ export default function Profile() {
             </div>
 
             <div className="max-w-5xl mx-auto px-4 py-12 space-y-12">
+                {/* Game Status Sections */}
+                {gameStatuses.played.length > 0 && (
+                    <section>
+                        <div className="flex items-center gap-2 border-b border-zinc-800 pb-4 mb-6">
+                            <Check className="w-5 h-5 text-emerald-500" />
+                            <h2 className="text-2xl font-bold text-white">Played</h2>
+                            <span className="text-zinc-500">({gameStatuses.played.length})</span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                            {gameStatuses.played.slice(0, 6).map(item => (
+                                <GameCard key={item._id} game={item.game} />
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {gameStatuses.playing.length > 0 && (
+                    <section>
+                        <div className="flex items-center gap-2 border-b border-zinc-800 pb-4 mb-6">
+                            <Play className="w-5 h-5 text-blue-500" />
+                            <h2 className="text-2xl font-bold text-white">Playing</h2>
+                            <span className="text-zinc-500">({gameStatuses.playing.length})</span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                            {gameStatuses.playing.slice(0, 6).map(item => (
+                                <GameCard key={item._id} game={item.game} />
+                            ))}
+                        </div>
+                    </section>
+                )}
+
+                {gameStatuses.want_to_play.length > 0 && (
+                    <section>
+                        <div className="flex items-center gap-2 border-b border-zinc-800 pb-4 mb-6">
+                            <BookmarkPlus className="w-5 h-5 text-amber-500" />
+                            <h2 className="text-2xl font-bold text-white">Want to Play</h2>
+                            <span className="text-zinc-500">({gameStatuses.want_to_play.length})</span>
+                        </div>
+                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
+                            {gameStatuses.want_to_play.slice(0, 6).map(item => (
+                                <GameCard key={item._id} game={item.game} />
+                            ))}
+                        </div>
+                    </section>
+                )}
+
                 {/* Lists Section */}
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-8">
                     <h2 className="text-2xl font-bold text-white">My Lists</h2>
