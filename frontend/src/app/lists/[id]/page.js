@@ -115,7 +115,10 @@ export default function ListDetails({ params }) {
                                     ) : (
                                         <User className="w-6 h-6 p-1 bg-zinc-800 rounded-full" />
                                     )}
-                                    <span className="text-zinc-300 font-medium">Created by {list.user.username || 'User'}</span>
+                                    <span className="text-zinc-300">Created by </span>
+                                    <Link href={`/users/${list.user.username}`} className="text-zinc-300 font-medium hover:text-emerald-500 transition-colors">
+                                        {list.user.username || 'User'}
+                                    </Link>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />

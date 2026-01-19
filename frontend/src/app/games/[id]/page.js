@@ -196,7 +196,9 @@ export default function GameDetails({ params }) {
                                                             <User className="w-4 h-4 text-zinc-400" />
                                                         )}
                                                     </div>
-                                                    <span className="font-medium text-white">{review.user?.username || 'Unknown User'}</span>
+                                                    <Link href={`/users/${review.user?.username}`} className="font-medium text-white hover:text-emerald-500 transition-colors">
+                                                        {review.user?.username || 'Unknown User'}
+                                                    </Link>
                                                 </div>
                                                 <div className="flex items-center gap-1 text-emerald-500">
                                                     <Star className="w-4 h-4 fill-current" />

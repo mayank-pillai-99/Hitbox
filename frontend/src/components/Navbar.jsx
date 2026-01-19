@@ -52,6 +52,9 @@ const Navbar = () => {
                             <Link href="/games" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
                                 Games
                             </Link>
+                            <Link href="/members" className="hover:text-emerald-400 px-3 py-2 rounded-md text-sm font-medium transition-colors">
+                                Members
+                            </Link>
 
                             {user ? (
                                 <>

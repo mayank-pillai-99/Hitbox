@@ -13,6 +13,7 @@ import authRoutes from './routes/auth.js';
 import gameRoutes from './routes/games.js';
 import reviewRoutes from './routes/reviews.js';
 import listRoutes from './routes/lists.js';
+import userRoutes from './routes/users.js';
 
 app.use(cors());
 app.use(express.json());
@@ -21,6 +22,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/games', gameRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/lists', listRoutes);
+app.use('/api/users', userRoutes);
 
 // Basic route
 app.get('/', (req, res) => {

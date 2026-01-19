@@ -16,12 +16,18 @@ export const AuthProvider = ({ children }) => {
         const loadUser = async () => {
             const token = localStorage.getItem('token');
             if (token) {
+                api.defaults.headers.common['x-auth-token'] = token;
                 try {
-                    api.defaults.headers.common['x-auth-token'] = token;
                     const res = await api.get('/auth/me');
                     setUser(res.data);
                 } catch (error) {
-                    console.error("Auth load error", error);
+                    // Silently handle auth errors (expired token, invalid token, etc.)
+                    // This is expected behavior, not a bug
+                    if (error.response?.status === 401 || error.response?.status === 403) {
+                        // Token expired or invalid - clear it silently
+                    } else {
+                        console.error("Auth load error:", error.message);
+                    }
                     localStorage.removeItem('token');
                     delete api.defaults.headers.common['x-auth-token'];
                     setUser(null);
