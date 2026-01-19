@@ -2,21 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import GameCard from '@/components/GameCard';
-import { User, Calendar, MoreHorizontal, Loader2 } from 'lucide-react';
+import EditListModal from '@/components/EditListModal';
+import { User, Calendar, MoreHorizontal, Loader2, Trash2, Edit } from 'lucide-react';
 import api from '@/utils/api';
+import { useAuth } from '@/context/AuthContext';
 
 export default function ListDetails({ params }) {
+    const { user } = useAuth();
+    const router = useRouter();
     const [list, setList] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [listId, setListId] = useState(null);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [deleting, setDeleting] = useState(false);
 
-    // Unwrap params using React.use() or await if necessary in newer Next.js, but params is a promise in the latest versions.
-    // However, for this client component structure, assuming basic params usage.
+    // Unwrap params using React.use() or await if necessary in newer Next.js
     useEffect(() => {
-        // safely unwrap params
         const unwrapParams = async () => {
             const resolvedParams = await params;
             setListId(resolvedParams.id);
@@ -42,6 +46,34 @@ export default function ListDetails({ params }) {
         fetchList();
     }, [listId]);
 
+    const handleUpdate = (updatedList) => {
+        setList({ ...list, ...updatedList });
+    };
+
+    const handleDeleteList = async () => {
+        if (!confirm("Are you sure you want to delete this list? This action cannot be undone.")) return;
+        setDeleting(true);
+        try {
+            await api.delete(`/lists/${listId}`);
+            router.push('/profile');
+        } catch (err) {
+            console.error("Failed to delete list", err);
+            alert("Failed to delete list.");
+            setDeleting(false);
+        }
+    };
+
+    const handleRemoveGame = async (gameId) => {
+        if (!confirm("Remove this game from the list?")) return;
+        try {
+            const res = await api.delete(`/lists/${listId}/game/${gameId}`);
+            setList(res.data);
+        } catch (err) {
+            console.error("Failed to remove game", err);
+            alert("Failed to remove game from list.");
+        }
+    };
+
     if (loading) {
         return (
             <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
@@ -58,6 +90,12 @@ export default function ListDetails({ params }) {
             </div>
         );
     }
+
+    // Check ownership robustly
+    const userId = user?.id || user?._id;
+    const listUserId = list.user._id || list.user;
+
+    const isOwner = userId && listUserId && (listUserId.toString() === userId.toString());
 
     return (
         <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
@@ -77,7 +115,7 @@ export default function ListDetails({ params }) {
                                     ) : (
                                         <User className="w-6 h-6 p-1 bg-zinc-800 rounded-full" />
                                     )}
-                                    <span className="text-zinc-300 font-medium">Created by {list.user.username}</span>
+                                    <span className="text-zinc-300 font-medium">Created by {list.user.username || 'User'}</span>
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Calendar className="w-4 h-4" />
@@ -89,14 +127,24 @@ export default function ListDetails({ params }) {
                             </div>
                         </div>
 
-                        <div className="flex gap-3">
-                            <button className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm font-medium transition-colors">
-                                Edit List
-                            </button>
-                            <button className="p-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg transition-colors">
-                                <MoreHorizontal className="w-5 h-5" />
-                            </button>
-                        </div>
+                        {isOwner && (
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setIsEditModalOpen(true)}
+                                    className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                                >
+                                    <Edit className="w-4 h-4" /> Edit List
+                                </button>
+                                <button
+                                    onClick={handleDeleteList}
+                                    disabled={deleting}
+                                    className="p-2 bg-zinc-800 hover:bg-red-900/20 border border-zinc-700 hover:border-red-900/50 rounded-lg transition-colors text-zinc-400 hover:text-red-500"
+                                    title="Delete List"
+                                >
+                                    {deleting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                                </button>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -130,14 +178,28 @@ export default function ListDetails({ params }) {
                                     </div>
                                 </div>
 
-                                <div className="opacity-0 group-hover:opacity-100 transition-opacity px-4">
-                                    <button className="text-zinc-500 hover:text-white transition-colors text-sm">Remove</button>
-                                </div>
+                                {isOwner && (
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity px-4">
+                                        <button
+                                            onClick={() => handleRemoveGame(game._id)}
+                                            className="text-zinc-500 hover:text-red-400 transition-colors text-sm flex items-center gap-1"
+                                        >
+                                            <Trash2 className="w-4 h-4" /> Remove
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
                 )}
             </div>
+
+            <EditListModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                list={list}
+                onUpdate={handleUpdate}
+            />
         </div>
     );
 }

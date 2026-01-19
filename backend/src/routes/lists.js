@@ -144,4 +144,79 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+// Update a list
+router.put('/:id', auth, async (req, res) => {
+    try {
+        const { name, description } = req.body;
+        let list = await List.findById(req.params.id);
+
+        if (!list) return res.status(404).json({ message: 'List not found' });
+        if (list.user.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        list.name = name || list.name;
+        list.description = description !== undefined ? description : list.description;
+
+        await list.save();
+        res.json(list);
+    } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') return res.status(404).json({ message: 'List not found' });
+        res.status(500).send('Server error');
+    }
+});
+
+// Delete a list
+router.delete('/:id', auth, async (req, res) => {
+    try {
+        const list = await List.findById(req.params.id);
+
+        if (!list) return res.status(404).json({ message: 'List not found' });
+        if (list.user.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        await list.deleteOne();
+        res.json({ message: 'List removed' });
+    } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') return res.status(404).json({ message: 'List not found' });
+        res.status(500).send('Server error');
+    }
+});
+
+// Remove game from list
+router.delete('/:id/game/:gameId', auth, async (req, res) => {
+    try {
+        const list = await List.findById(req.params.id);
+
+        if (!list) return res.status(404).json({ message: 'List not found' });
+        if (list.user.toString() !== req.user.id) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        // Filter out the game
+        const originalLength = list.games.length;
+        list.games = list.games.filter(game => game.toString() !== req.params.gameId);
+
+        if (list.games.length === originalLength) {
+            return res.status(404).json({ message: 'Game not found in list' });
+        }
+
+        await list.save();
+
+        // Return fully populated list so frontend updates correctly
+        const populatedList = await List.findById(req.params.id)
+            .populate('games')
+            .populate('user', 'username profilePicture');
+
+        res.json(populatedList);
+    } catch (err) {
+        console.error(err.message);
+        if (err.kind === 'ObjectId') return res.status(404).json({ message: 'List not found' });
+        res.status(500).send('Server error');
+    }
+});
+
 export default router;
