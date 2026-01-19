@@ -7,6 +7,69 @@ import { mapIGDBGame } from '../utils/mappers.js';
 
 const router = express.Router();
 
+// Discover all public lists (no auth required)
+router.get('/discover', async (req, res) => {
+    try {
+        const page = parseInt(req.query.page) || 1;
+        const limit = parseInt(req.query.limit) || 20;
+        const skip = (page - 1) * limit;
+        const sort = req.query.sort || 'popular'; // 'popular', 'recent'
+
+        // Build sort options
+        let sortOptions = {};
+        if (sort === 'recent') {
+            sortOptions = { createdAt: -1 };
+        } else {
+            // Popular = most games in list
+            sortOptions = { createdAt: -1 }; // We'll sort by games.length after population
+        }
+
+        const lists = await List.find()
+            .populate('games', 'title coverImage')
+            .populate('user', 'username profilePicture')
+            .sort(sortOptions)
+            .skip(skip)
+            .limit(limit)
+            .lean();
+
+        // Transform for frontend with preview data
+        let listsWithPreview = lists.map(list => ({
+            _id: list._id,
+            name: list.name,
+            description: list.description,
+            gameCount: list.games.length,
+            previewGames: list.games.slice(0, 5).map(g => ({
+                title: g.title,
+                coverImage: g.coverImage
+            })),
+            user: {
+                username: list.user?.username || 'Unknown',
+                profilePicture: list.user?.profilePicture
+            },
+            createdAt: list.createdAt
+        }));
+
+        // Sort by popularity (most games) if requested
+        if (sort === 'popular') {
+            listsWithPreview.sort((a, b) => b.gameCount - a.gameCount);
+        }
+
+        const total = await List.countDocuments();
+
+        res.json({
+            lists: listsWithPreview,
+            pagination: {
+                current: page,
+                total: Math.ceil(total / limit),
+                count: total
+            }
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 // Get current user's lists
 router.get('/', auth, async (req, res) => {
     try {
