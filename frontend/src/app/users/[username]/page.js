@@ -177,7 +177,7 @@ export default function PublicUserProfile({ params }) {
                                     <div className="flex-1">
                                         <h3 className="font-bold text-white">{review.game?.title || 'Unknown Game'}</h3>
                                         <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
-                                            <span className="text-emerald-500">★ {review.rating}/10</span>
+                                            <span className="text-emerald-500">★ {review.rating}/5</span>
                                             <span>•</span>
                                             <span>{new Date(review.createdAt).toLocaleDateString()}</span>
                                         </div>

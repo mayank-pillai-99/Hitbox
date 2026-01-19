@@ -202,7 +202,7 @@ export default function GameDetails({ params }) {
                                                 </div>
                                                 <div className="flex items-center gap-1 text-emerald-500">
                                                     <Star className="w-4 h-4 fill-current" />
-                                                    <span className="text-sm font-bold">{review.rating}</span>
+                                                    <span className="text-sm font-bold">{review.rating}/5</span>
                                                 </div>
                                             </div>
                                             <p className="text-zinc-300 text-sm">{review.text}</p>
