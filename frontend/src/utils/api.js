@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000/api', // Make sure this matches your backend URL
+    baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api', // Fallback to local for dev if safely needed, but env file should handle it.
     headers: {
         'Content-Type': 'application/json',
     },
