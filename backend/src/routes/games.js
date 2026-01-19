@@ -132,10 +132,8 @@ router.get('/', async (req, res) => {
             query += ` ${sortStatement}`;
         }
 
-        console.log("IGDB Query:", query);
 
         const response = await igdb.post('/games', query);
-        console.log("IGDB Response Items:", response.data.length);
         const igdbGames = response.data;
 
         // Get IGDB IDs to check against local DB
