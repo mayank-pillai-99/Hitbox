@@ -16,7 +16,7 @@ export const mapIGDBGame = (data) => {
         coverImage: coverUrl,
         releaseDate: data.first_release_date ? new Date(data.first_release_date * 1000).toISOString() : null,
         averageRating: 0, // Default to 0, strictly use local Hitbox data
-        rating: data.total_rating ? Math.round(data.total_rating) : 0, // Fallback IGDB rating for display
+        rating: 0, // Explicitly 0. Only local ratings (mapped in route) will populate this.
         genre: data.genres?.map(g => g.name) || [],
         platforms: data.platforms?.map(p => p.name) || [],
         developer: data.involved_companies?.find(c => c.developer)?.company?.name,

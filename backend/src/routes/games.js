@@ -49,6 +49,18 @@ router.get('/', async (req, res) => {
             whereClauses.push(`platforms = [${platformMap[platforms.toLowerCase()]}]`);
         }
 
+        const { dates } = req.query;
+        if (dates) {
+            const [start, end] = dates.split(',');
+            if (start && end) {
+                const startTs = Math.floor(new Date(start).getTime() / 1000);
+                const endTs = Math.floor(new Date(end).getTime() / 1000);
+                // IGDB requires Unix timestamp in seconds
+                whereClauses.push(`first_release_date >= ${startTs}`);
+                whereClauses.push(`first_release_date <= ${endTs}`);
+            }
+        }
+
         // Note: 'search' in IGDB is a separate statement, not a where clause filter usually.
         // It acts as a fuzzy finder.
 

@@ -3,33 +3,62 @@ import axios from 'axios';
 let accessToken = null;
 let tokenExpiry = 0;
 
+let tokenPromise = null;
+
 const getAccessToken = async () => {
     // If we have a token and it's not expired (buffer of 60s), return it
     if (accessToken && Date.now() < tokenExpiry - 60000) {
         return accessToken;
     }
 
-    try {
-        const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
-            params: {
-                client_id: process.env.TWITCH_CLIENT_ID,
-                client_secret: process.env.TWITCH_CLIENT_SECRET,
-                grant_type: 'client_credentials'
-            }
-        });
-
-        accessToken = response.data.access_token;
-        // expires_in is in seconds
-        tokenExpiry = Date.now() + (response.data.expires_in * 1000);
-        console.log('New IGDB Access Token Generated');
-        return accessToken;
-    } catch (error) {
-        console.error('Failed to get IGDB access token:', error.message);
-        if (error.response) {
-            console.error('Response data:', error.response.data);
-        }
-        throw new Error('IGDB Auth Failed');
+    // If a request is already in progress, wait for it
+    if (tokenPromise) {
+        return tokenPromise;
     }
+
+    // Start a new request
+    tokenPromise = (async () => {
+        let retries = 3;
+        while (retries > 0) {
+            try {
+                const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
+                    params: {
+                        client_id: process.env.TWITCH_CLIENT_ID,
+                        client_secret: process.env.TWITCH_CLIENT_SECRET,
+                        grant_type: 'client_credentials'
+                    },
+                    timeout: 15000 // Increased to 15s
+                });
+
+                accessToken = response.data.access_token;
+                tokenExpiry = Date.now() + (response.data.expires_in * 1000);
+                console.log('New IGDB Access Token Generated');
+                return accessToken;
+            } catch (error) {
+                console.error(`IGDB Auth Attempt Failed (${retries} retries left):`, error.message);
+                retries--;
+                if (retries === 0) {
+                    if (error.response) {
+                        console.error('Final Auth Error Response:', error.response.data);
+                    }
+                    throw new Error('IGDB Auth Failed after multiple attempts');
+                }
+                // Wait 2s before retry
+                await new Promise(resolve => setTimeout(resolve, 2000));
+            }
+        }
+    })();
+    // Always clear the promise after it settles (success or fail) so future calls can retry
+    tokenPromise.finally(() => {
+        // If it failed, we want to clear it. If it succeeded, we still ideally clear it 
+        // IF we want to allow re-fetching later when it expires? 
+        // Actually, valid optimization: keep the promise if it resolved successfully? 
+        // But our logic at the top checks `accessToken` variable.
+        // So clearing this promise is fine/correct.
+        tokenPromise = null;
+    });
+
+    return tokenPromise;
 };
 
 const igdb = axios.create({

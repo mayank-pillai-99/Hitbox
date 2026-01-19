@@ -1,8 +1,9 @@
 import express from 'express';
-import axios from 'axios';
 import List from '../models/List.js';
 import Game from '../models/Game.js';
 import auth from '../middleware/auth.js';
+import igdb from '../utils/igdb.js';
+import { mapIGDBGame } from '../utils/mappers.js';
 
 const router = express.Router();
 
@@ -50,46 +51,70 @@ router.post('/:id/add', auth, async (req, res) => {
 
         let targetGameId = gameId;
 
-        // Check if gameId is numeric (RAWG ID) and not an ObjectId
+        // Check if gameId is numeric (IGDB ID) and not an ObjectId
         if (!String(gameId).match(/^[0-9a-fA-F]{24}$/)) {
-            // It's likely a RAWG ID. Check if we have it in DB.
-            let game = await Game.findOne({ rawgId: gameId });
+            const numericId = parseInt(gameId);
+            if (isNaN(numericId)) {
+                return res.status(400).json({ message: 'Invalid game ID' });
+            }
+            // Check if we have it in DB
+            let game = await Game.findOne({ igdbId: numericId });
 
             if (!game) {
-                // Not in DB, fetch from RAWG and create it
+                // Not in DB, fetch from IGDB and create it
                 try {
-                    const RAWG_API_KEY = process.env.RAWG_API_KEY;
-                    const RAWG_BASE_URL = 'https://api.rawg.io/api';
-                    const rawgRes = await axios.get(`${RAWG_BASE_URL}/games/${gameId}`, {
-                        params: { key: RAWG_API_KEY }
-                    });
+                    const query = `
+                        fields name, cover.url, first_release_date, total_rating, summary, genres.name, platforms.name, slug, involved_companies.company.name;
+                        where id = ${numericId};
+                    `;
+                    const igdbRes = await igdb.post('/games', query);
 
-                    const data = rawgRes.data;
-                    const newGame = new Game({
-                        rawgId: data.id,
-                        title: data.name,
-                        slug: data.slug,
-                        description: data.description_raw || data.description,
-                        coverImage: data.background_image,
-                        releaseDate: data.released,
-                        averageRating: data.rating,
-                        genre: data.genres?.map(g => g.name) || [],
-                        platforms: data.platforms?.map(p => p.platform.name) || [],
-                        developer: data.developers?.[0]?.name,
-                        publisher: data.publishers?.[0]?.name,
-                    });
+                    if (igdbRes.data && igdbRes.data.length > 0) {
+                        const mappedGame = mapIGDBGame(igdbRes.data[0]);
 
-                    game = await newGame.save();
+                        // Add developer if available
+                        if (igdbRes.data[0].involved_companies) {
+                            const devs = igdbRes.data[0].involved_companies.map(c => c.company.name);
+                            mappedGame.developer = devs.join(', ');
+                        }
+
+                        // mapIGDBGame returns a plain object, we need to save it as a Mongoose document
+                        // Be careful: mapIGDBGame doesn't return exactly Mongoose schema format for everything?
+                        // Actually it returns a clean object. We can check Game.js model.
+                        // Game model has: igdbId, title, slug, description, coverImage, releaseDate, genre, platforms, developer, averageRating
+                        // mapIGDBGame returns: id (we need to rename to igdbId), title, slug, description, coverImage, releaseDate, genre, platforms
+
+                        const newGame = new Game({
+                            igdbId: mappedGame.id,
+                            title: mappedGame.title,
+                            slug: mappedGame.slug,
+                            description: mappedGame.description,
+                            coverImage: mappedGame.coverImage,
+                            releaseDate: mappedGame.releaseDate,
+                            averageRating: 0, // Default for local
+                            genre: mappedGame.genre,
+                            platforms: mappedGame.platforms,
+                            developer: mappedGame.developer
+                        });
+
+                        game = await newGame.save();
+                    } else {
+                        return res.status(404).json({ message: 'Game not found on IGDB' });
+                    }
                 } catch (fetchErr) {
-                    console.error("Failed to fetch/save RAWG game:", fetchErr.message);
-                    return res.status(404).json({ message: 'Game not found on RAWG' });
+                    console.error("Failed to fetch/save IGDB game:", fetchErr.message);
+                    return res.status(500).json({ message: 'Failed to fetch game details' });
                 }
             }
-            targetGameId = game._id;
+            if (game) {
+                targetGameId = game._id;
+            } else {
+                return res.status(404).json({ message: 'Game could not be found or created' });
+            }
         }
 
-        // Check if game already in list
-        if (list.games.includes(targetGameId)) {
+        // Check if game already in list (using safe string comparison for ObjectIds)
+        if (list.games.some(id => id.toString() === targetGameId.toString())) {
             return res.status(400).json({ message: 'Game already in list' });
         }
 

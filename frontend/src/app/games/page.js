@@ -8,7 +8,7 @@ import GameCard from '@/components/GameCard';
 import { Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
 import api from '@/utils/api';
 
-const GENRES = ["All", "RPG", "Action", "Adventure", "Shooter", "Roguelike", "Strategy"];
+const GENRES = ["All", "RPG", "Action", "Adventure", "Shooter", "Strategy"];
 const PLATFORMS = ["All", "PC", "PlayStation", "Xbox", "Nintendo"];
 
 function BrowseGamesContent() {
@@ -41,7 +41,6 @@ function BrowseGamesContent() {
         { label: 'Newest Releases', value: '-released' },
         { label: 'Oldest Releases', value: 'released' },
         { label: 'Top Rated', value: '-rating' },
-        { label: 'Name', value: 'name' },
     ];
 
     useEffect(() => {
