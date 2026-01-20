@@ -102,6 +102,21 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// Get current user's reviews
+router.get('/my', auth, async (req, res) => {
+    try {
+        const reviews = await Review.find({ user: req.user.id })
+            .populate('game', 'title coverImage slug igdbId')
+            .sort({ createdAt: -1 })
+            .limit(10);
+
+        res.json(reviews);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 // Get reviews for a game
 router.get('/game/:gameId', async (req, res) => {
     try {
