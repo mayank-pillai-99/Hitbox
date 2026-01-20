@@ -76,17 +76,17 @@ export default function ListDetails({ params }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
             </div>
         );
     }
 
     if (error || !list) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center flex-col gap-4">
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center flex-col gap-4">
                 <p className="text-red-400">{error || 'List not found'}</p>
-                <Link href="/profile" className="text-emerald-500 hover:underline">Back to Profile</Link>
+                <Link href="/profile" className="text-lime-400 hover:underline">Back to Profile</Link>
             </div>
         );
     }
@@ -98,7 +98,7 @@ export default function ListDetails({ params }) {
     const isOwner = userId && listUserId && (listUserId.toString() === userId.toString());
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 pb-12">
             <Navbar />
 
             <div className="bg-zinc-900 border-b border-zinc-800 py-12 px-4">
@@ -116,7 +116,7 @@ export default function ListDetails({ params }) {
                                         <User className="w-6 h-6 p-1 bg-zinc-800 rounded-full" />
                                     )}
                                     <span className="text-zinc-300">Created by </span>
-                                    <Link href={`/users/${list.user.username}`} className="text-zinc-300 font-medium hover:text-emerald-500 transition-colors">
+                                    <Link href={`/users/${list.user.username}`} className="text-zinc-300 font-medium hover:text-lime-400 transition-colors">
                                         {list.user.username || 'User'}
                                     </Link>
                                 </div>
@@ -171,13 +171,13 @@ export default function ListDetails({ params }) {
                                 </Link>
 
                                 <div className="flex-1 min-w-0">
-                                    <Link href={`/games/${game._id}`} className="text-lg font-bold text-white hover:text-emerald-500 transition-colors truncate block">
+                                    <Link href={`/games/${game._id}`} className="text-lg font-bold text-white hover:text-lime-400 transition-colors truncate block">
                                         {game.title}
                                     </Link>
                                     <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
                                         {game.releaseDate && <span>{new Date(game.releaseDate).getFullYear()}</span>}
                                         <span>•</span>
-                                        <span className="text-emerald-500 font-medium">★ {game.averageRating ? game.averageRating.toFixed(1) : 'NR'}</span>
+                                        <span className="text-lime-400 font-medium">★ {game.averageRating ? game.averageRating.toFixed(1) : 'NR'}</span>
                                     </div>
                                 </div>
 

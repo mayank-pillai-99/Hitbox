@@ -29,21 +29,21 @@ export default function MembersPage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100">
+        <div className="min-h-screen bg-black text-zinc-100">
             <Navbar />
 
             {/* Header */}
             <div className="bg-gradient-to-b from-zinc-900 to-zinc-950 border-b border-zinc-800 py-12 px-4">
                 <div className="max-w-6xl mx-auto text-center">
                     <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-                        <Users className="w-10 h-10 text-emerald-500" />
+                        <Users className="w-10 h-10 text-lime-400" />
                         Members
                     </h1>
                     <p className="text-zinc-400 text-lg">
@@ -85,7 +85,7 @@ function MemberCard({ member }) {
             className="group text-center"
         >
             {/* Profile Picture */}
-            <div className="w-28 h-28 mx-auto mb-3 rounded-full overflow-hidden border-4 border-zinc-800 group-hover:border-emerald-500/50 transition-colors bg-zinc-900">
+            <div className="w-28 h-28 mx-auto mb-3 rounded-full overflow-hidden border-4 border-zinc-800 group-hover:border-lime-400/50 transition-colors bg-zinc-900">
                 {member.profilePicture ? (
                     <img
                         src={member.profilePicture}
@@ -100,7 +100,7 @@ function MemberCard({ member }) {
             </div>
 
             {/* Username */}
-            <h3 className="font-bold text-white group-hover:text-emerald-500 transition-colors truncate">
+            <h3 className="font-bold text-white group-hover:text-lime-400 transition-colors truncate">
                 {member.username}
             </h3>
 

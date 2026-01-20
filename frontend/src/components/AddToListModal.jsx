@@ -81,7 +81,7 @@ export default function AddToListModal({ isOpen, onClose, gameId }) {
                 <div className="p-4 max-h-[60vh] overflow-y-auto">
                     {loading ? (
                         <div className="flex justify-center p-8">
-                            <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
+                            <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
                         </div>
                     ) : lists.length > 0 ? (
                         <div className="space-y-2">
@@ -105,9 +105,9 @@ export default function AddToListModal({ isOpen, onClose, gameId }) {
                                         </div>
 
                                         {isAdding ? (
-                                            <Loader2 className="w-5 h-5 animate-spin text-emerald-500" />
+                                            <Loader2 className="w-5 h-5 animate-spin text-lime-400" />
                                         ) : isAdded ? (
-                                            <Check className="w-5 h-5 text-emerald-500" />
+                                            <Check className="w-5 h-5 text-lime-400" />
                                         ) : (
                                             <Plus className="w-5 h-5 text-zinc-400 group-hover:text-white" />
                                         )}

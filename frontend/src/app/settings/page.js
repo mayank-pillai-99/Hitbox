@@ -62,10 +62,10 @@ export default function Settings() {
         }
     };
 
-    if (!user) return <div className="min-h-screen bg-zinc-950 flex items-center justify-center text-white"><Loader2 className="animate-spin" /></div>;
+    if (!user) return <div className="min-h-screen bg-black flex items-center justify-center text-white"><Loader2 className="animate-spin" /></div>;
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 pb-12">
             <Navbar />
 
             <div className="max-w-3xl mx-auto px-4 py-12">
@@ -93,7 +93,7 @@ export default function Settings() {
                             <h2 className="text-xl font-bold text-white mb-6">Profile Settings</h2>
 
                             {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm">{error}</div>}
-                            {success && <div className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 rounded-lg text-sm">{success}</div>}
+                            {success && <div className="mb-4 p-3 bg-lime-400/10 border border-lime-400/20 text-lime-400 rounded-lg text-sm">{success}</div>}
 
                             <form className="space-y-6" onSubmit={handleSubmit}>
                                 {/* Avatar */}
@@ -113,7 +113,7 @@ export default function Settings() {
                                             value={formData.profilePicture}
                                             onChange={handleChange}
                                             placeholder="https://example.com/avatar.jpg"
-                                            className="flex-1 px-4 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-emerald-500"
+                                            className="flex-1 px-4 py-2 bg-black border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-lime-400"
                                         />
                                     </div>
                                 </div>
@@ -130,7 +130,7 @@ export default function Settings() {
                                             id="username"
                                             value={formData.username}
                                             onChange={handleChange}
-                                            className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-lg bg-zinc-950 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                                            className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-lg bg-black text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors"
                                         />
                                     </div>
                                 </div>
@@ -143,7 +143,7 @@ export default function Settings() {
                                         rows={4}
                                         value={formData.bio}
                                         onChange={handleChange}
-                                        className="block w-full px-4 py-2.5 border border-zinc-700 rounded-lg bg-zinc-950 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors resize-none"
+                                        className="block w-full px-4 py-2.5 border border-zinc-700 rounded-lg bg-black text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors resize-none"
                                     ></textarea>
                                     <p className="mt-1 text-xs text-zinc-500">Brief description for your profile.</p>
                                 </div>
@@ -160,7 +160,7 @@ export default function Settings() {
                                             id="email"
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-lg bg-zinc-950 text-white placeholder-zinc-500 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                                            className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-lg bg-black text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors"
                                         />
                                     </div>
                                 </div>
@@ -169,7 +169,7 @@ export default function Settings() {
                                     <button
                                         type="submit"
                                         disabled={saving}
-                                        className="px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
+                                        className="px-6 py-2 bg-lime-500 hover:bg-lime-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
                                     >
                                         {saving && <Loader2 className="w-4 h-4 animate-spin" />}
                                         Save Changes

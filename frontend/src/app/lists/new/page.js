@@ -31,7 +31,7 @@ export default function ListEditor() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100">
+        <div className="min-h-screen bg-black text-zinc-100">
             <Navbar />
 
             <div className="max-w-3xl mx-auto px-4 py-12">
@@ -56,7 +56,7 @@ export default function ListEditor() {
                                 id="name"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors"
+                                className="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors"
                                 placeholder="e.g., Top 10 RPGs of All Time"
                             />
                         </div>
@@ -71,13 +71,13 @@ export default function ListEditor() {
                                 rows={3}
                                 value={description}
                                 onChange={(e) => setDescription(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors resize-none"
+                                className="w-full px-4 py-3 bg-black border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors resize-none"
                                 placeholder="What is this list about?"
                             ></textarea>
                         </div>
 
                         {/* Note: Game addition is handled in List Details view for simplicity in this MVP */}
-                        <div className="bg-zinc-950/50 p-4 rounded-lg border border-zinc-800 text-sm text-zinc-400">
+                        <div className="bg-black/50 p-4 rounded-lg border border-zinc-800 text-sm text-zinc-400">
                             Games can be added to this list from individual game pages or the list details page after creation.
                         </div>
 
@@ -89,7 +89,7 @@ export default function ListEditor() {
                             <button
                                 onClick={handleSubmit}
                                 disabled={submitting || !name.trim()}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="bg-lime-500 hover:bg-lime-600 text-white px-8 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                 Save List

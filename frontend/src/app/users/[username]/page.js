@@ -68,23 +68,23 @@ export default function PublicUserProfile({ params }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
             </div>
         );
     }
 
     if (error || !profile) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center flex-col gap-4">
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center flex-col gap-4">
                 <p className="text-red-400">{error || 'User not found'}</p>
-                <Link href="/" className="text-emerald-500 hover:underline">Back to Home</Link>
+                <Link href="/" className="text-lime-400 hover:underline">Back to Home</Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100">
+        <div className="min-h-screen bg-black text-zinc-100">
             <Navbar />
 
             {/* Profile Header */}
@@ -92,7 +92,7 @@ export default function PublicUserProfile({ params }) {
                 <div className="max-w-5xl mx-auto">
                     <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
                         {/* Avatar */}
-                        <div className="w-28 h-28 rounded-full bg-zinc-800 border-4 border-emerald-500/30 overflow-hidden flex-shrink-0">
+                        <div className="w-28 h-28 rounded-full bg-zinc-800 border-4 border-lime-400/30 overflow-hidden flex-shrink-0">
                             {profile.profilePicture ? (
                                 <img src={profile.profilePicture} alt={profile.username} className="w-full h-full object-cover" />
                             ) : (
@@ -141,13 +141,13 @@ export default function PublicUserProfile({ params }) {
                     <div className="flex gap-8">
                         <button
                             onClick={() => setActiveTab('reviews')}
-                            className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'reviews' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                            className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'reviews' ? 'border-lime-400 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                         >
                             Reviews ({reviews.length})
                         </button>
                         <button
                             onClick={() => setActiveTab('lists')}
-                            className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'lists' ? 'border-emerald-500 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
+                            className={`py-4 px-2 border-b-2 font-medium transition-colors ${activeTab === 'lists' ? 'border-lime-400 text-white' : 'border-transparent text-zinc-500 hover:text-zinc-300'}`}
                         >
                             Lists ({lists.length})
                         </button>
@@ -177,7 +177,7 @@ export default function PublicUserProfile({ params }) {
                                     <div className="flex-1">
                                         <h3 className="font-bold text-white">{review.game?.title || 'Unknown Game'}</h3>
                                         <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
-                                            <span className="text-emerald-500">★ {review.rating}/5</span>
+                                            <span className="text-lime-400">★ {review.rating}/5</span>
                                             <span>•</span>
                                             <span>{new Date(review.createdAt).toLocaleDateString()}</span>
                                         </div>
@@ -219,7 +219,7 @@ export default function PublicUserProfile({ params }) {
                                             </div>
                                         )}
                                     </div>
-                                    <h3 className="font-bold text-white group-hover:text-emerald-500 transition-colors">{list.name}</h3>
+                                    <h3 className="font-bold text-white group-hover:text-lime-400 transition-colors">{list.name}</h3>
                                     <p className="text-sm text-zinc-500">{list.gameCount} games</p>
                                 </Link>
                             ))

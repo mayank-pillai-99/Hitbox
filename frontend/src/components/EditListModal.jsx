@@ -50,7 +50,7 @@ export default function EditListModal({ isOpen, onClose, list, onUpdate }) {
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white focus:outline-none focus:border-lime-400"
                             required
                         />
                     </div>
@@ -60,7 +60,7 @@ export default function EditListModal({ isOpen, onClose, list, onUpdate }) {
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
                             rows={4}
-                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white resize-none focus:outline-none focus:border-emerald-500"
+                            className="w-full px-3 py-2 bg-zinc-950 border border-zinc-700 rounded-lg text-white resize-none focus:outline-none focus:border-lime-400"
                         />
                     </div>
 
@@ -75,7 +75,7 @@ export default function EditListModal({ isOpen, onClose, list, onUpdate }) {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                            className="px-4 py-2 bg-lime-500 hover:bg-lime-600 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
                         >
                             {loading && <Loader2 className="w-4 h-4 animate-spin" />}
                             Save Changes

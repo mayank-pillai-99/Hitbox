@@ -92,7 +92,7 @@ export default function ReviewEditor({ params }) {
                                         onClick={() => setRating(star)}
                                         className="group focus:outline-none"
                                     >
-                                        <Star className={`w-8 h-8 ${star <= rating ? 'text-emerald-500 fill-current' : 'text-zinc-700 group-hover:text-zinc-600'} transition-colors`} />
+                                        <Star className={`w-8 h-8 ${star <= rating ? 'text-lime-400 fill-current' : 'text-zinc-700 group-hover:text-zinc-600'} transition-colors`} />
                                     </button>
                                 ))}
                                 <span className="ml-4 text-xl font-bold text-white">{rating > 0 ? rating.toFixed(1) : '-'}</span>
@@ -109,7 +109,7 @@ export default function ReviewEditor({ params }) {
                                 rows={6}
                                 value={text}
                                 onChange={(e) => setText(e.target.value)}
-                                className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-colors resize-none"
+                                className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors resize-none"
                                 placeholder="Write your thoughts on the game..."
                             ></textarea>
                         </div>
@@ -122,7 +122,7 @@ export default function ReviewEditor({ params }) {
                             <button
                                 onClick={handleSubmit}
                                 disabled={submitting}
-                                className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
+                                className="bg-lime-500 hover:bg-lime-600 text-white px-8 py-2 rounded-lg font-bold transition-colors disabled:opacity-50 flex items-center gap-2"
                             >
                                 {submitting && <Loader2 className="w-4 h-4 animate-spin" />}
                                 Post Review

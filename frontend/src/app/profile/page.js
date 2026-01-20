@@ -51,17 +51,17 @@ export default function Profile() {
 
     if (!user) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center flex-col gap-4">
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center flex-col gap-4">
                 <p>Please login to view your profile.</p>
-                <Link href="/login" className="text-emerald-500 hover:underline">Login</Link>
+                <Link href="/login" className="text-lime-400 hover:underline">Login</Link>
             </div>
         );
     }
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
             </div>
         );
     }
@@ -74,7 +74,7 @@ export default function Profile() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 pb-12">
             <Navbar />
 
             <div className="bg-zinc-900 border-b border-zinc-800 pt-10 pb-10 px-4">
@@ -143,10 +143,10 @@ export default function Profile() {
                                     </Link>
                                     <div className="flex-1">
                                         <Link href={`/games/${review.game?._id || review.game?.igdbId}`}>
-                                            <h3 className="font-bold text-white hover:text-emerald-500 transition-colors">{review.game?.title || 'Unknown Game'}</h3>
+                                            <h3 className="font-bold text-white hover:text-lime-400 transition-colors">{review.game?.title || 'Unknown Game'}</h3>
                                         </Link>
                                         <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
-                                            <span className="text-emerald-500">★ {review.rating}/5</span>
+                                            <span className="text-lime-400">★ {review.rating}/5</span>
                                             <span>•</span>
                                             <span>{new Date(review.createdAt).toLocaleDateString()}</span>
                                         </div>
@@ -161,7 +161,7 @@ export default function Profile() {
                                                 setEditRating(review.rating);
                                                 setEditText(review.text || '');
                                             }}
-                                            className="p-2 text-zinc-400 hover:text-emerald-500 hover:bg-zinc-800 rounded transition-colors"
+                                            className="p-2 text-zinc-400 hover:text-lime-400 hover:bg-zinc-800 rounded transition-colors"
                                             title="Edit review"
                                         >
                                             <Pencil className="w-4 h-4" />
@@ -208,7 +208,7 @@ export default function Profile() {
                                             onClick={() => setEditRating(n)}
                                             className="p-1 transition-transform hover:scale-110"
                                         >
-                                            <Star className={`w-8 h-8 ${editRating >= n ? 'text-emerald-500 fill-emerald-500' : 'text-zinc-600'}`} />
+                                            <Star className={`w-8 h-8 ${editRating >= n ? 'text-lime-400 fill-lime-400' : 'text-zinc-600'}`} />
                                         </button>
                                     ))}
                                 </div>
@@ -218,7 +218,7 @@ export default function Profile() {
                                 <textarea
                                     value={editText}
                                     onChange={(e) => setEditText(e.target.value)}
-                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none resize-none"
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white placeholder-zinc-500 focus:border-lime-400 focus:outline-none resize-none"
                                     rows={4}
                                     placeholder="Your thoughts on the game..."
                                 />
@@ -246,7 +246,7 @@ export default function Profile() {
                                         }
                                     }}
                                     disabled={saving || editRating === 0}
-                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                    className="px-4 py-2 bg-lime-500 hover:bg-lime-600 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
                                 >
                                     {saving ? 'Saving...' : 'Save Changes'}
                                 </button>
@@ -258,7 +258,7 @@ export default function Profile() {
                 {/* Lists Section */}
                 <div className="flex items-center justify-between border-b border-zinc-800 pb-4 mb-8">
                     <h2 className="text-2xl font-bold text-white">My Lists</h2>
-                    <Link href="/lists/new" className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
+                    <Link href="/lists/new" className="flex items-center gap-2 bg-lime-500 hover:bg-lime-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm">
                         <Plus className="w-4 h-4" /> New List
                     </Link>
                 </div>
@@ -269,7 +269,7 @@ export default function Profile() {
                             <section key={list._id}>
                                 <div className="flex items-center justify-between mb-4 border-b border-zinc-800 pb-2">
                                     <h3 className="text-xl font-bold text-white">{list.name} <span className="text-zinc-500 text-sm font-normal">({list.games.length})</span></h3>
-                                    <Link href={`/lists/${list._id}`} className="text-sm text-emerald-500 hover:text-emerald-400">View details</Link>
+                                    <Link href={`/lists/${list._id}`} className="text-sm text-lime-400 hover:text-lime-300">View details</Link>
                                 </div>
 
                                 {list.games && list.games.length > 0 ? (
@@ -289,7 +289,7 @@ export default function Profile() {
                 ) : (
                     <div className="text-center py-12">
                         <p className="text-zinc-400 mb-4">You haven't created any lists yet.</p>
-                        <Link href="/lists/new" className="text-emerald-500 hover:underline">Create your first list</Link>
+                        <Link href="/lists/new" className="text-lime-400 hover:underline">Create your first list</Link>
                     </div>
                 )}
 
@@ -297,7 +297,7 @@ export default function Profile() {
                 {gameStatuses.played.length > 0 && (
                     <section>
                         <div className="flex items-center gap-2 border-b border-zinc-800 pb-4 mb-6">
-                            <Check className="w-5 h-5 text-emerald-500" />
+                            <Check className="w-5 h-5 text-lime-400" />
                             <h2 className="text-2xl font-bold text-white">Played</h2>
                             <span className="text-zinc-500">({gameStatuses.played.length})</span>
                         </div>

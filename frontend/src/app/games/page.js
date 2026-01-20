@@ -87,7 +87,7 @@ function BrowseGamesContent() {
     };
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 pb-12">
             <Navbar />
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -113,7 +113,7 @@ function BrowseGamesContent() {
                                         <button
                                             key={option.value}
                                             onClick={() => handleSortChange(option.value)}
-                                            className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-zinc-800 ${sortBy === option.value ? 'text-emerald-500 font-medium' : 'text-zinc-300'
+                                            className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-zinc-800 ${sortBy === option.value ? 'text-lime-400 font-medium' : 'text-zinc-300'
                                                 }`}
                                         >
                                             {option.label}
@@ -130,7 +130,7 @@ function BrowseGamesContent() {
                     <aside className="w-full lg:w-64 flex-shrink-0 space-y-8">
                         <div>
                             <h3 className="flex items-center gap-2 font-semibold text-white mb-4">
-                                <Filter className="w-4 h-4 text-emerald-500" /> Filters
+                                <Filter className="w-4 h-4 text-lime-400" /> Filters
                             </h3>
 
                             <div className="space-y-6">
@@ -142,7 +142,7 @@ function BrowseGamesContent() {
                                                 className="flex items-center gap-2 cursor-pointer group"
                                                 onClick={() => handleGenreChange(genre)}
                                             >
-                                                <div className={`w-4 h-4 rounded border transition-colors ${selectedGenre === genre ? 'bg-emerald-600 border-emerald-600' : 'border-zinc-700 bg-zinc-900 group-hover:border-zinc-500'} flex items-center justify-center`}>
+                                                <div className={`w-4 h-4 rounded border transition-colors ${selectedGenre === genre ? 'bg-lime-500 border-lime-500' : 'border-zinc-700 bg-zinc-900 group-hover:border-zinc-500'} flex items-center justify-center`}>
                                                     {selectedGenre === genre && <div className="w-2 h-2 bg-white rounded-sm" />}
                                                 </div>
                                                 <span className={`text-sm ${selectedGenre === genre ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-300'}`}>{genre}</span>
@@ -159,7 +159,7 @@ function BrowseGamesContent() {
                                                 className="flex items-center gap-2 cursor-pointer group"
                                                 onClick={() => handlePlatformChange(platform)}
                                             >
-                                                <div className={`w-4 h-4 rounded border transition-colors ${selectedPlatform === platform ? 'bg-emerald-600 border-emerald-600' : 'border-zinc-700 bg-zinc-900 group-hover:border-zinc-500'} flex items-center justify-center`}>
+                                                <div className={`w-4 h-4 rounded border transition-colors ${selectedPlatform === platform ? 'bg-lime-500 border-lime-500' : 'border-zinc-700 bg-zinc-900 group-hover:border-zinc-500'} flex items-center justify-center`}>
                                                     {selectedPlatform === platform && <div className="w-2 h-2 bg-white rounded-sm" />}
                                                 </div>
                                                 <span className={`text-sm ${selectedPlatform === platform ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-300'}`}>{platform}</span>
@@ -175,7 +175,7 @@ function BrowseGamesContent() {
                     <div className="flex-1">
                         {loading ? (
                             <div className="flex justify-center items-center h-64">
-                                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
                             </div>
                         ) : error ? (
                             <div className="text-center text-red-400 py-12">{error}</div>
@@ -219,8 +219,8 @@ function BrowseGamesContent() {
 export default function BrowseGames() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
             </div>
         }>
             <BrowseGamesContent />

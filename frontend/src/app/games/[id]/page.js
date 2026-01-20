@@ -55,23 +55,23 @@ export default function GameDetails({ params }) {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center">
-                <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center">
+                <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
             </div>
         );
     }
 
     if (error || !game) {
         return (
-            <div className="min-h-screen bg-zinc-950 text-zinc-100 flex items-center justify-center flex-col gap-4">
+            <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center flex-col gap-4">
                 <p className="text-red-400">{error || 'Game not found'}</p>
-                <Link href="/games" className="text-emerald-500 hover:underline">Back to Games</Link>
+                <Link href="/games" className="text-lime-400 hover:underline">Back to Games</Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 pb-12">
             <Navbar />
 
             {/* Backdrop */}
@@ -116,7 +116,7 @@ export default function GameDetails({ params }) {
                         {/* Actions */}
                         <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
                             <div className="flex items-center gap-2 bg-zinc-900 px-4 py-2 rounded-lg border border-zinc-800">
-                                <Star className="w-5 h-5 text-emerald-500 fill-current" />
+                                <Star className="w-5 h-5 text-lime-400 fill-current" />
                                 <span className="text-xl font-bold text-white">{game.averageRating ? game.averageRating.toFixed(1) : 'NR'}</span>
                                 <span className="text-zinc-500 text-sm">/ 5</span>
                             </div>
@@ -124,14 +124,14 @@ export default function GameDetails({ params }) {
                             {user ? (
                                 <Link
                                     href={`/games/${game._id}/review`}
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                                    className="bg-lime-500 hover:bg-lime-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                                 >
                                     Log or Review
                                 </Link>
                             ) : (
                                 <Link
                                     href="/login"
-                                    className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                                    className="bg-lime-500 hover:bg-lime-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                                 >
                                     Login to Review
                                 </Link>
@@ -202,11 +202,11 @@ export default function GameDetails({ params }) {
                                                             <User className="w-4 h-4 text-zinc-400" />
                                                         )}
                                                     </div>
-                                                    <Link href={`/users/${review.user?.username}`} className="font-medium text-white hover:text-emerald-500 transition-colors">
+                                                    <Link href={`/users/${review.user?.username}`} className="font-medium text-white hover:text-lime-400 transition-colors">
                                                         {review.user?.username || 'Unknown User'}
                                                     </Link>
                                                 </div>
-                                                <div className="flex items-center gap-1 text-emerald-500">
+                                                <div className="flex items-center gap-1 text-lime-400">
                                                     <Star className="w-4 h-4 fill-current" />
                                                     <span className="text-sm font-bold">{review.rating}/5</span>
                                                 </div>

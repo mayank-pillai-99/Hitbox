@@ -81,8 +81,8 @@ export default function GameStatusButtons({ gameId }) {
                 const isActive = currentStatus === key;
                 const colorClasses = {
                     emerald: isActive
-                        ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400'
-                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-emerald-500/50 hover:text-emerald-400',
+                        ? 'bg-lime-400/20 border-lime-400 text-lime-300'
+                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-lime-400/50 hover:text-lime-300',
                     blue: isActive
                         ? 'bg-blue-500/20 border-blue-500 text-blue-400'
                         : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-blue-500/50 hover:text-blue-400',

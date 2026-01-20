@@ -31,14 +31,14 @@ export default function ListsDiscoveryPage() {
     }, [sortBy]);
 
     return (
-        <div className="min-h-screen bg-zinc-950 text-zinc-100">
+        <div className="min-h-screen bg-black text-zinc-100">
             <Navbar />
 
             {/* Header */}
             <div className="bg-gradient-to-b from-zinc-900 to-zinc-950 border-b border-zinc-800 py-12 px-4">
                 <div className="max-w-6xl mx-auto text-center">
                     <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
-                        <List className="w-10 h-10 text-emerald-500" />
+                        <List className="w-10 h-10 text-lime-400" />
                         Lists
                     </h1>
                     <p className="text-zinc-400 text-lg">
@@ -54,7 +54,7 @@ export default function ListsDiscoveryPage() {
                     <button
                         onClick={() => setSortBy('popular')}
                         className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${sortBy === 'popular'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                            ? 'bg-lime-400/20 text-lime-300 border border-lime-400/50'
                             : 'bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700'
                             }`}
                     >
@@ -63,7 +63,7 @@ export default function ListsDiscoveryPage() {
                     <button
                         onClick={() => setSortBy('recent')}
                         className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${sortBy === 'recent'
-                            ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/50'
+                            ? 'bg-lime-400/20 text-lime-300 border border-lime-400/50'
                             : 'bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-700'
                             }`}
                     >
@@ -76,7 +76,7 @@ export default function ListsDiscoveryPage() {
             <div className="max-w-6xl mx-auto px-4 pb-12">
                 {loading ? (
                     <div className="flex justify-center py-12">
-                        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+                        <Loader2 className="w-8 h-8 text-lime-400 animate-spin" />
                     </div>
                 ) : error ? (
                     <div className="text-center py-12 text-red-400">{error}</div>
@@ -140,7 +140,7 @@ function ListCard({ list }) {
 
             {/* List Info */}
             <div className="p-4">
-                <h3 className="font-bold text-white group-hover:text-emerald-500 transition-colors line-clamp-1">
+                <h3 className="font-bold text-white group-hover:text-lime-400 transition-colors line-clamp-1">
                     {list.name}
                 </h3>
                 {list.description && (
@@ -152,7 +152,7 @@ function ListCard({ list }) {
                     <Link
                         href={`/users/${list.user.username}`}
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-2 hover:text-emerald-400 transition-colors"
+                        className="flex items-center gap-2 hover:text-lime-300 transition-colors"
                     >
                         <div className="w-6 h-6 rounded-full bg-zinc-700 overflow-hidden flex items-center justify-center">
                             {list.user.profilePicture ? (
