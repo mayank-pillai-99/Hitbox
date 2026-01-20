@@ -91,7 +91,7 @@ export default function Profile() {
                     {/* User Info */}
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                            <h1 className="text-3xl font-bold text-white">{user.username || 'User'}</h1>
+                            <h1 className="text-3xl font-black tracking-tight text-white">{user.username || 'User'}</h1>
                             <Link href="/settings" className="flex items-center gap-2 px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-sm text-zinc-300 transition-colors border border-zinc-700">
                                 <Settings className="w-4 h-4" /> Edit Profile
                             </Link>

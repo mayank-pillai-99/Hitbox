@@ -100,7 +100,7 @@ export default function GameDetails({ params }) {
 
                     {/* Game Info */}
                     <div className="flex-1 text-center md:text-left pt-4 md:pt-32">
-                        <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">{game.title}</h1>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2">{game.title}</h1>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-zinc-400 mb-6">
                             {game.releaseDate && (
                                 <span className="flex items-center gap-1">

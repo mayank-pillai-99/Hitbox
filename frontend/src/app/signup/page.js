@@ -25,7 +25,7 @@ export default function Signup() {
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-black px-4">
             <div className="w-full max-w-md bg-zinc-900 p-8 rounded-xl border border-zinc-800 shadow-2xl">
                 <div className="text-center mb-8">
-                    <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
+                    <h1 className="text-3xl font-black tracking-tight text-white mb-2">Create Account</h1>
                     <p className="text-zinc-400">Join the Hitbox community today</p>
                 </div>
 

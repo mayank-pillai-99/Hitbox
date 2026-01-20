@@ -42,7 +42,7 @@ export default function MembersPage() {
             {/* Header */}
             <div className="bg-gradient-to-b from-zinc-900 to-zinc-950 border-b border-zinc-800 py-12 px-4">
                 <div className="max-w-6xl mx-auto text-center">
-                    <h1 className="text-4xl font-bold text-white mb-4 flex items-center justify-center gap-3">
+                    <h1 className="text-4xl font-black tracking-tight text-white mb-4 flex items-center justify-center gap-3 uppercase">
                         <Users className="w-10 h-10 text-lime-400" />
                         Members
                     </h1>
