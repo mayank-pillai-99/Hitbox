@@ -147,4 +147,86 @@ router.get('/game/:gameId', async (req, res) => {
     }
 });
 
+// Update a review
+router.put('/:reviewId', auth, async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const { rating, text } = req.body;
+
+        // Find the review
+        const review = await Review.findById(reviewId);
+
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        // Check ownership
+        if (review.user.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to edit this review' });
+        }
+
+        // Update fields
+        if (rating !== undefined) {
+            if (rating < 1 || rating > 5) {
+                return res.status(400).json({ message: 'Rating must be between 1 and 5' });
+            }
+            review.rating = rating;
+        }
+        if (text !== undefined) {
+            review.text = text;
+        }
+
+        await review.save();
+
+        // Recalculate game average rating
+        const gameReviews = await Review.find({ game: review.game });
+        if (gameReviews.length > 0) {
+            const avgRating = gameReviews.reduce((sum, r) => sum + r.rating, 0) / gameReviews.length;
+            await Game.findByIdAndUpdate(review.game, { averageRating: Math.round(avgRating * 10) / 10 });
+        }
+
+        res.json(review);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// Delete a review
+router.delete('/:reviewId', auth, async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+
+        // Find the review
+        const review = await Review.findById(reviewId);
+
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        // Check ownership
+        if (review.user.toString() !== req.user.id) {
+            return res.status(403).json({ message: 'Not authorized to delete this review' });
+        }
+
+        const gameId = review.game;
+
+        await Review.findByIdAndDelete(reviewId);
+
+        // Recalculate game average rating
+        const gameReviews = await Review.find({ game: gameId });
+        if (gameReviews.length > 0) {
+            const avgRating = gameReviews.reduce((sum, r) => sum + r.rating, 0) / gameReviews.length;
+            await Game.findByIdAndUpdate(gameId, { averageRating: Math.round(avgRating * 10) / 10 });
+        } else {
+            await Game.findByIdAndUpdate(gameId, { averageRating: 0 });
+        }
+
+        res.json({ message: 'Review deleted' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 export default router;

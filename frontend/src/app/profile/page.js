@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star } from 'lucide-react';
+import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash2, X } from 'lucide-react';
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
 import api from '@/utils/api';
@@ -16,6 +16,12 @@ export default function Profile() {
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+
+    // Edit review state
+    const [editingReview, setEditingReview] = useState(null);
+    const [editRating, setEditRating] = useState(0);
+    const [editText, setEditText] = useState('');
+    const [saving, setSaving] = useState(false);
 
     useEffect(() => {
         if (!user) return;
@@ -122,20 +128,23 @@ export default function Profile() {
                         </div>
                         <div className="space-y-4">
                             {reviews.slice(0, 5).map(review => (
-                                <Link
+                                <div
                                     key={review._id}
-                                    href={`/games/${review.game?._id || review.game?.igdbId}`}
-                                    className="flex gap-4 bg-zinc-900/50 rounded-lg p-4 border border-zinc-800 hover:border-zinc-700 transition-colors"
+                                    className="flex gap-4 bg-zinc-900/50 rounded-lg p-4 border border-zinc-800"
                                 >
-                                    {review.game?.coverImage && (
-                                        <img
-                                            src={review.game.coverImage}
-                                            alt={review.game.title}
-                                            className="w-16 h-24 object-cover rounded"
-                                        />
-                                    )}
+                                    <Link href={`/games/${review.game?._id || review.game?.igdbId}`}>
+                                        {review.game?.coverImage && (
+                                            <img
+                                                src={review.game.coverImage}
+                                                alt={review.game.title}
+                                                className="w-16 h-24 object-cover rounded hover:opacity-80 transition-opacity"
+                                            />
+                                        )}
+                                    </Link>
                                     <div className="flex-1">
-                                        <h3 className="font-bold text-white">{review.game?.title || 'Unknown Game'}</h3>
+                                        <Link href={`/games/${review.game?._id || review.game?.igdbId}`}>
+                                            <h3 className="font-bold text-white hover:text-emerald-500 transition-colors">{review.game?.title || 'Unknown Game'}</h3>
+                                        </Link>
                                         <div className="flex items-center gap-2 text-sm text-zinc-500 mt-1">
                                             <span className="text-emerald-500">★ {review.rating}/5</span>
                                             <span>•</span>
@@ -145,10 +154,105 @@ export default function Profile() {
                                             <p className="text-zinc-400 text-sm mt-2 line-clamp-2">{review.text}</p>
                                         )}
                                     </div>
-                                </Link>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={() => {
+                                                setEditingReview(review);
+                                                setEditRating(review.rating);
+                                                setEditText(review.text || '');
+                                            }}
+                                            className="p-2 text-zinc-400 hover:text-emerald-500 hover:bg-zinc-800 rounded transition-colors"
+                                            title="Edit review"
+                                        >
+                                            <Pencil className="w-4 h-4" />
+                                        </button>
+                                        <button
+                                            onClick={async () => {
+                                                if (confirm('Are you sure you want to delete this review?')) {
+                                                    try {
+                                                        await api.delete(`/reviews/${review._id}`);
+                                                        setReviews(reviews.filter(r => r._id !== review._id));
+                                                    } catch (err) {
+                                                        console.error('Failed to delete review', err);
+                                                    }
+                                                }
+                                            }}
+                                            className="p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-800 rounded transition-colors"
+                                            title="Delete review"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </section>
+                )}
+
+                {/* Edit Review Modal */}
+                {editingReview && (
+                    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+                        <div className="bg-zinc-900 rounded-xl border border-zinc-800 max-w-lg w-full p-6">
+                            <div className="flex justify-between items-center mb-6">
+                                <h3 className="text-xl font-bold text-white">Edit Review</h3>
+                                <button onClick={() => setEditingReview(null)} className="text-zinc-400 hover:text-white">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-zinc-400 mb-2">Rating</label>
+                                <div className="flex gap-1">
+                                    {[1, 2, 3, 4, 5].map(n => (
+                                        <button
+                                            key={n}
+                                            onClick={() => setEditRating(n)}
+                                            className="p-1 transition-transform hover:scale-110"
+                                        >
+                                            <Star className={`w-8 h-8 ${editRating >= n ? 'text-emerald-500 fill-emerald-500' : 'text-zinc-600'}`} />
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="mb-6">
+                                <label className="block text-sm font-medium text-zinc-400 mb-2">Review Text</label>
+                                <textarea
+                                    value={editText}
+                                    onChange={(e) => setEditText(e.target.value)}
+                                    className="w-full bg-zinc-800 border border-zinc-700 rounded-lg p-3 text-white placeholder-zinc-500 focus:border-emerald-500 focus:outline-none resize-none"
+                                    rows={4}
+                                    placeholder="Your thoughts on the game..."
+                                />
+                            </div>
+                            <div className="flex gap-3 justify-end">
+                                <button
+                                    onClick={() => setEditingReview(null)}
+                                    className="px-4 py-2 text-zinc-400 hover:text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={async () => {
+                                        setSaving(true);
+                                        try {
+                                            await api.put(`/reviews/${editingReview._id}`, { rating: editRating, text: editText });
+                                            setReviews(reviews.map(r =>
+                                                r._id === editingReview._id ? { ...r, rating: editRating, text: editText } : r
+                                            ));
+                                            setEditingReview(null);
+                                        } catch (err) {
+                                            console.error('Failed to update review', err);
+                                        } finally {
+                                            setSaving(false);
+                                        }
+                                    }}
+                                    disabled={saving || editRating === 0}
+                                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                                >
+                                    {saving ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
 
                 {/* Lists Section */}
