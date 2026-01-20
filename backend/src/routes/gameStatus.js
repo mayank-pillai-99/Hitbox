@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/', auth, async (req, res) => {
     try {
         const statuses = await GameStatus.find({ user: req.user.id })
-            .populate('game', 'title coverImage slug igdbId')
+            .populate('game', 'title coverImage slug igdbId releaseDate')
             .sort({ updatedAt: -1 });
 
         // Group by status
