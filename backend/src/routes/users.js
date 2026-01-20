@@ -14,19 +14,50 @@ router.get('/', async (req, res) => {
         const skip = (page - 1) * limit;
         const sort = req.query.sort || 'reviews'; // 'reviews', 'recent', 'lists'
 
-        // Get all users
-        const users = await User.find()
-            .select('-password -email')
-            .skip(skip)
-            .limit(limit)
-            .lean();
+        // Aggregate to get users with their review counts
+        let sortStage = { reviewsCount: -1 }; // Default: most reviews first
+        if (sort === 'recent') {
+            sortStage = { createdAt: -1 };
+        }
 
-        // Fetch stats and recent reviews for each user
-        const usersWithStats = await Promise.all(users.map(async (user) => {
-            const reviewsCount = await Review.countDocuments({ user: user._id });
-            const listsCount = await List.countDocuments({ user: user._id });
+        const usersWithCounts = await User.aggregate([
+            {
+                $lookup: {
+                    from: 'reviews',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'userReviews'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'lists',
+                    localField: '_id',
+                    foreignField: 'user',
+                    as: 'userLists'
+                }
+            },
+            {
+                $addFields: {
+                    reviewsCount: { $size: '$userReviews' },
+                    listsCount: { $size: '$userLists' }
+                }
+            },
+            {
+                $project: {
+                    password: 0,
+                    email: 0,
+                    userReviews: 0,
+                    userLists: 0
+                }
+            },
+            { $sort: sortStage },
+            { $skip: skip },
+            { $limit: limit }
+        ]);
 
-            // Get recent reviews with game covers
+        // Fetch recent games for each user
+        const usersWithStats = await Promise.all(usersWithCounts.map(async (user) => {
             const recentReviews = await Review.find({ user: user._id })
                 .populate('game', 'title coverImage')
                 .sort({ createdAt: -1 })
@@ -47,20 +78,13 @@ router.get('/', async (req, res) => {
                 bio: user.bio,
                 createdAt: user.createdAt,
                 stats: {
-                    reviews: reviewsCount,
-                    lists: listsCount,
+                    reviews: user.reviewsCount,
+                    lists: user.listsCount,
                     gamesPlayed: 0
                 },
                 recentGames
             };
         }));
-
-        // Sort by reviews count (most active first)
-        if (sort === 'reviews') {
-            usersWithStats.sort((a, b) => b.stats.reviews - a.stats.reviews);
-        } else if (sort === 'recent') {
-            usersWithStats.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        }
 
         const total = await User.countDocuments();
 

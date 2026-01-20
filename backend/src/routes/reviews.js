@@ -102,6 +102,23 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+// Get recent reviews (public - for homepage)
+router.get('/recent', async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 5;
+        const reviews = await Review.find()
+            .populate('game', 'title coverImage slug igdbId')
+            .populate('user', 'username profilePicture')
+            .sort({ createdAt: -1 })
+            .limit(limit);
+
+        res.json(reviews);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
 // Get current user's reviews
 router.get('/my', auth, async (req, res) => {
     try {
