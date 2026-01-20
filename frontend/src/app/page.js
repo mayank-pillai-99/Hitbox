@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Play, ArrowRight, Star, Heart, MessageCircle, Loader2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
@@ -284,43 +285,7 @@ export default function Home() {
                 </section>
             )}
 
-            {/* Footer */}
-            <footer className="px-6 lg:px-12 py-12 border-t border-zinc-900">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-                        <div>
-                            <h4 className="font-bold text-white uppercase text-sm mb-4">Control</h4>
-                            <ul className="space-y-2 text-sm text-zinc-500">
-                                <li><Link href="#" className="hover:text-white transition-colors">About</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">Pro</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">News</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">Apps</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-white uppercase text-sm mb-4">Community</h4>
-                            <ul className="space-y-2 text-sm text-zinc-500">
-                                <li><Link href="#" className="hover:text-white transition-colors">Guidelines</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">Help</Link></li>
-                                <li><Link href="/members" className="hover:text-white transition-colors">Leaderboard</Link></li>
-                            </ul>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-white uppercase text-sm mb-4">Social</h4>
-                            <ul className="space-y-2 text-sm text-zinc-500">
-                                <li><Link href="#" className="hover:text-white transition-colors">Twitter</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">Discord</Link></li>
-                                <li><Link href="#" className="hover:text-white transition-colors">Instagram</Link></li>
-                            </ul>
-                        </div>
-                        <div className="text-sm text-zinc-600">
-                            <p>© 2025 Control Labs.</p>
-                            <p>Data provided by IGDB.</p>
-                            <p className="mt-2 text-zinc-500">Made for the love of the game.</p>
-                        </div>
-                    </div>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 }

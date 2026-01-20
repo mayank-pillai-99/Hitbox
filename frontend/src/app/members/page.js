@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { User, Users, Loader2, Gamepad2 } from 'lucide-react';
 import api from '@/utils/api';
 
@@ -74,6 +75,7 @@ export default function MembersPage() {
                     </>
                 )}
             </div>
+            <Footer />
         </div>
     );
 }

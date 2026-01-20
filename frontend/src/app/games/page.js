@@ -4,6 +4,7 @@ import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 import { Filter, SlidersHorizontal, Loader2 } from 'lucide-react';
 import api from '@/utils/api';
@@ -212,6 +213,7 @@ function BrowseGamesContent() {
                     </div>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

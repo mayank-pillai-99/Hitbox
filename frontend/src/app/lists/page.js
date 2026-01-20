@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import { List, Loader2, Gamepad2, User } from 'lucide-react';
 import api from '@/utils/api';
 
@@ -170,6 +171,7 @@ function ListCard({ list }) {
                     </span>
                 </div>
             </div>
+            <Footer />
         </div>
     );
 }

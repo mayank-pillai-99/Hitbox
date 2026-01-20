@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash2, X } from 'lucide-react';
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -77,39 +78,39 @@ export default function Profile() {
         <div className="min-h-screen bg-black text-zinc-100 pb-12">
             <Navbar />
 
-            <div className="bg-zinc-900 border-b border-zinc-800 pt-10 pb-10 px-4">
-                <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8">
+            <div className="border-b border-zinc-900 pt-10 pb-10 px-4">
+                <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8">
                     {/* Avatar */}
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-zinc-800 shadow-xl bg-zinc-800 flex items-center justify-center">
+                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-lime-400/30 shadow-xl bg-zinc-900 flex items-center justify-center">
                         {user.profilePicture ? (
                             <img src={user.profilePicture} alt={user.username || 'User'} className="w-full h-full object-cover" />
                         ) : (
-                            <span className="text-4xl font-bold text-zinc-500">{(user.username ? user.username.charAt(0) : 'U').toUpperCase()}</span>
+                            <span className="text-4xl font-black text-lime-400">{(user.username ? user.username.charAt(0) : 'U').toUpperCase()}</span>
                         )}
                     </div>
 
                     {/* User Info */}
                     <div className="flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
-                            <h1 className="text-3xl font-black tracking-tight text-white">{user.username || 'User'}</h1>
-                            <Link href="/settings" className="flex items-center gap-2 px-3 py-1 bg-zinc-800 hover:bg-zinc-700 rounded text-sm text-zinc-300 transition-colors border border-zinc-700">
+                            <h1 className="text-4xl font-black tracking-tight text-white">{user.username || 'User'}</h1>
+                            <Link href="/settings" className="flex items-center gap-2 px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 rounded text-sm text-zinc-300 transition-colors border border-zinc-800">
                                 <Settings className="w-4 h-4" /> Edit Profile
                             </Link>
                         </div>
-                        <p className="text-zinc-400 mb-6 max-w-md">{user.bio || "No bio yet."}</p>
+                        <p className="text-zinc-400 mb-6 max-w-md leading-relaxed">{user.bio || "No bio yet. Add one in settings!"}</p>
 
                         {/* Stats */}
-                        <div className="flex justify-center md:justify-start gap-8 border-t border-zinc-800 pt-4">
+                        <div className="flex justify-center md:justify-start gap-10">
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-bold text-white">{stats.gamesPlayed}</div>
+                                <div className="text-3xl font-black text-white">{stats.gamesPlayed}</div>
                                 <div className="text-xs text-zinc-500 uppercase tracking-wider">Games</div>
                             </div>
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-bold text-white">{stats.reviews}</div>
+                                <div className="text-3xl font-black text-white">{stats.reviews}</div>
                                 <div className="text-xs text-zinc-500 uppercase tracking-wider">Reviews</div>
                             </div>
                             <div className="text-center md:text-left">
-                                <div className="text-2xl font-bold text-white">{stats.lists}</div>
+                                <div className="text-3xl font-black text-white">{stats.lists}</div>
                                 <div className="text-xs text-zinc-500 uppercase tracking-wider">Lists</div>
                             </div>
                         </div>
@@ -339,6 +340,7 @@ export default function Profile() {
                     </section>
                 )}
             </div>
+            <Footer />
         </div>
     );
 }
