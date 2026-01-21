@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import EditListModal from '@/components/EditListModal';
-import { User, Calendar, MoreHorizontal, Loader2, Trash2, Edit } from 'lucide-react';
+import { User, Calendar, MoreHorizontal, Loader2, Trash2, Edit, MessageCircle, Send } from 'lucide-react';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -18,6 +18,9 @@ export default function ListDetails({ params }) {
     const [listId, setListId] = useState(null);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [deleting, setDeleting] = useState(false);
+    const [comments, setComments] = useState([]);
+    const [newComment, setNewComment] = useState('');
+    const [submittingComment, setSubmittingComment] = useState(false);
 
     // Unwrap params using React.use() or await if necessary in newer Next.js
     useEffect(() => {
@@ -44,6 +47,20 @@ export default function ListDetails({ params }) {
         };
 
         fetchList();
+    }, [listId]);
+
+    // Fetch comments
+    useEffect(() => {
+        if (!listId) return;
+        const fetchComments = async () => {
+            try {
+                const res = await api.get(`/comments/list/${listId}`);
+                setComments(res.data);
+            } catch (err) {
+                console.error('Failed to fetch comments', err);
+            }
+        };
+        fetchComments();
     }, [listId]);
 
     const handleUpdate = (updatedList) => {
@@ -195,6 +212,121 @@ export default function ListDetails({ params }) {
                         ))}
                     </div>
                 )}
+            </div>
+
+            {/* Comments Section */}
+            <div className="max-w-5xl mx-auto px-4 py-8 border-t border-zinc-800">
+                <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                    <MessageCircle className="w-5 h-5 text-lime-400" />
+                    Discussion ({comments.length})
+                </h2>
+
+                {/* Add Comment Form */}
+                {user ? (
+                    <form
+                        onSubmit={async (e) => {
+                            e.preventDefault();
+                            if (!newComment.trim()) return;
+                            setSubmittingComment(true);
+                            try {
+                                const res = await api.post(`/comments/list/${listId}`, { text: newComment });
+                                setComments([res.data, ...comments]);
+                                setNewComment('');
+                            } catch (err) {
+                                console.error('Failed to add comment', err);
+                                alert('Failed to add comment');
+                            } finally {
+                                setSubmittingComment(false);
+                            }
+                        }}
+                        className="mb-6"
+                    >
+                        <div className="flex gap-3">
+                            <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden flex-shrink-0">
+                                {user.profilePicture ? (
+                                    <img src={user.profilePicture} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                    <span className="text-lime-400 font-bold">{user.username?.charAt(0).toUpperCase()}</span>
+                                )}
+                            </div>
+                            <div className="flex-1">
+                                <textarea
+                                    value={newComment}
+                                    onChange={(e) => setNewComment(e.target.value)}
+                                    placeholder="Add to the discussion..."
+                                    rows={3}
+                                    className="w-full px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 resize-none text-sm"
+                                    maxLength={1000}
+                                />
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="text-xs text-zinc-500">{newComment.length}/1000</span>
+                                    <button
+                                        type="submit"
+                                        disabled={!newComment.trim() || submittingComment}
+                                        className="flex items-center gap-2 bg-lime-500 hover:bg-lime-600 disabled:opacity-50 disabled:cursor-not-allowed text-black px-4 py-2 rounded font-medium text-sm transition-colors"
+                                    >
+                                        <Send className="w-4 h-4" />
+                                        {submittingComment ? 'Posting...' : 'Post'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                ) : (
+                    <div className="bg-zinc-900 border border-zinc-800 rounded-lg p-4 mb-6 text-center">
+                        <p className="text-zinc-400 text-sm">Please <Link href="/login" className="text-lime-400 hover:underline">log in</Link> to join the discussion.</p>
+                    </div>
+                )}
+
+                {/* Comments List */}
+                <div className="space-y-4">
+                    {comments.length === 0 ? (
+                        <p className="text-zinc-500 text-center py-8">No comments yet. Be the first to start a discussion!</p>
+                    ) : (
+                        comments.map(comment => (
+                            <div key={comment._id} className="flex gap-3 p-4 bg-zinc-900/50 rounded-lg border border-zinc-800">
+                                <Link href={`/users/${comment.user?.username}`} className="flex-shrink-0">
+                                    <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center overflow-hidden">
+                                        {comment.user?.profilePicture ? (
+                                            <img src={comment.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="w-5 h-5 text-zinc-500" />
+                                        )}
+                                    </div>
+                                </Link>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between gap-2 mb-1">
+                                        <Link href={`/users/${comment.user?.username}`} className="font-medium text-white hover:text-lime-400 transition-colors text-sm">
+                                            {comment.user?.username || 'Unknown'}
+                                        </Link>
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-xs text-zinc-500">
+                                                {new Date(comment.createdAt).toLocaleDateString()}
+                                            </span>
+                                            {user && comment.user?._id === user._id && (
+                                                <button
+                                                    onClick={async () => {
+                                                        if (!confirm('Delete this comment?')) return;
+                                                        try {
+                                                            await api.delete(`/comments/${comment._id}`);
+                                                            setComments(comments.filter(c => c._id !== comment._id));
+                                                        } catch (err) {
+                                                            console.error('Failed to delete comment', err);
+                                                        }
+                                                    }}
+                                                    className="text-zinc-500 hover:text-red-400 transition-colors"
+                                                >
+                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-zinc-300 text-sm whitespace-pre-wrap">{comment.text}</p>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
             </div>
 
             <EditListModal

@@ -15,6 +15,7 @@ import reviewRoutes from './routes/reviews.js';
 import listRoutes from './routes/lists.js';
 import userRoutes from './routes/users.js';
 import gameStatusRoutes from './routes/gameStatus.js';
+import commentRoutes from './routes/comments.js';
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +26,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/lists', listRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/game-status', gameStatusRoutes);
+app.use('/api/comments', commentRoutes);
 
 // Basic route
 app.get('/', (req, res) => {
