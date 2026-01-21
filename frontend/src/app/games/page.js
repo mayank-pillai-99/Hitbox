@@ -25,6 +25,7 @@ function BrowseGamesContent() {
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
+    const [showFilters, setShowFilters] = useState(false);
 
     const searchParams = useSearchParams();
     const searchQuery = searchParams.get('search');
@@ -93,7 +94,7 @@ function BrowseGamesContent() {
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
-                    <h1 className="text-4xl font-black tracking-tight text-white uppercase">
+                    <h1 className="text-2xl sm:text-4xl font-black tracking-tight text-white uppercase">
                         {searchQuery ? `Results for "${searchQuery}"` : 'Browse Games'}
                     </h1>
 
@@ -127,8 +128,17 @@ function BrowseGamesContent() {
                 </div>
 
                 <div className="flex flex-col lg:flex-row gap-8">
-                    {/* Filters Sidebar */}
-                    <aside className="w-full lg:w-64 flex-shrink-0 space-y-8">
+                    {/* Mobile Filter Toggle */}
+                    <button
+                        onClick={() => setShowFilters(!showFilters)}
+                        className="lg:hidden flex items-center gap-2 bg-zinc-900 border border-zinc-800 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-zinc-800 transition-colors mb-4"
+                    >
+                        <Filter className="w-4 h-4 text-lime-400" />
+                        {showFilters ? 'Hide Filters' : 'Show Filters'}
+                    </button>
+
+                    {/* Filters Sidebar - Hidden on mobile unless toggled */}
+                    <aside className={`w-full lg:w-64 flex-shrink-0 space-y-8 ${showFilters ? 'block' : 'hidden lg:block'}`}>
                         <div>
                             <h3 className="flex items-center gap-2 font-semibold text-white mb-4">
                                 <Filter className="w-4 h-4 text-lime-400" /> Filters

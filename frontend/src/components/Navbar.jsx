@@ -3,19 +3,25 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Gamepad2, Search } from 'lucide-react';
+import { Gamepad2, Search, Menu, X } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
     const [search, setSearch] = useState('');
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
     const router = useRouter();
 
     const handleSearch = (e) => {
         e.preventDefault();
         if (search.trim()) {
             router.push(`/games?search=${encodeURIComponent(search)}`);
+            setMobileMenuOpen(false);
         }
+    };
+
+    const handleNavClick = () => {
+        setMobileMenuOpen(false);
     };
 
     return (
@@ -23,35 +29,33 @@ const Navbar = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-14">
                     {/* Logo */}
-                    <div className="flex items-center gap-8">
-                        <Link href="/" className="flex items-center gap-2 font-black text-xl tracking-tight text-lime-400">
-                            <Gamepad2 className="w-6 h-6" />
-                            HITBOX
-                        </Link>
+                    <Link href="/" className="flex items-center gap-2 font-black text-xl tracking-tight text-lime-400">
+                        <Gamepad2 className="w-6 h-6" />
+                        HITBOX
+                    </Link>
 
-                        {/* Nav Links */}
-                        <div className="hidden md:flex items-center gap-6 text-sm">
-                            <Link href="/games" className="text-zinc-400 hover:text-white transition-colors">
-                                Games
+                    {/* Desktop Nav Links */}
+                    <div className="hidden md:flex items-center gap-6 text-sm">
+                        <Link href="/games" className="text-zinc-400 hover:text-white transition-colors">
+                            Games
+                        </Link>
+                        <Link href="/lists" className="text-zinc-400 hover:text-white transition-colors">
+                            Lists
+                        </Link>
+                        <Link href="/members" className="text-zinc-400 hover:text-white transition-colors">
+                            Members
+                        </Link>
+                        {user && (
+                            <Link href="/profile" className="text-zinc-400 hover:text-white transition-colors">
+                                Profile
                             </Link>
-                            <Link href="/lists" className="text-zinc-400 hover:text-white transition-colors">
-                                Lists
-                            </Link>
-                            <Link href="/members" className="text-zinc-400 hover:text-white transition-colors">
-                                Members
-                            </Link>
-                            {user && (
-                                <Link href="/profile" className="text-zinc-400 hover:text-white transition-colors">
-                                    Profile
-                                </Link>
-                            )}
-                        </div>
+                        )}
                     </div>
 
-                    {/* Right Side */}
-                    <div className="flex items-center gap-4">
+                    {/* Right Side - Desktop */}
+                    <div className="hidden md:flex items-center gap-4">
                         {/* Search Bar */}
-                        <form onSubmit={handleSearch} className="hidden md:block relative">
+                        <form onSubmit={handleSearch} className="relative">
                             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                 <Search className="h-4 w-4 text-zinc-500" />
                             </div>
@@ -60,7 +64,7 @@ const Navbar = () => {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                                 className="w-48 lg:w-64 pl-9 pr-3 py-1.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors"
-                                placeholder="Search title, dev, user..."
+                                placeholder="Search games..."
                             />
                         </form>
 
@@ -81,8 +85,92 @@ const Navbar = () => {
                             </Link>
                         )}
                     </div>
+
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors"
+                        aria-label="Toggle menu"
+                    >
+                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
                 </div>
             </div>
+
+            {/* Mobile Menu Overlay */}
+            {mobileMenuOpen && (
+                <div className="md:hidden border-t border-zinc-900 bg-black">
+                    <div className="px-4 py-4 space-y-4">
+                        {/* Mobile Search */}
+                        <form onSubmit={handleSearch} className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <Search className="h-4 w-4 text-zinc-500" />
+                            </div>
+                            <input
+                                type="text"
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full pl-9 pr-3 py-2.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors"
+                                placeholder="Search games..."
+                            />
+                        </form>
+
+                        {/* Mobile Nav Links */}
+                        <div className="flex flex-col space-y-1">
+                            <Link
+                                href="/games"
+                                onClick={handleNavClick}
+                                className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors"
+                            >
+                                Games
+                            </Link>
+                            <Link
+                                href="/lists"
+                                onClick={handleNavClick}
+                                className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors"
+                            >
+                                Lists
+                            </Link>
+                            <Link
+                                href="/members"
+                                onClick={handleNavClick}
+                                className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors"
+                            >
+                                Members
+                            </Link>
+                            {user && (
+                                <Link
+                                    href="/profile"
+                                    onClick={handleNavClick}
+                                    className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors"
+                                >
+                                    Profile
+                                </Link>
+                            )}
+                        </div>
+
+                        {/* Mobile Auth */}
+                        <div className="pt-2 border-t border-zinc-800">
+                            {user ? (
+                                <button
+                                    onClick={() => { logout(); handleNavClick(); }}
+                                    className="w-full px-3 py-2.5 text-left text-zinc-400 hover:bg-zinc-900 hover:text-white rounded transition-colors"
+                                >
+                                    Logout
+                                </button>
+                            ) : (
+                                <Link
+                                    href="/login"
+                                    onClick={handleNavClick}
+                                    className="block w-full text-center py-2.5 border border-lime-400 text-lime-400 rounded hover:bg-lime-400 hover:text-black transition-colors font-medium"
+                                >
+                                    LOG IN
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
         </nav>
     );
 };

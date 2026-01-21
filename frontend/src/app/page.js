@@ -49,11 +49,11 @@ export default function Home() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         {/* Left Side - Text */}
                         <div>
-                            <h1 className="text-5xl lg:text-7xl font-black tracking-tight leading-none mb-6">
+                            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-none mb-6">
                                 TRACK YOUR<br />
                                 <span className="text-lime-400">VIRTUAL LIFE.</span>
                             </h1>
-                            <p className="text-lg text-zinc-400 max-w-md mb-8">
+                            <p className="text-base sm:text-lg text-zinc-400 max-w-md mb-8">
                                 The social network for pixel purists. Log every boss defeated, rate every narrative, and build the ultimate archive of your gaming history.
                             </p>
                             <div className="flex flex-wrap gap-4 mb-12">
@@ -81,17 +81,17 @@ export default function Home() {
                             </div>
 
                             {/* Stats */}
-                            <div className="flex gap-12">
+                            <div className="flex flex-wrap gap-6 sm:gap-12">
                                 <div>
-                                    <div className="text-3xl font-black text-white">2.4M</div>
+                                    <div className="text-2xl sm:text-3xl font-black text-white">2.4M</div>
                                     <div className="text-xs text-zinc-500 uppercase tracking-wider">Reviews Logged</div>
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-black text-white">850k</div>
+                                    <div className="text-2xl sm:text-3xl font-black text-white">850k</div>
                                     <div className="text-xs text-zinc-500 uppercase tracking-wider">Lists Created</div>
                                 </div>
                                 <div>
-                                    <div className="text-3xl font-black text-white">120k</div>
+                                    <div className="text-2xl sm:text-3xl font-black text-white">120k</div>
                                     <div className="text-xs text-zinc-500 uppercase tracking-wider">Active Players</div>
                                 </div>
                             </div>

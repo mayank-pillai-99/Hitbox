@@ -5,9 +5,9 @@ import { Gamepad2 } from 'lucide-react';
 
 export default function Footer() {
     return (
-        <footer className="px-6 lg:px-12 py-12 border-t border-zinc-900 bg-black">
+        <footer className="px-4 sm:px-6 lg:px-12 py-12 border-t border-zinc-900 bg-black">
             <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-8 mb-12">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-center sm:text-left">
                     <div>
                         <h4 className="font-bold text-white uppercase text-sm mb-4">HitBox</h4>
                         <ul className="space-y-2 text-sm text-zinc-500">
@@ -26,8 +26,8 @@ export default function Footer() {
                             <li><Link href="#" className="hover:text-white transition-colors">Instagram</Link></li>
                         </ul>
                     </div>
-                    <div className="text-sm text-zinc-600">
-                        <div className="flex items-center gap-2 text-lime-400 font-black text-lg mb-3">
+                    <div className="text-sm text-zinc-600 sm:col-span-2 md:col-span-1">
+                        <div className="flex items-center justify-center sm:justify-start gap-2 text-lime-400 font-black text-lg mb-3">
                             <Gamepad2 className="w-5 h-5" />
                             HITBOX
                         </div>
