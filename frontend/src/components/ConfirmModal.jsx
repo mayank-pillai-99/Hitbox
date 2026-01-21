@@ -15,7 +15,7 @@ export default function ConfirmModal({
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center animate-fade-in">
             {/* Backdrop */}
             <div
                 className="absolute inset-0 bg-black/70 backdrop-blur-sm"
@@ -23,7 +23,7 @@ export default function ConfirmModal({
             />
 
             {/* Modal */}
-            <div className="relative bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
+            <div className="animate-scale-in relative bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl">
                 {/* Close Button */}
                 <button
                     onClick={onClose}
@@ -59,8 +59,8 @@ export default function ConfirmModal({
                             onClose();
                         }}
                         className={`flex-1 px-4 py-2.5 rounded-lg font-medium transition-colors ${variant === 'danger'
-                                ? 'bg-red-500 hover:bg-red-600 text-white'
-                                : 'bg-yellow-500 hover:bg-yellow-600 text-black'
+                            ? 'bg-red-500 hover:bg-red-600 text-white'
+                            : 'bg-yellow-500 hover:bg-yellow-600 text-black'
                             }`}
                     >
                         {confirmText}

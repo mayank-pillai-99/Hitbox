@@ -4,12 +4,12 @@ import { Star } from 'lucide-react';
 const GameCard = ({ game }) => {
     return (
         <Link href={`/games/${game._id || game.id}`} className="group block cursor-pointer">
-            <div className="relative aspect-[3/4] overflow-hidden rounded-lg bg-zinc-800 shadow-lg transition-transform duration-300 group-hover:-translate-y-1 group-hover:shadow-xl border border-zinc-800 group-hover:border-lime-400/50">
-                {/* Image Placeholder */}
+            <div className="card-hover img-hover-zoom relative aspect-[3/4] overflow-hidden rounded-lg bg-zinc-800 shadow-lg border border-zinc-800 group-hover:border-lime-400/50">
+                {/* Image */}
                 <img
                     src={game.coverImage || "https://placehold.co/300x400/222/888?text=Game+Cover"}
                     alt={game.title}
-                    className="object-cover w-full h-full transition-opacity duration-300 group-hover:opacity-80"
+                    className="object-cover w-full h-full"
                 />
 
                 {/* Overlay Gradient */}

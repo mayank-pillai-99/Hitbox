@@ -110,7 +110,7 @@ function ListCard({ list }) {
     return (
         <div
             onClick={handleCardClick}
-            className="group bg-zinc-900/50 rounded-lg border border-zinc-800 overflow-hidden hover:border-zinc-700 transition-colors cursor-pointer"
+            className="group card-hover glow-hover bg-zinc-900/50 rounded-lg border border-zinc-800 overflow-hidden cursor-pointer"
         >
             {/* Game Covers Preview */}
             <div className="h-32 flex gap-0.5 overflow-hidden bg-zinc-800">
