@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { List, Loader2, Gamepad2, User } from 'lucide-react';
+import { List, Loader2, Gamepad2, User, MessageCircle } from 'lucide-react';
 import api from '@/utils/api';
 
 export default function ListsDiscoveryPage() {
@@ -166,10 +166,17 @@ function ListCard({ list }) {
                         <span className="text-sm text-zinc-400">{list.user.username}</span>
                     </Link>
 
-                    {/* Game Count */}
-                    <span className="text-sm text-zinc-500">
-                        {list.gameCount} {list.gameCount === 1 ? 'game' : 'games'}
-                    </span>
+                    {/* Game & Comment Count */}
+                    <div className="flex items-center gap-3 text-sm text-zinc-500">
+                        <span className="flex items-center gap-1">
+                            <Gamepad2 className="w-3.5 h-3.5" />
+                            {list.gameCount}
+                        </span>
+                        <span className="flex items-center gap-1">
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            {list.commentCount || 0}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>

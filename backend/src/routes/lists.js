@@ -1,6 +1,7 @@
 import express from 'express';
 import List from '../models/List.js';
 import Game from '../models/Game.js';
+import Comment from '../models/Comment.js';
 import auth from '../middleware/auth.js';
 import igdb from '../utils/igdb.js';
 import { mapIGDBGame } from '../utils/mappers.js';
@@ -33,20 +34,24 @@ router.get('/discover', async (req, res) => {
             .lean();
 
         // Transform for frontend with preview data
-        let listsWithPreview = lists.map(list => ({
-            _id: list._id,
-            name: list.name,
-            description: list.description,
-            gameCount: list.games.length,
-            previewGames: list.games.slice(0, 5).map(g => ({
-                title: g.title,
-                coverImage: g.coverImage
-            })),
-            user: {
-                username: list.user?.username || 'Unknown',
-                profilePicture: list.user?.profilePicture
-            },
-            createdAt: list.createdAt
+        const listsWithPreview = await Promise.all(lists.map(async (list) => {
+            const commentCount = await Comment.countDocuments({ list: list._id });
+            return {
+                _id: list._id,
+                name: list.name,
+                description: list.description,
+                gameCount: list.games.length,
+                commentCount,
+                previewGames: list.games.slice(0, 5).map(g => ({
+                    title: g.title,
+                    coverImage: g.coverImage
+                })),
+                user: {
+                    username: list.user?.username || 'Unknown',
+                    profilePicture: list.user?.profilePicture
+                },
+                createdAt: list.createdAt
+            };
         }));
 
         // Sort by popularity (most games) if requested
