@@ -153,12 +153,19 @@ router.get('/:username/reviews', async (req, res) => {
             .populate('game', 'title coverImage slug igdbId')
             .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
+            .limit(limit)
+            .lean();
+
+        // Add likesCount to each review
+        const reviewsWithLikes = reviews.map(review => ({
+            ...review,
+            likesCount: review.likes?.length || 0
+        }));
 
         const total = await Review.countDocuments({ user: user._id });
 
         res.json({
-            reviews,
+            reviews: reviewsWithLikes,
             pagination: {
                 current: page,
                 total: Math.ceil(total / limit),

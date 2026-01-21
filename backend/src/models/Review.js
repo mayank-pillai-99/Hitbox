@@ -5,6 +5,7 @@ const reviewSchema = new mongoose.Schema({
     game: { type: mongoose.Schema.Types.ObjectId, ref: 'Game', required: true },
     rating: { type: Number, required: true, min: 1, max: 5 },
     text: { type: String },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, {
     timestamps: true
 });

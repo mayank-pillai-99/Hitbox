@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Star, Calendar, Globe, User, Loader2 } from 'lucide-react';
+import { Star, Calendar, Globe, User, Loader2, Heart } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AddToListModal from '@/components/AddToListModal';
 import GameStatusButtons from '@/components/GameStatusButtons';
@@ -211,10 +211,35 @@ export default function GameDetails({ params }) {
                                                     <span className="text-sm font-bold">{review.rating}/5</span>
                                                 </div>
                                             </div>
-                                            <p className="text-zinc-300 text-sm">{review.text}</p>
-                                            <p className="text-zinc-600 text-xs mt-2">
-                                                {new Date(review.createdAt).toLocaleDateString()}
-                                            </p>
+                                            {review.text && <p className="text-zinc-300 text-sm">{review.text}</p>}
+                                            <div className="flex items-center justify-between mt-3">
+                                                <p className="text-zinc-600 text-xs">
+                                                    {new Date(review.createdAt).toLocaleDateString()}
+                                                </p>
+                                                <button
+                                                    onClick={async (e) => {
+                                                        e.preventDefault();
+                                                        if (!user) return alert('Please login to like reviews');
+                                                        try {
+                                                            const isLiked = review.likes?.includes(user._id);
+                                                            if (isLiked) {
+                                                                await api.delete(`/reviews/${review._id}/like`);
+                                                            } else {
+                                                                await api.post(`/reviews/${review._id}/like`);
+                                                            }
+                                                            // Refresh reviews
+                                                            const res = await api.get(`/reviews/game/${gameId}`);
+                                                            setReviews(res.data);
+                                                        } catch (err) {
+                                                            console.error('Failed to toggle like', err);
+                                                        }
+                                                    }}
+                                                    className={`flex items-center gap-1 text-xs transition-colors ${review.likes?.includes(user?._id) ? 'text-lime-400' : 'text-zinc-500 hover:text-lime-400'}`}
+                                                >
+                                                    <Heart className={`w-4 h-4 ${review.likes?.includes(user?._id) ? 'fill-current' : ''}`} />
+                                                    <span>{review.likesCount || 0}</span>
+                                                </button>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>

@@ -110,9 +110,16 @@ router.get('/recent', async (req, res) => {
             .populate('game', 'title coverImage slug igdbId')
             .populate('user', 'username profilePicture')
             .sort({ createdAt: -1 })
-            .limit(limit);
+            .limit(limit)
+            .lean();
 
-        res.json(reviews);
+        // Add likesCount to each review
+        const reviewsWithLikes = reviews.map(review => ({
+            ...review,
+            likesCount: review.likes?.length || 0
+        }));
+
+        res.json(reviewsWithLikes);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
@@ -125,9 +132,16 @@ router.get('/my', auth, async (req, res) => {
         const reviews = await Review.find({ user: req.user.id })
             .populate('game', 'title coverImage slug igdbId')
             .sort({ createdAt: -1 })
-            .limit(10);
+            .limit(10)
+            .lean();
 
-        res.json(reviews);
+        // Add likesCount to each review
+        const reviewsWithLikes = reviews.map(review => ({
+            ...review,
+            likesCount: review.likes?.length || 0
+        }));
+
+        res.json(reviewsWithLikes);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
@@ -156,8 +170,16 @@ router.get('/game/:gameId', async (req, res) => {
 
         const reviews = await Review.find({ game: queryGameId })
             .populate('user', 'username profilePicture')
-            .sort({ createdAt: -1 });
-        res.json(reviews);
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Add likesCount to each review
+        const reviewsWithLikes = reviews.map(review => ({
+            ...review,
+            likesCount: review.likes?.length || 0
+        }));
+
+        res.json(reviewsWithLikes);
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');
@@ -240,6 +262,64 @@ router.delete('/:reviewId', auth, async (req, res) => {
         }
 
         res.json({ message: 'Review deleted' });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// Like a review
+router.post('/:reviewId/like', auth, async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const userId = req.user.id;
+
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        // Check if already liked
+        if (review.likes.includes(userId)) {
+            return res.status(400).json({ message: 'Already liked this review' });
+        }
+
+        review.likes.push(userId);
+        await review.save();
+
+        res.json({
+            message: 'Review liked',
+            likesCount: review.likes.length
+        });
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server error');
+    }
+});
+
+// Unlike a review
+router.delete('/:reviewId/like', auth, async (req, res) => {
+    try {
+        const { reviewId } = req.params;
+        const userId = req.user.id;
+
+        const review = await Review.findById(reviewId);
+        if (!review) {
+            return res.status(404).json({ message: 'Review not found' });
+        }
+
+        // Check if not liked
+        if (!review.likes.includes(userId)) {
+            return res.status(400).json({ message: 'Not liked this review' });
+        }
+
+        review.likes = review.likes.filter(id => id.toString() !== userId);
+        await review.save();
+
+        res.json({
+            message: 'Review unliked',
+            likesCount: review.likes.length
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).send('Server error');

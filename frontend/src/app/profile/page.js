@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash2, X } from 'lucide-react';
+import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash2, X, Heart } from 'lucide-react';
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -154,6 +154,10 @@ export default function Profile() {
                                         {review.text && (
                                             <p className="text-zinc-400 text-sm mt-2 line-clamp-2">{review.text}</p>
                                         )}
+                                        <div className="flex items-center gap-1 text-xs text-zinc-500 mt-2">
+                                            <Heart className="w-3.5 h-3.5" />
+                                            <span>{review.likesCount || 0} likes</span>
+                                        </div>
                                     </div>
                                     <div className="flex gap-2">
                                         <button

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import { User, Calendar, Star, List, Loader2, Gamepad2, ArrowRight } from 'lucide-react';
+import { User, Calendar, Star, List, Loader2, Gamepad2, ArrowRight, Heart } from 'lucide-react';
 import api from '@/utils/api';
 
 export default function PublicUserProfile({ params }) {
@@ -149,8 +149,8 @@ export default function PublicUserProfile({ params }) {
                         <button
                             onClick={() => setActiveTab('reviews')}
                             className={`py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors relative ${activeTab === 'reviews'
-                                    ? 'text-lime-400'
-                                    : 'text-zinc-500 hover:text-zinc-300'
+                                ? 'text-lime-400'
+                                : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
                         >
                             Reviews
@@ -162,8 +162,8 @@ export default function PublicUserProfile({ params }) {
                         <button
                             onClick={() => setActiveTab('lists')}
                             className={`py-4 px-6 font-bold text-sm uppercase tracking-wide transition-colors relative ${activeTab === 'lists'
-                                    ? 'text-lime-400'
-                                    : 'text-zinc-500 hover:text-zinc-300'
+                                ? 'text-lime-400'
+                                : 'text-zinc-500 hover:text-zinc-300'
                                 }`}
                         >
                             Lists
@@ -226,6 +226,10 @@ export default function PublicUserProfile({ params }) {
                                         {(review.text || review.content) && (
                                             <p className="text-zinc-400 text-sm mt-2 line-clamp-2">{review.text || review.content}</p>
                                         )}
+                                        <div className="flex items-center gap-1 text-xs text-zinc-500 mt-2">
+                                            <Heart className="w-3.5 h-3.5" />
+                                            <span>{review.likesCount || 0}</span>
+                                        </div>
                                     </div>
                                 </Link>
                             ))

@@ -166,21 +166,25 @@ export default function Home() {
                             {/* Review Cards */}
                             <div className="space-y-6">
                                 {recentReviews.length > 0 ? recentReviews.map((review) => (
-                                    <Link
-                                        key={review._id}
-                                        href={`/games/${review.game?._id || review.game?.igdbId}`}
-                                        className="flex gap-4 group"
-                                    >
-                                        <div className="w-16 h-24 bg-zinc-800 rounded overflow-hidden flex-shrink-0">
+                                    <div key={review._id} className="flex gap-4 group">
+                                        <Link
+                                            href={`/games/${review.game?._id || review.game?.igdbId}`}
+                                            className="w-16 h-24 bg-zinc-800 rounded overflow-hidden flex-shrink-0"
+                                        >
                                             {review.game?.coverImage ? (
                                                 <img src={review.game.coverImage} alt={review.game.title} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-900" />
                                             )}
-                                        </div>
+                                        </Link>
                                         <div className="flex-1">
                                             <div className="flex items-center justify-between mb-1">
-                                                <h3 className="font-bold text-white group-hover:text-lime-400 transition-colors">{review.game?.title || 'Unknown Game'}</h3>
+                                                <Link
+                                                    href={`/games/${review.game?._id || review.game?.igdbId}`}
+                                                    className="font-bold text-white hover:text-lime-400 transition-colors"
+                                                >
+                                                    {review.game?.title || 'Unknown Game'}
+                                                </Link>
                                                 <div className="flex gap-0.5">
                                                     {[...Array(5)].map((_, j) => (
                                                         <Star key={j} className={`w-4 h-4 ${j < review.rating ? 'text-lime-400 fill-lime-400' : 'text-zinc-700'}`} />
@@ -196,9 +200,13 @@ export default function Home() {
                                                 <span className="text-sm text-zinc-400">{review.user?.username || 'Anonymous'}</span>
                                                 <span className="text-xs text-zinc-600">• {new Date(review.createdAt).toLocaleDateString()}</span>
                                             </div>
-                                            {review.text && <p className="text-sm text-zinc-400 line-clamp-2">{review.text}</p>}
+                                            {review.text && <p className="text-sm text-zinc-400 line-clamp-2 mb-2">{review.text}</p>}
+                                            <div className="flex items-center gap-1 text-xs text-zinc-500">
+                                                <Heart className="w-3.5 h-3.5" />
+                                                <span>{review.likesCount || 0}</span>
+                                            </div>
                                         </div>
-                                    </Link>
+                                    </div>
                                 )) : (
                                     <p className="text-zinc-500">No reviews yet. Be the first to review a game!</p>
                                 )}
