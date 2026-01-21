@@ -23,7 +23,6 @@ A social gaming platform for tracking, reviewing, and sharing your gaming experi
 
 ### User Experience
 - **Mobile Responsive** - Hamburger menu, collapsible filters, optimized layouts
-- **Marathon Aesthetic** - Bold typography, lime green accents, dark theme
 - **Real-time Updates** - Instant UI updates for likes, comments, and status changes
 
 ## 🛠️ Tech Stack
