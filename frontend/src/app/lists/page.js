@@ -95,6 +95,7 @@ export default function ListsDiscoveryPage() {
                     </div>
                 )}
             </div>
+            <Footer />
         </div>
     );
 }
@@ -171,7 +172,6 @@ function ListCard({ list }) {
                     </span>
                 </div>
             </div>
-            <Footer />
         </div>
     );
 }
