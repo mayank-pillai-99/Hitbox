@@ -85,7 +85,7 @@ export default function Profile() {
             <div className="border-b border-zinc-900 pt-10 pb-10 px-4">
                 <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-8">
                     {/* Avatar */}
-                    <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-lime-400/30 shadow-xl bg-zinc-900 flex items-center justify-center">
+                    <div className="animate-fade-in-up w-32 h-32 rounded-full overflow-hidden border-4 border-lime-400/30 shadow-xl bg-zinc-900 flex items-center justify-center">
                         {user.profilePicture ? (
                             <img src={user.profilePicture} alt={user.username || 'User'} className="w-full h-full object-cover" />
                         ) : (
@@ -94,7 +94,7 @@ export default function Profile() {
                     </div>
 
                     {/* User Info */}
-                    <div className="flex-1 text-center md:text-left">
+                    <div className="animate-fade-in-up stagger-2 flex-1 text-center md:text-left">
                         <div className="flex flex-col md:flex-row items-center gap-4 mb-4">
                             <h1 className="text-4xl font-black tracking-tight text-white">{user.username || 'User'}</h1>
                             <Link href="/settings" className="flex items-center gap-2 px-4 py-1.5 bg-zinc-900 hover:bg-zinc-800 rounded text-sm text-zinc-300 transition-colors border border-zinc-800">

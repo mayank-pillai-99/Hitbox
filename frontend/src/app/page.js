@@ -49,11 +49,11 @@ export default function Home() {
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
                         {/* Left Side - Text */}
                         <div>
-                            <h1 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-none mb-6">
+                            <h1 className="animate-fade-in-up text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-none mb-6">
                                 TRACK YOUR<br />
                                 <span className="text-lime-400">VIRTUAL LIFE.</span>
                             </h1>
-                            <p className="text-base sm:text-lg text-zinc-400 max-w-md mb-8">
+                            <p className="animate-fade-in-up stagger-2 text-base sm:text-lg text-zinc-400 max-w-md mb-8">
                                 The social network for pixel purists. Log every boss defeated, rate every narrative, and build the ultimate archive of your gaming history.
                             </p>
                             <div className="flex flex-wrap gap-4 mb-12">
@@ -166,10 +166,10 @@ export default function Home() {
                             {/* Review Cards */}
                             <div className="space-y-6">
                                 {recentReviews.length > 0 ? recentReviews.map((review) => (
-                                    <div key={review._id} className="flex gap-4 group">
+                                    <div key={review._id} className="card-hover flex gap-4 group p-3 rounded-lg bg-zinc-900/30 border border-transparent hover:border-zinc-800">
                                         <Link
                                             href={`/games/${review.game?._id || review.game?.igdbId}`}
-                                            className="w-16 h-24 bg-zinc-800 rounded overflow-hidden flex-shrink-0"
+                                            className="img-hover-zoom w-16 h-24 bg-zinc-800 rounded overflow-hidden flex-shrink-0"
                                         >
                                             {review.game?.coverImage ? (
                                                 <img src={review.game.coverImage} alt={review.game.title} className="w-full h-full object-cover" />
@@ -220,7 +220,7 @@ export default function Home() {
                                 <h3 className="text-lg font-black text-white mb-4">Popular Lists</h3>
                                 <div className="space-y-4">
                                     {popularLists.length > 0 ? popularLists.map(list => (
-                                        <Link key={list._id} href={`/lists/${list._id}`} className="block group">
+                                        <Link key={list._id} href={`/lists/${list._id}`} className="card-hover glow-hover block group p-3 rounded-lg bg-zinc-900/30 border border-zinc-800">
                                             <div className="flex gap-1 mb-2 overflow-hidden rounded">
                                                 {list.previewGames?.slice(0, 5).map((game, i) => (
                                                     <div key={i} className="w-12 h-16 bg-zinc-800 overflow-hidden">
@@ -247,9 +247,9 @@ export default function Home() {
                                 <h3 className="text-lg font-black text-white mb-4">Top Reviewers</h3>
                                 <div className="space-y-3">
                                     {topReviewers.length > 0 ? topReviewers.map(member => (
-                                        <div key={member._id} className="flex items-center justify-between">
+                                        <div key={member._id} className="card-hover flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900/50">
                                             <Link href={`/users/${member.username}`} className="flex items-center gap-3 group">
-                                                <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden">
+                                                <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden transition-transform group-hover:scale-105">
                                                     {member.profilePicture ? (
                                                         <img src={member.profilePicture} alt="" className="w-full h-full object-cover" />
                                                     ) : (

@@ -90,7 +90,7 @@ export default function GameDetails({ params }) {
                 <div className="flex flex-col md:flex-row gap-8">
                     {/* Cover Image */}
                     {/* Cover Image */}
-                    <div className="flex-shrink-0 mx-auto md:mx-0 w-64 aspect-[3/4] rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 relative">
+                    <div className="animate-fade-in-up flex-shrink-0 mx-auto md:mx-0 w-64 aspect-[3/4] rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 relative">
                         {game.coverImage ? (
                             <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
                         ) : (
@@ -99,7 +99,7 @@ export default function GameDetails({ params }) {
                     </div>
 
                     {/* Game Info */}
-                    <div className="flex-1 text-center md:text-left pt-4 md:pt-32">
+                    <div className="animate-fade-in-up stagger-2 flex-1 text-center md:text-left pt-4 md:pt-32">
                         <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2">{game.title}</h1>
                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-zinc-400 mb-6">
                             {game.releaseDate && (
