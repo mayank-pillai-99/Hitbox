@@ -6,8 +6,10 @@ import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash
 import GameCard from '@/components/GameCard';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
+import ConfirmModal from '@/components/ConfirmModal';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 
 export default function Profile() {
     const { user, logout } = useAuth();
@@ -23,6 +25,8 @@ export default function Profile() {
     const [editRating, setEditRating] = useState(0);
     const [editText, setEditText] = useState('');
     const [saving, setSaving] = useState(false);
+    const [deleteReviewId, setDeleteReviewId] = useState(null);
+    const toast = useToast();
 
     useEffect(() => {
         if (!user) return;
@@ -172,16 +176,7 @@ export default function Profile() {
                                             <Pencil className="w-4 h-4" />
                                         </button>
                                         <button
-                                            onClick={async () => {
-                                                if (confirm('Are you sure you want to delete this review?')) {
-                                                    try {
-                                                        await api.delete(`/reviews/${review._id}`);
-                                                        setReviews(reviews.filter(r => r._id !== review._id));
-                                                    } catch (err) {
-                                                        console.error('Failed to delete review', err);
-                                                    }
-                                                }
-                                            }}
+                                            onClick={() => setDeleteReviewId(review._id)}
                                             className="p-2 text-zinc-400 hover:text-red-500 hover:bg-zinc-800 rounded transition-colors"
                                             title="Delete review"
                                         >
@@ -345,6 +340,25 @@ export default function Profile() {
                 )}
             </div>
             <Footer />
+
+            <ConfirmModal
+                isOpen={!!deleteReviewId}
+                onClose={() => setDeleteReviewId(null)}
+                onConfirm={async () => {
+                    try {
+                        await api.delete(`/reviews/${deleteReviewId}`);
+                        setReviews(reviews.filter(r => r._id !== deleteReviewId));
+                        toast.success('Review deleted successfully');
+                    } catch (err) {
+                        console.error('Failed to delete review', err);
+                        toast.error('Failed to delete review');
+                    }
+                }}
+                title="Delete Review"
+                message="Are you sure you want to delete this review? This action cannot be undone."
+                confirmText="Delete"
+                variant="danger"
+            />
         </div>
     );
 }

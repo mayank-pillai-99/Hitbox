@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { Check, Play, BookmarkPlus, X, Loader2 } from 'lucide-react';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 
 const STATUS_OPTIONS = [
     { key: 'played', label: 'Played', icon: Check, color: 'emerald' },
@@ -13,6 +14,7 @@ const STATUS_OPTIONS = [
 
 export default function GameStatusButtons({ gameId }) {
     const { user } = useAuth();
+    const toast = useToast();
     const [currentStatus, setCurrentStatus] = useState(null);
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(true);
@@ -39,7 +41,7 @@ export default function GameStatusButtons({ gameId }) {
 
     const handleStatusClick = async (status) => {
         if (!user) {
-            alert('Please login to track games');
+            toast.warning('Please login to track games');
             return;
         }
 

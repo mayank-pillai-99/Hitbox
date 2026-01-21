@@ -9,13 +9,16 @@ export const metadata = {
 };
 
 import { AuthProvider } from '@/context/AuthContext';
+import { ToastProvider } from '@/context/ToastContext';
 
 export default function RootLayout({ children }) {
     return (
         <html lang="en">
             <body className={`${inter.className} bg-zinc-950 text-zinc-100 min-h-screen`}>
                 <AuthProvider>
-                    {children}
+                    <ToastProvider>
+                        {children}
+                    </ToastProvider>
                 </AuthProvider>
             </body>
         </html>

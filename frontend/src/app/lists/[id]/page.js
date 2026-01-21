@@ -5,9 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import EditListModal from '@/components/EditListModal';
+import ConfirmModal from '@/components/ConfirmModal';
 import { User, Calendar, MoreHorizontal, Loader2, Trash2, Edit, MessageCircle, Send } from 'lucide-react';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
+import { useToast } from '@/context/ToastContext';
 
 export default function ListDetails({ params }) {
     const { user } = useAuth();
@@ -21,6 +23,10 @@ export default function ListDetails({ params }) {
     const [comments, setComments] = useState([]);
     const [newComment, setNewComment] = useState('');
     const [submittingComment, setSubmittingComment] = useState(false);
+    const [showDeleteListModal, setShowDeleteListModal] = useState(false);
+    const [removeGameId, setRemoveGameId] = useState(null);
+    const [deleteCommentId, setDeleteCommentId] = useState(null);
+    const toast = useToast();
 
     // Unwrap params using React.use() or await if necessary in newer Next.js
     useEffect(() => {
@@ -68,26 +74,26 @@ export default function ListDetails({ params }) {
     };
 
     const handleDeleteList = async () => {
-        if (!confirm("Are you sure you want to delete this list? This action cannot be undone.")) return;
         setDeleting(true);
         try {
             await api.delete(`/lists/${listId}`);
+            toast.success('List deleted successfully');
             router.push('/profile');
         } catch (err) {
             console.error("Failed to delete list", err);
-            alert("Failed to delete list.");
+            toast.error('Failed to delete list');
             setDeleting(false);
         }
     };
 
     const handleRemoveGame = async (gameId) => {
-        if (!confirm("Remove this game from the list?")) return;
         try {
             const res = await api.delete(`/lists/${listId}/game/${gameId}`);
             setList(res.data);
+            toast.success('Game removed from list');
         } catch (err) {
             console.error("Failed to remove game", err);
-            alert("Failed to remove game from list.");
+            toast.error('Failed to remove game');
         }
     };
 
@@ -156,7 +162,7 @@ export default function ListDetails({ params }) {
                                     <Edit className="w-4 h-4" /> Edit List
                                 </button>
                                 <button
-                                    onClick={handleDeleteList}
+                                    onClick={() => setShowDeleteListModal(true)}
                                     disabled={deleting}
                                     className="p-2 bg-zinc-800 hover:bg-red-900/20 border border-zinc-700 hover:border-red-900/50 rounded-lg transition-colors text-zinc-400 hover:text-red-500"
                                     title="Delete List"
@@ -201,7 +207,7 @@ export default function ListDetails({ params }) {
                                 {isOwner && (
                                     <div className="opacity-0 group-hover:opacity-100 transition-opacity px-4">
                                         <button
-                                            onClick={() => handleRemoveGame(game._id)}
+                                            onClick={() => setRemoveGameId(game._id)}
                                             className="text-zinc-500 hover:text-red-400 transition-colors text-sm flex items-center gap-1"
                                         >
                                             <Trash2 className="w-4 h-4" /> Remove
@@ -305,15 +311,7 @@ export default function ListDetails({ params }) {
                                             </span>
                                             {user && comment.user?._id === user._id && (
                                                 <button
-                                                    onClick={async () => {
-                                                        if (!confirm('Delete this comment?')) return;
-                                                        try {
-                                                            await api.delete(`/comments/${comment._id}`);
-                                                            setComments(comments.filter(c => c._id !== comment._id));
-                                                        } catch (err) {
-                                                            console.error('Failed to delete comment', err);
-                                                        }
-                                                    }}
+                                                    onClick={() => setDeleteCommentId(comment._id)}
                                                     className="text-zinc-500 hover:text-red-400 transition-colors"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -334,6 +332,48 @@ export default function ListDetails({ params }) {
                 onClose={() => setIsEditModalOpen(false)}
                 list={list}
                 onUpdate={handleUpdate}
+            />
+
+            {/* Delete List Modal */}
+            <ConfirmModal
+                isOpen={showDeleteListModal}
+                onClose={() => setShowDeleteListModal(false)}
+                onConfirm={handleDeleteList}
+                title="Delete List"
+                message="Are you sure you want to delete this list? This action cannot be undone."
+                confirmText="Delete"
+                variant="danger"
+            />
+
+            {/* Remove Game Modal */}
+            <ConfirmModal
+                isOpen={!!removeGameId}
+                onClose={() => setRemoveGameId(null)}
+                onConfirm={() => handleRemoveGame(removeGameId)}
+                title="Remove Game"
+                message="Are you sure you want to remove this game from the list?"
+                confirmText="Remove"
+                variant="warning"
+            />
+
+            {/* Delete Comment Modal */}
+            <ConfirmModal
+                isOpen={!!deleteCommentId}
+                onClose={() => setDeleteCommentId(null)}
+                onConfirm={async () => {
+                    try {
+                        await api.delete(`/comments/${deleteCommentId}`);
+                        setComments(comments.filter(c => c._id !== deleteCommentId));
+                        toast.success('Comment deleted');
+                    } catch (err) {
+                        console.error('Failed to delete comment', err);
+                        toast.error('Failed to delete comment');
+                    }
+                }}
+                title="Delete Comment"
+                message="Are you sure you want to delete this comment?"
+                confirmText="Delete"
+                variant="danger"
             />
         </div>
     );
