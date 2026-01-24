@@ -232,7 +232,7 @@ export default function Home() {
                             <div>
                                 <div className="flex items-center gap-2 mb-6">
                                     <Trophy className="w-5 h-5 text-lime-400" />
-                                    <h3 className="text-lg font-black text-white italic tracking-tighter">POPULAR COLLECTIONS</h3>
+                                    <h3 className="text-lg font-black text-white italic tracking-tighter">POPULAR LISTS</h3>
                                 </div>
                                 <div className="space-y-4">
                                     {popularLists.map(list => (
