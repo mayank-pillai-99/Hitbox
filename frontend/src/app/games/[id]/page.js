@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Star, Calendar, Globe, User, Loader2, Heart } from 'lucide-react';
+import { Star, Calendar, Globe, User, Loader2, Heart, MessageSquare, Share2 } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AddToListModal from '@/components/AddToListModal';
 import GameStatusButtons from '@/components/GameStatusButtons';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
+import Footer from '@/components/Footer';
 
 export default function GameDetails({ params }) {
     const [game, setGame] = useState(null);
@@ -15,15 +16,10 @@ export default function GameDetails({ params }) {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const { user } = useAuth();
-    // Unwrap params using React.use() or await if necessary in newer Next.js, but params is a promise in the latest versions.
-    // However, for this client component structure, assuming basic params usage.
-    // NOTE: In Next.js 15+, params is async. Let's handle it safely.
-    // NOTE: In Next.js 15+, params is async. Let's handle it safely.
     const [gameId, setGameId] = useState(null);
     const [isListModalOpen, setIsListModalOpen] = useState(false);
 
     useEffect(() => {
-        // safely unwrap params
         const unwrapParams = async () => {
             const resolvedParams = await params;
             setGameId(resolvedParams.id);
@@ -64,74 +60,131 @@ export default function GameDetails({ params }) {
     if (error || !game) {
         return (
             <div className="min-h-screen bg-black text-zinc-100 flex items-center justify-center flex-col gap-4">
-                <p className="text-red-400">{error || 'Game not found'}</p>
-                <Link href="/games" className="text-lime-400 hover:underline">Back to Games</Link>
+                <p className="text-red-400 font-medium">{error || 'Game not found'}</p>
+                <Link href="/games" className="text-lime-400 hover:text-lime-300 font-bold uppercase tracking-wide">Back to Games</Link>
             </div>
         );
     }
 
     return (
-        <div className="min-h-screen bg-black text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans relative overflow-x-hidden">
             <Navbar />
 
-            {/* Backdrop */}
-            <div className="relative h-[40vh] w-full">
-                <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 to-transparent z-10"></div>
+            {/* Cinematic Backdrop */}
+            <div className="absolute top-0 left-0 w-full h-[80vh] overflow-hidden pointer-events-none z-0">
+                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black z-10" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80 z-10" />
                 {game.coverImage && (
                     <img
-                        src={game.coverImage} // Using cover as backdrop for now since we don't have separate backdrop in schema
-                        alt={game.title}
-                        className="w-full h-full object-cover opacity-30 blur-sm"
+                        src={game.coverImage}
+                        alt=""
+                        className="w-full h-full object-cover opacity-50 blur-sm scale-110"
                     />
                 )}
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-32 relative z-20">
-                <div className="flex flex-col md:flex-row gap-8">
-                    {/* Cover Image */}
-                    {/* Cover Image */}
-                    <div className="animate-fade-in-up flex-shrink-0 mx-auto md:mx-0 w-64 aspect-[3/4] rounded-lg shadow-2xl overflow-hidden border border-zinc-800 bg-zinc-900 relative">
-                        {game.coverImage ? (
-                            <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
-                        ) : (
-                            <div className="w-full h-full flex items-center justify-center text-zinc-700">No Image</div>
-                        )}
+            <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full relative z-10 pt-24 md:pt-48">
+                <div className="flex flex-col md:flex-row gap-12 items-start">
+                    {/* Cover Art Section */}
+                    <div className="md:sticky md:top-24 w-full md:w-80 flex-shrink-0 animate-fade-in-up">
+                        <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-zinc-900 transition-transform duration-500 hover:scale-[1.02]">
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20" />
+                            {game.coverImage ? (
+                                <img src={game.coverImage} alt={game.title} className="w-full h-full object-cover" />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold bg-zinc-800">No Image</div>
+                            )}
+                            {/* Neon Rim Glow */}
+                            <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 group-hover:ring-lime-400/50 transition-all duration-500 z-30" />
+                        </div>
+
+                        {/* Quick Stats */}
+                        <div className="mt-8 grid grid-cols-2 gap-4">
+                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 p-4 rounded-xl text-center">
+                                <div className="text-sm text-zinc-400 mb-1 font-medium">Rating</div>
+                                <div className="text-2xl font-black text-lime-400 flex items-center justify-center gap-1">
+                                    <Star className="w-5 h-5 fill-current" />
+                                    {game.averageRating ? game.averageRating.toFixed(1) : 'NR'}
+                                </div>
+                            </div>
+                            <div className="backdrop-blur-xl bg-white/5 border border-white/10 p-4 rounded-xl text-center">
+                                <div className="text-sm text-zinc-400 mb-1 font-medium">Release</div>
+                                <div className="text-xl font-bold text-white">
+                                    {game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'TBA'}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Status Buttons */}
+                        <div className="mt-6">
+                            <GameStatusButtons gameId={gameId} />
+                        </div>
                     </div>
 
-                    {/* Game Info */}
-                    <div className="animate-fade-in-up stagger-2 flex-1 text-center md:text-left pt-4 md:pt-32">
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2">{game.title}</h1>
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-zinc-400 mb-6">
-                            {game.releaseDate && (
-                                <span className="flex items-center gap-1">
-                                    <Calendar className="w-4 h-4" />
-                                    {new Date(game.releaseDate).getFullYear()}
-                                </span>
-                            )}
+                    {/* Main Content */}
+                    <div className="flex-1 min-w-0 animate-fade-in-up stagger-1">
+                        <div className="mb-2 flex items-center gap-3">
+                            <span className="px-3 py-1 rounded-full bg-lime-400/10 text-lime-400 text-xs font-bold uppercase tracking-wider border border-lime-400/20">
+                                {game.platforms?.[0] || 'Game'}
+                            </span>
                             {game.developer && (
-                                <span className="flex items-center gap-1"><Globe className="w-4 h-4" /> {game.developer}</span>
+                                <span className="flex items-center gap-1 text-zinc-400 text-sm font-medium">
+                                    <Globe className="w-3.5 h-3.5" />
+                                    {game.developer}
+                                </span>
                             )}
                         </div>
 
-                        {/* Actions */}
-                        <div className="flex flex-wrap justify-center md:justify-start gap-4 mb-8">
-                            <div className="flex items-center gap-2 bg-zinc-900 px-4 py-2 rounded-lg border border-zinc-800">
-                                <Star className="w-5 h-5 text-lime-400 fill-current" />
-                                <span className="text-xl font-bold text-white">{game.averageRating ? game.averageRating.toFixed(1) : 'NR'}</span>
-                                <span className="text-zinc-500 text-sm">/ 5</span>
-                            </div>
+                        <h1 className="text-4xl md:text-6xl font-black text-white mb-6 uppercase italic tracking-tight leading-none text-glow">
+                            {game.title}
+                        </h1>
 
+                        <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 mb-12 shadow-xl">
+                            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-4 flex items-center gap-2">
+                                <span className="w-8 h-0.5 bg-lime-400"></span>
+                                Synopsis
+                            </h3>
+                            <p className="text-lg text-zinc-300 leading-relaxed font-light">
+                                {game.description || "No description available for this title."}
+                            </p>
+
+                            <div className="mt-8 pt-8 border-t border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                <div>
+                                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Genres</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {game.genre?.map(g => (
+                                            <span key={g} className="bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-200">
+                                                {g}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Platforms</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {game.platforms?.map(p => (
+                                            <span key={p} className="bg-zinc-900 border border-zinc-700 px-3 py-1.5 rounded-lg text-xs font-bold text-zinc-200">
+                                                {p}
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Bar */}
+                        <div className="flex flex-wrap items-center gap-4 mb-16">
                             {user ? (
                                 <Link
                                     href={`/games/${game._id}/review`}
-                                    className="bg-lime-500 hover:bg-lime-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-lime-400 hover:bg-lime-300 text-black px-8 py-3.5 rounded-xl font-bold uppercase tracking-wide transition-all transform hover:scale-105 shadow-[0_0_20px_rgba(163,230,53,0.3)]"
                                 >
-                                    Log or Review
+                                    <Star className="w-4 h-4" /> Rate & Review
                                 </Link>
                             ) : (
                                 <Link
                                     href="/login"
-                                    className="bg-lime-500 hover:bg-lime-600 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-lime-400 hover:bg-lime-300 text-black px-8 py-3.5 rounded-xl font-bold uppercase tracking-wide transition-all transform hover:scale-105"
                                 >
                                     Login to Review
                                 </Link>
@@ -139,83 +192,58 @@ export default function GameDetails({ params }) {
 
                             <button
                                 onClick={() => user ? setIsListModalOpen(true) : alert("Please login to add to lists")}
-                                className="bg-zinc-800 hover:bg-zinc-700 text-white px-6 py-2 rounded-lg font-medium transition-colors border border-zinc-700"
+                                className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white border border-white/10 px-8 py-3.5 rounded-xl font-bold uppercase tracking-wide transition-colors"
                             >
-                                Add to List
+                                <Share2 className="w-4 h-4" /> Add to List
                             </button>
                         </div>
 
-                        {/* Game Status Buttons */}
-                        <div className="mb-8">
-                            <GameStatusButtons gameId={gameId} />
-                        </div>
-
-                        {/* Description */}
-                        <div className="mb-8">
-                            <h3 className="text-lg font-semibold text-white mb-2">Synopsis</h3>
-                            <p className="text-zinc-300 leading-relaxed">{game.description || "No description available."}</p>
-                        </div>
-
-                        {/* Details Grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-                            <div>
-                                <h4 className="text-sm font-medium text-zinc-500 mb-1">Genres</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {game.genre && game.genre.length > 0 ? (
-                                        game.genre.map(g => (
-                                            <span key={g} className="bg-zinc-900 text-zinc-300 px-2 py-1 rounded text-xs border border-zinc-800">{g}</span>
-                                        ))
-                                    ) : (
-                                        <span className="text-zinc-600 text-sm">N/A</span>
-                                    )}
-                                </div>
-                            </div>
-                            <div>
-                                <h4 className="text-sm font-medium text-zinc-500 mb-1">Platforms</h4>
-                                <div className="flex flex-wrap gap-2">
-                                    {game.platforms && game.platforms.length > 0 ? (
-                                        game.platforms.map(p => (
-                                            <span key={p} className="bg-zinc-900 text-zinc-300 px-2 py-1 rounded text-xs border border-zinc-800">{p}</span>
-                                        ))
-                                    ) : (
-                                        <span className="text-zinc-600 text-sm">N/A</span>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-
                         {/* Reviews Section */}
-                        <div>
-                            <h3 className="text-2xl font-bold text-white mb-6">Recent Reviews</h3>
+                        <div className="animate-fade-in-up stagger-2">
+                            <div className="flex items-center justify-between mb-8">
+                                <h3 className="text-2xl font-black text-white flex items-center gap-3">
+                                    <MessageSquare className="w-6 h-6 text-lime-400" />
+                                    Community Reviews
+                                </h3>
+                                <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest">{reviews.length} Reviews</span>
+                            </div>
+
                             {reviews.length === 0 ? (
-                                <div className="text-zinc-500 italic">No reviews yet. Be the first to review!</div>
+                                <div className="backdrop-blur-sm bg-white/5 border border-dashed border-zinc-700 rounded-2xl p-12 text-center">
+                                    <p className="text-zinc-500 font-medium mb-4">No reviews yet.</p>
+                                    <p className="text-sm text-zinc-600 uppercase tracking-wider">Be the legend who writes the first one.</p>
+                                </div>
                             ) : (
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     {reviews.map(review => (
-                                        <div key={review._id} className="bg-zinc-900 p-4 rounded-lg border border-zinc-800">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <div className="flex items-center gap-2">
-                                                    <div className="w-8 h-8 bg-zinc-700 rounded-full flex items-center justify-center overflow-hidden">
+                                        <div key={review._id} className="group backdrop-blur-md bg-white/5 border border-white/5 hover:border-lime-400/30 rounded-2xl p-6 transition-all duration-300">
+                                            <div className="flex items-center justify-between mb-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-zinc-800">
                                                         {review.user?.profilePicture ? (
                                                             <img src={review.user.profilePicture} className="w-full h-full object-cover" />
                                                         ) : (
-                                                            <User className="w-4 h-4 text-zinc-400" />
+                                                            <div className="w-full h-full flex items-center justify-center bg-lime-400/20 text-lime-400">
+                                                                <User className="w-5 h-5" />
+                                                            </div>
                                                         )}
                                                     </div>
-                                                    <Link href={`/users/${review.user?.username}`} className="font-medium text-white hover:text-lime-400 transition-colors">
-                                                        {review.user?.username || 'Unknown User'}
-                                                    </Link>
+                                                    <div>
+                                                        <Link href={`/users/${review.user?.username}`} className="font-bold text-white hover:text-lime-400 transition-colors block leading-tight">
+                                                            {review.user?.username || 'Unknown User'}
+                                                        </Link>
+                                                        <span className="text-xs text-zinc-500 font-medium">{new Date(review.createdAt).toLocaleDateString()}</span>
+                                                    </div>
                                                 </div>
-                                                <div className="flex items-center gap-1 text-lime-400">
-                                                    <Star className="w-4 h-4 fill-current" />
-                                                    <span className="text-sm font-bold">{review.rating}/5</span>
+                                                <div className="flex items-center gap-1 bg-black/40 px-3 py-1.5 rounded-lg border border-white/5">
+                                                    <Star className="w-4 h-4 text-lime-400 fill-current" />
+                                                    <span className="text-sm font-bold text-white">{review.rating}</span>
                                                 </div>
                                             </div>
-                                            {review.text && <p className="text-zinc-300 text-sm">{review.text}</p>}
-                                            <div className="flex items-center justify-between mt-3">
-                                                <p className="text-zinc-600 text-xs">
-                                                    {new Date(review.createdAt).toLocaleDateString()}
-                                                </p>
+
+                                            {review.text && <p className="text-zinc-300 text-sm leading-relaxed mb-4">{review.text}</p>}
+
+                                            <div className="flex items-center justify-end border-t border-white/5 pt-4">
                                                 <button
                                                     onClick={async (e) => {
                                                         e.preventDefault();
@@ -227,17 +255,16 @@ export default function GameDetails({ params }) {
                                                             } else {
                                                                 await api.post(`/reviews/${review._id}/like`);
                                                             }
-                                                            // Refresh reviews
                                                             const res = await api.get(`/reviews/game/${gameId}`);
                                                             setReviews(res.data);
                                                         } catch (err) {
                                                             console.error('Failed to toggle like', err);
                                                         }
                                                     }}
-                                                    className={`flex items-center gap-1 text-xs transition-colors ${review.likes?.includes(user?._id) ? 'text-lime-400' : 'text-zinc-500 hover:text-lime-400'}`}
+                                                    className={`flex items-center gap-2 text-xs font-bold uppercase tracking-wider transition-colors px-3 py-1.5 rounded-lg hover:bg-white/5 ${review.likes?.includes(user?._id) ? 'text-rose-500' : 'text-zinc-500 hover:text-white'}`}
                                                 >
                                                     <Heart className={`w-4 h-4 ${review.likes?.includes(user?._id) ? 'fill-current' : ''}`} />
-                                                    <span>{review.likesCount || 0}</span>
+                                                    <span>{review.likesCount || 0} Likes</span>
                                                 </button>
                                             </div>
                                         </div>
@@ -247,13 +274,15 @@ export default function GameDetails({ params }) {
                         </div>
                     </div>
                 </div>
-            </div>
+            </main>
 
             <AddToListModal
                 isOpen={isListModalOpen}
                 onClose={() => setIsListModalOpen(false)}
                 gameId={gameId}
             />
+
+            <Footer />
         </div>
     );
 }
