@@ -2,10 +2,10 @@ import mongoose from 'mongoose';
 
 const listSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    name: { type: String, required: true }, // e.g., "Currently Playing", "Completed", "Wishlist", "Abandoned"
+    name: { type: String, required: true },
     description: { type: String },
     games: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
-    isCustom: { type: Boolean, default: false }, // To distinguish between default lists and custom user lists
+    isCustom: { type: Boolean, default: false },
 }, {
     timestamps: true
 });

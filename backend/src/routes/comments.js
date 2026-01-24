@@ -5,87 +5,64 @@ import auth from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Get all comments for a list
+// Get list comments
 router.get('/list/:listId', async (req, res) => {
     try {
-        const { listId } = req.params;
-
-        // Verify list exists
-        const list = await List.findById(listId);
-        if (!list) {
+        if (!await List.exists({ _id: req.params.listId })) {
             return res.status(404).json({ message: 'List not found' });
         }
 
-        const comments = await Comment.find({ list: listId })
+        const comments = await Comment.find({ list: req.params.listId })
             .populate('user', 'username profilePicture')
             .sort({ createdAt: -1 });
 
         res.json(comments);
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Add comment to a list
+// Add comment
 router.post('/list/:listId', auth, async (req, res) => {
     try {
-        const { listId } = req.params;
         const { text } = req.body;
+        if (!text?.trim()) return res.status(400).json({ message: 'Comment required' });
+        if (text.length > 1000) return res.status(400).json({ message: 'Too long' });
 
-        if (!text || text.trim().length === 0) {
-            return res.status(400).json({ message: 'Comment text is required' });
-        }
-
-        if (text.length > 1000) {
-            return res.status(400).json({ message: 'Comment must be under 1000 characters' });
-        }
-
-        // Verify list exists
-        const list = await List.findById(listId);
-        if (!list) {
+        if (!await List.exists({ _id: req.params.listId })) {
             return res.status(404).json({ message: 'List not found' });
         }
 
-        const comment = new Comment({
+        const comment = await new Comment({
             user: req.user.id,
-            list: listId,
+            list: req.params.listId,
             text: text.trim()
-        });
+        }).save();
 
-        await comment.save();
-
-        // Populate user info for response
         await comment.populate('user', 'username profilePicture');
-
         res.status(201).json(comment);
+
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Delete a comment (only by owner)
+// Delete comment
 router.delete('/:commentId', auth, async (req, res) => {
     try {
-        const { commentId } = req.params;
+        const comment = await Comment.findById(req.params.commentId);
+        if (!comment) return res.status(404).json({ message: 'Comment not found' });
 
-        const comment = await Comment.findById(commentId);
-
-        if (!comment) {
-            return res.status(404).json({ message: 'Comment not found' });
-        }
-
-        // Check ownership
         if (comment.user.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Not authorized to delete this comment' });
+            return res.status(403).json({ message: 'Unauthorized' });
         }
 
-        await Comment.findByIdAndDelete(commentId);
-
+        await comment.deleteOne();
         res.json({ message: 'Comment deleted' });
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });

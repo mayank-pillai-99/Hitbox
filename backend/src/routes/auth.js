@@ -12,31 +12,21 @@ router.post('/register', async (req, res) => {
     try {
         const { username, email, password } = req.body;
 
-        // Check if user exists
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ message: 'User already exists' });
+        if (await User.findOne({ email })) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
 
-        // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
-        // Create user
-        user = new User({
-            username,
-            email,
-            password: hashedPassword,
-        });
-
+        const user = new User({ username, email, password: hashedPassword });
         await user.save();
 
-        // Create token
-        const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
+        const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token });
+
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
@@ -46,92 +36,76 @@ router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        // Check if user exists
-        let user = await User.findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) return res.status(400).json({ message: 'Invalid credentials' });
 
-        // Validate password
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-        // Create token
-        const payload = { user: { id: user.id } };
-        jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1h' }, (err, token) => {
-            if (err) throw err;
-            res.json({ token });
-        });
+        const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
+        res.json({ token });
+
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Logout
-router.post('/logout', (req, res) => {
-    res.json({ message: 'Logged out successfully' });
-});
+router.post('/logout', (_, res) => res.json({ message: 'Logged out successfully' }));
 
-// Get Current User (Me)
+// Get Current User
 router.get('/me', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
         if (!user) return res.status(404).json({ message: 'User not found' });
 
-        // Calculate stats
-        const reviewsCount = await mongoose.model('Review').countDocuments({ user: req.user.id });
-        const listRoutes = await mongoose.model('List').countDocuments({ user: req.user.id });
+        const [reviews, lists] = await Promise.all([
+            mongoose.model('Review').countDocuments({ user: req.user.id }),
+            mongoose.model('List').countDocuments({ user: req.user.id })
+        ]);
 
         res.json({
             ...user.toObject(),
             stats: {
-                reviews: reviewsCount,
-                lists: listRoutes,
-                gamesPlayed: 0 // Placeholder until we have a "Played" status
+                reviews,
+                lists,
+                gamesPlayed: 0
             }
         });
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Update User Profile
+// Update Profile
 router.put('/me', auth, async (req, res) => {
     try {
         const { username, email, bio, profilePicture } = req.body;
         const userId = req.user.id;
 
-        // Check availability if changing
+        // Check conflicts
         if (username) {
-            const existingUser = await User.findOne({ username });
-            if (existingUser && existingUser.id !== userId) {
-                return res.status(400).json({ message: 'Username is already taken' });
-            }
+            const exists = await User.findOne({ username });
+            if (exists && exists.id !== userId) return res.status(400).json({ message: 'Username taken' });
         }
 
         if (email) {
-            const existingEmail = await User.findOne({ email });
-            if (existingEmail && existingEmail.id !== userId) {
-                return res.status(400).json({ message: 'Email is already taken' });
-            }
+            const exists = await User.findOne({ email });
+            if (exists && exists.id !== userId) return res.status(400).json({ message: 'Email taken' });
         }
 
-        // Initialize update object
-        const updateFields = {};
-        if (username) updateFields.username = username;
-        if (email) updateFields.email = email;
-        if (bio !== undefined) updateFields.bio = bio;
-        if (profilePicture !== undefined) updateFields.profilePicture = profilePicture;
+        const update = {};
+        if (username) update.username = username;
+        if (email) update.email = email;
+        if (bio !== undefined) update.bio = bio;
+        if (profilePicture !== undefined) update.profilePicture = profilePicture;
 
-        const user = await User.findByIdAndUpdate(
-            userId,
-            { $set: updateFields },
-            { new: true }
-        ).select('-password');
-
+        const user = await User.findByIdAndUpdate(userId, { $set: update }, { new: true }).select('-password');
         res.json(user);
+
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });

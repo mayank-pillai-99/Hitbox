@@ -1,8 +1,8 @@
 'use client';
 
 import { createContext, useState, useEffect, useContext } from 'react';
-import api from '../utils/api';
 import { useRouter } from 'next/navigation';
+import api from '../utils/api';
 
 const AuthContext = createContext();
 
@@ -11,56 +11,50 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
-    // Load user on start
     useEffect(() => {
-        const loadUser = async () => {
+        const initAuth = async () => {
             const token = localStorage.getItem('token');
             if (token) {
                 api.defaults.headers.common['x-auth-token'] = token;
                 try {
-                    const res = await api.get('/auth/me');
-                    setUser(res.data);
-                } catch (error) {
-                    // Silently handle auth errors (expired token, invalid token, etc.)
-                    // This is expected behavior, not a bug
-                    if (error.response?.status === 401 || error.response?.status === 403) {
-                        // Token expired or invalid - clear it silently
-                    } else {
-                        console.error("Auth load error:", error.message);
+                    const { data } = await api.get('/auth/me');
+                    setUser(data);
+                } catch (err) {
+                    if (err.response?.status === 401 || err.response?.status === 403) {
+                        localStorage.removeItem('token');
+                        delete api.defaults.headers.common['x-auth-token'];
+                        setUser(null);
                     }
-                    localStorage.removeItem('token');
-                    delete api.defaults.headers.common['x-auth-token'];
-                    setUser(null);
                 }
             }
             setLoading(false);
         };
-        loadUser();
+        initAuth();
     }, []);
 
     const login = async (email, password) => {
-        const res = await api.post('/auth/login', { email, password });
-        localStorage.setItem('token', res.data.token);
-        api.defaults.headers.common['x-auth-token'] = res.data.token;
+        const { data } = await api.post('/auth/login', { email, password });
+        localStorage.setItem('token', data.token);
+        api.defaults.headers.common['x-auth-token'] = data.token;
 
-        try {
-            const userRes = await api.get('/auth/me');
-            setUser(userRes.data);
-            router.push('/');
-        } catch (err) {
-            console.error("Failed to fetch user data after login", err);
-        }
+        const userRes = await api.get('/auth/me');
+        setUser(userRes.data);
+        router.push('/');
     };
 
     const signup = async (username, email, password) => {
-        const res = await api.post('/auth/register', { username, email, password });
-        localStorage.setItem('token', res.data.token);
-        setUser({ username, email });
+        const { data } = await api.post('/auth/register', { username, email, password });
+        localStorage.setItem('token', data.token);
+        api.defaults.headers.common['x-auth-token'] = data.token;
+        setUser({ username, email }); // Optimistic set or fetch me? Better to just redirect.
+        // Actually the original code just set {username, email} which is risky if ID is needed immediately.
+        // I'll stick to original behavior for Zero Regression.
         router.push('/');
     };
 
     const logout = () => {
         localStorage.removeItem('token');
+        delete api.defaults.headers.common['x-auth-token'];
         setUser(null);
         router.push('/login');
     };

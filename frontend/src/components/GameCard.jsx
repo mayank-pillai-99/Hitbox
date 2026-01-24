@@ -5,14 +5,11 @@ const GameCard = ({ game }) => {
     return (
         <Link href={`/games/${game._id || game.id}`} className="group block cursor-pointer">
             <div className="card-hover img-hover-zoom relative aspect-[3/4] overflow-hidden rounded-lg bg-zinc-800 shadow-lg border border-zinc-800 group-hover:border-lime-400/50">
-                {/* Image */}
                 <img
                     src={game.coverImage || "https://placehold.co/300x400/222/888?text=Game+Cover"}
                     alt={game.title}
                     className="object-cover w-full h-full"
                 />
-
-                {/* Overlay Gradient */}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                     <p className="text-white font-bold truncate">{game.title}</p>
                     <div className="flex items-center gap-1 text-lime-300">

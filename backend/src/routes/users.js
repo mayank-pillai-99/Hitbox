@@ -1,212 +1,125 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import Review from '../models/Review.js';
-import List from '../models/List.js';
 
 const router = express.Router();
 
-// Get all members (for Members page)
+// Members List
 router.get('/', async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
-        const sort = req.query.sort || 'reviews'; // 'reviews', 'recent', 'lists'
+        const sort = req.query.sort || 'reviews';
 
-        // Aggregate to get users with their review counts
-        let sortStage = { reviewsCount: -1 }; // Default: most reviews first
-        if (sort === 'recent') {
-            sortStage = { createdAt: -1 };
-        }
+        const sortStage = sort === 'recent' ? { createdAt: -1 } : { reviewsCount: -1 };
 
         const usersWithCounts = await User.aggregate([
-            {
-                $lookup: {
-                    from: 'reviews',
-                    localField: '_id',
-                    foreignField: 'user',
-                    as: 'userReviews'
-                }
-            },
-            {
-                $lookup: {
-                    from: 'lists',
-                    localField: '_id',
-                    foreignField: 'user',
-                    as: 'userLists'
-                }
-            },
-            {
-                $addFields: {
-                    reviewsCount: { $size: '$userReviews' },
-                    listsCount: { $size: '$userLists' }
-                }
-            },
-            {
-                $project: {
-                    password: 0,
-                    email: 0,
-                    userReviews: 0,
-                    userLists: 0
-                }
-            },
+            { $lookup: { from: 'reviews', localField: '_id', foreignField: 'user', as: 'userReviews' } },
+            { $lookup: { from: 'lists', localField: '_id', foreignField: 'user', as: 'userLists' } },
+            { $addFields: { reviewsCount: { $size: '$userReviews' }, listsCount: { $size: '$userLists' } } },
+            { $project: { password: 0, email: 0, userReviews: 0, userLists: 0 } },
             { $sort: sortStage },
             { $skip: skip },
             { $limit: limit }
         ]);
 
-        // Fetch recent games for each user
-        const usersWithStats = await Promise.all(usersWithCounts.map(async (user) => {
-            const recentReviews = await Review.find({ user: user._id })
+        const members = await Promise.all(usersWithCounts.map(async (user) => {
+            const recent = await Review.find({ user: user._id })
                 .populate('game', 'title coverImage')
-                .sort({ createdAt: -1 })
-                .limit(4)
-                .lean();
-
-            const recentGames = recentReviews
-                .filter(r => r.game && r.game.coverImage)
-                .map(r => ({
-                    title: r.game.title,
-                    coverImage: r.game.coverImage
-                }));
+                .sort({ createdAt: -1 }).limit(4).lean();
 
             return {
-                _id: user._id,
-                username: user.username,
-                profilePicture: user.profilePicture,
-                bio: user.bio,
-                createdAt: user.createdAt,
-                stats: {
-                    reviews: user.reviewsCount,
-                    lists: user.listsCount,
-                    gamesPlayed: 0
-                },
-                recentGames
+                ...user,
+                stats: { reviews: user.reviewsCount, lists: user.listsCount, gamesPlayed: 0 },
+                recentGames: recent.filter(r => r.game).map(r => ({ title: r.game.title, coverImage: r.game.coverImage }))
             };
         }));
 
         const total = await User.countDocuments();
 
         res.json({
-            members: usersWithStats,
-            pagination: {
-                current: page,
-                total: Math.ceil(total / limit),
-                count: total
-            }
+            members,
+            pagination: { current: page, total: Math.ceil(total / limit), count: total }
         });
+
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Get public user profile by username
+// User Profile (Public)
 router.get('/:username', async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.username }).select('-password -email');
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Calculate stats
-        const reviewsCount = await Review.countDocuments({ user: user._id });
-        const listsCount = await List.countDocuments({ user: user._id });
+        const [reviews, lists] = await Promise.all([
+            Review.countDocuments({ user: user._id }),
+            import('../models/List.js').then(m => m.default.countDocuments({ user: user._id }))
+        ]);
 
         res.json({
-            _id: user._id,
-            username: user.username,
-            bio: user.bio,
-            profilePicture: user.profilePicture,
-            createdAt: user.createdAt,
-            stats: {
-                reviews: reviewsCount,
-                lists: listsCount,
-                gamesPlayed: 0 // Placeholder until we implement game status tracking
-            }
+            ...user.toObject(),
+            stats: { reviews, lists, gamesPlayed: 0 }
         });
+
     } catch (err) {
-        console.error(err.message);
-        if (err.kind === 'ObjectId') {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Get user's reviews
+// User Reviews
 router.get('/:username/reviews', async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.username });
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
-        const skip = (page - 1) * limit;
 
         const reviews = await Review.find({ user: user._id })
             .populate('game', 'title coverImage slug igdbId')
             .sort({ createdAt: -1 })
-            .skip(skip)
+            .skip((page - 1) * limit)
             .limit(limit)
             .lean();
-
-        // Add likesCount to each review
-        const reviewsWithLikes = reviews.map(review => ({
-            ...review,
-            likesCount: review.likes?.length || 0
-        }));
 
         const total = await Review.countDocuments({ user: user._id });
 
         res.json({
-            reviews: reviewsWithLikes,
-            pagination: {
-                current: page,
-                total: Math.ceil(total / limit),
-                count: total
-            }
+            reviews: reviews.map(r => ({ ...r, likesCount: r.likes?.length || 0 })),
+            pagination: { current: page, total: Math.ceil(total / limit), count: total }
         });
+
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });
 
-// Get user's lists
+// User Lists
 router.get('/:username/lists', async (req, res) => {
     try {
         const user = await User.findOne({ username: req.params.username });
+        if (!user) return res.status(404).json({ message: 'User not found' });
 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const ListModel = (await import('../models/List.js')).default;
+        const lists = await ListModel.find({ user: user._id }).populate('games', 'title coverImage').sort({ createdAt: -1 });
 
-        const lists = await List.find({ user: user._id })
-            .populate('games', 'title coverImage')
-            .sort({ createdAt: -1 });
-
-        // Transform to include preview info
-        const listsWithPreview = lists.map(list => ({
+        res.json(lists.map(list => ({
             _id: list._id,
             name: list.name,
             description: list.description,
             gameCount: list.games.length,
-            previewGames: list.games.slice(0, 4).map(g => ({
-                title: g.title,
-                coverImage: g.coverImage
-            })),
+            previewGames: list.games.slice(0, 4).map(g => ({ title: g.title, coverImage: g.coverImage })),
             createdAt: list.createdAt
-        }));
+        })));
 
-        res.json(listsWithPreview);
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });

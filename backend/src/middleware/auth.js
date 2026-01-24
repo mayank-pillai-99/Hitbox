@@ -4,7 +4,6 @@ export default function (req, res, next) {
     // Get token from header
     const token = req.header('x-auth-token');
 
-    // Check if not token
     if (!token) {
         return res.status(401).json({ message: 'No token, authorization denied' });
     }

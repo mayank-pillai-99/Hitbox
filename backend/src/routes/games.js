@@ -5,171 +5,84 @@ import { mapIGDBGame } from '../utils/mappers.js';
 
 const router = express.Router();
 
-// Search/Browse Games (IGDB)
+// Mappings
+const PLATFORMS = {
+    'pc': 6,
+    'playstation': 48,
+    'xbox': 49,
+    'nintendo': 130,
+    'mac': 14,
+    'ios': 39,
+    'android': 34
+};
+
+const GENRES = {
+    'rpg': 12,
+    'action': 5,
+    'adventure': 31,
+    'shooter': 5,
+    'strategy': 15,
+    'simulator': 13,
+    'puzzle': 9,
+    'racing': 10,
+    'sport': 14
+};
+
+// Search/Browse Games
 router.get('/', async (req, res) => {
     try {
-        const { search, ordering, platforms, genres, page } = req.query;
+        const { search, ordering, platforms, genres, dates, page } = req.query;
+        let where = [];
 
-        // --- Filter Mapping (Frontend Slugs -> IGDB IDs) ---
-        // TODO: In a real app, we'd fetch these from IGDB /genres and /platforms endpoints dynamically or cache them.
+        if (genres && GENRES[genres.toLowerCase()]) where.push(`genres = [${GENRES[genres.toLowerCase()]}]`);
+        if (platforms && PLATFORMS[platforms.toLowerCase()]) where.push(`platforms = [${PLATFORMS[platforms.toLowerCase()]}]`);
 
-        const platformMap = {
-            'pc': 6,
-            'playstation': 48, // PS4 (Simpler to just map "PlayStation" to PS4 for now, or use [48, 167] for PS4+PS5)
-            'xbox': 49, // Xbox One
-            'nintendo': 130, // Switch
-            'mac': 14,
-            'ios': 39,
-            'android': 34
-        };
-
-        const genreMap = {
-            'rpg': 12,
-            'action': 5,
-            'adventure': 31,
-            'shooter': 5, // IGDB 'Shooter' is 5
-            'strategy': 15,
-            'simulator': 13,
-            'puzzle': 9,
-            'racing': 10,
-            'sport': 14
-        };
-
-        // --- Query Construction ---
-
-        let whereClauses = [
-            // 'category = (0, 8, 9, 10)', // Disabled: Causes 0 results with sorting
-        ];
-
-        if (genres && genreMap[genres.toLowerCase()]) {
-            whereClauses.push(`genres = [${genreMap[genres.toLowerCase()]}]`);
-        }
-
-        if (platforms && platformMap[platforms.toLowerCase()]) {
-            whereClauses.push(`platforms = [${platformMap[platforms.toLowerCase()]}]`);
-        }
-
-        const { dates } = req.query;
         if (dates) {
             const [start, end] = dates.split(',');
             if (start && end) {
-                const startTs = Math.floor(new Date(start).getTime() / 1000);
-                const endTs = Math.floor(new Date(end).getTime() / 1000);
-                // IGDB requires Unix timestamp in seconds
-                whereClauses.push(`first_release_date >= ${startTs}`);
-                whereClauses.push(`first_release_date <= ${endTs}`);
+                where.push(`first_release_date >= ${Math.floor(new Date(start).getTime() / 1000)}`);
+                where.push(`first_release_date <= ${Math.floor(new Date(end).getTime() / 1000)}`);
             }
         }
-
-        // Note: 'search' in IGDB is a separate statement, not a where clause filter usually.
-        // It acts as a fuzzy finder.
 
         let query = `fields name, cover.url, first_release_date, total_rating, total_rating_count, hypes, summary, genres.name, platforms.name, slug;`;
 
-        // ... (sorting logic remains) ...
-
-        // ... (query construction remains) ...
-
-        // RE-INJECT LOGIC TO MATCH FILE CONTEXT IF NEEDED, BUT HERE WE JUST EDIT THE QUERY DEFINITION LINE OR ADD LOGGING
-        // SINCE I CAN'T EASILY JUMP, I'LL USE TARGETCONTENT FOR THE QUERY LINE
-
-
         // Sorting
-        // Map frontend 'ordering' to IGDB fields
-        // rawg: -added, -released, released, -rating, name
-        let sortStatement = '';
-        if (ordering) {
-            switch (ordering) {
-                case '-added': // Popularity
-                    sortStatement = 'sort total_rating_count desc;';
-                    break;
-                case '-released':
-                    sortStatement = 'sort first_release_date desc;';
-                    break;
-                case 'released':
-                    sortStatement = 'sort first_release_date asc;';
-                    break;
-                case '-rating':
-                    sortStatement = 'sort total_rating desc;';
-                    break;
-                case 'name':
-                    sortStatement = 'sort name asc;';
-                    break;
-                default:
-                    sortStatement = 'sort total_rating_count desc;';
-            }
-        } else {
-            sortStatement = 'sort total_rating_count desc;';
-        }
+        let sort = 'sort total_rating_count desc;';
+        if (ordering === '-released') sort = 'sort first_release_date desc;';
+        if (ordering === 'released') sort = 'sort first_release_date asc;';
+        if (ordering === '-rating') sort = 'sort total_rating desc;';
+        if (ordering === 'name') sort = 'sort name asc;';
 
-        // Pagination
         const pageSize = 20;
         const pageNum = parseInt(page) || 1;
-        const offset = (pageNum - 1) * pageSize;
-        query += ` limit ${pageSize}; offset ${offset};`;
+        query += ` limit ${pageSize}; offset ${(pageNum - 1) * pageSize};`;
 
-        // Search Handling
-        // Logic Construction:
-        // 1. Search (optional)
-        // 2. Where (filters)
-        // 3. Sort (ordering) - IGDB advises against sort with search, but we'll include it if filters exist or if specifically requested.
+        if (search) query += ` search "${search}";`;
+        if (where.length > 0) query += ` where ${where.join(' & ')};`;
+        if (!search) query += ` ${sort}`;
 
-        if (search) {
-            query += ` search "${search}";`;
-        }
+        const { data: igdbGames } = await igdb.post('/games', query);
 
-        // Apply filters
-        if (whereClauses.length > 0) {
-            query += ` where ${whereClauses.join(' & ')};`;
-        }
+        // Merge with local data (ratings)
+        const localGames = await Game.find({ igdbId: { $in: igdbGames.map(g => g.id) } });
+        const localMap = localGames.reduce((acc, g) => ({ ...acc, [g.igdbId]: g }), {});
 
-        // Apply sorting (Only if NOT searching, to rely on search relevance, OR if we want to force it)
-        // For now, let's only sort if NOT searching. or if the user explicitly picked a sort?
-        // IGDB: "When using search, results are sorted by relevance by default."
-        // If we verify that sorting works with search, we can enable it.
-        // Let's keep it simple: strict sort if no search. If search, rely on relevance (default).
-        if (!search) {
-            query += ` ${sortStatement}`;
-        }
-
-
-        const response = await igdb.post('/games', query);
-        const igdbGames = response.data;
-
-        // Get IGDB IDs to check against local DB
-        const igdbIds = igdbGames.map(g => g.id);
-        const localGames = await Game.find({ igdbId: { $in: igdbIds } });
-
-        // Map local games
-        const localGameMap = {};
-        localGames.forEach(g => {
-            localGameMap[g.igdbId] = g;
-        });
-
-        const games = igdbGames.map(g => {
+        const results = igdbGames.map(g => {
             const mapped = mapIGDBGame(g);
-            if (localGameMap[g.id]) {
-                mapped.averageRating = localGameMap[g.id].averageRating || 0;
-                // If local rating exists, use it for display 'rating' too?
-                // The prompt requirements said: "prioritize local Hitbox ratings".
-                // So if local averageRating > 0, show it.
-                if (mapped.averageRating > 0) {
-                    mapped.rating = mapped.averageRating;
-                }
+            if (localMap[g.id] && localMap[g.id].averageRating > 0) {
+                mapped.rating = localMap[g.id].averageRating;
             }
             return mapped;
         });
 
         res.json({
-            results: games,
-            // IGDB doesn't return total count in the same query. We'd need a separate /count query.
-            // For now, we'll just assume 'next' is true if we got full page_size items.
-            next: games.length === pageSize
+            results,
+            next: results.length === pageSize
         });
 
     } catch (err) {
-        console.error("IGDB API Error:", err.message);
-        if (err.response) console.error(err.response.data);
+        console.error("IGDB Error:", err.message);
         res.status(500).json({ message: 'Failed to fetch games' });
     }
 });
@@ -180,51 +93,33 @@ router.get('/:id', async (req, res) => {
         const { id } = req.params;
         let game;
 
-        // 1. Check Local DB (ObjectId)
+        // Check local DB first
         if (id.match(/^[0-9a-fA-F]{24}$/)) {
             game = await Game.findById(id);
-        } else {
-            // 2. Check Local DB (IGDB ID)
-            // Note: req.params.id is string, DB igdbId is Number. Cast it.
-            const numericId = parseInt(id);
-            if (!isNaN(numericId)) {
-                game = await Game.findOne({ igdbId: numericId });
-            }
+        } else if (!isNaN(parseInt(id))) {
+            game = await Game.findOne({ igdbId: parseInt(id) });
         }
 
-        if (game) {
-            return res.json(game);
+        if (game) return res.json(game);
+
+        // Fetch from IGDB
+        const query = `
+            fields name, cover.url, first_release_date, total_rating, summary, genres.name, platforms.name, slug, involved_companies.company.name;
+            where id = ${id};
+        `;
+        const { data } = await igdb.post('/games', query);
+
+        if (!data || data.length === 0) return res.status(404).json({ message: 'Game not found' });
+
+        game = mapIGDBGame(data[0]);
+        if (data[0].involved_companies) {
+            game.developer = data[0].involved_companies.map(c => c.company.name).join(', ');
         }
 
-        // 3. Fetch from IGDB
-        try {
-            const query = `
-                fields name, cover.url, first_release_date, total_rating, summary, genres.name, platforms.name, slug, involved_companies.company.name;
-                where id = ${id};
-            `;
-            const response = await igdb.post('/games', query);
-
-            if (response.data && response.data.length > 0) {
-                game = mapIGDBGame(response.data[0]);
-
-                // Add developer if available
-                if (response.data[0].involved_companies) {
-                    const devs = response.data[0].involved_companies.map(c => c.company.name);
-                    game.developer = devs.join(', ');
-                }
-
-                res.json(game);
-            } else {
-                return res.status(404).json({ message: 'Game not found' });
-            }
-
-        } catch (apiErr) {
-            console.error(apiErr);
-            throw apiErr;
-        }
+        res.json(game);
 
     } catch (err) {
-        console.error(err.message);
+        console.error(err);
         res.status(500).send('Server error');
     }
 });

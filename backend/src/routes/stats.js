@@ -6,25 +6,19 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
-// Get global stats
 router.get('/', async (req, res) => {
     try {
-        const [gamesCount, reviewsCount, listsCount, usersCount] = await Promise.all([
+        const [games, reviews, lists, members] = await Promise.all([
             Game.countDocuments(),
             Review.countDocuments(),
             List.countDocuments(),
             User.countDocuments()
         ]);
 
-        res.json({
-            games: gamesCount,
-            reviews: reviewsCount,
-            lists: listsCount,
-            members: usersCount
-        });
+        res.json({ games, reviews, lists, members });
     } catch (err) {
-        console.error('Error fetching stats:', err.message);
-        res.status(500).json({ message: 'Server error fetching stats' });
+        console.error('Stats error:', err.message);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

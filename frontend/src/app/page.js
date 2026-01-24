@@ -11,59 +11,57 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function Home() {
     const { user } = useAuth();
-    const [popularGames, setPopularGames] = useState([]);
-    const [recentReviews, setRecentReviews] = useState([]);
-    const [popularLists, setPopularLists] = useState([]);
-    const [topReviewers, setTopReviewers] = useState([]);
-    const [newReleases, setNewReleases] = useState([]);
-    const [stats, setStats] = useState({ games: 0, reviews: 0, members: 0, lists: 0 });
     const [loading, setLoading] = useState(true);
 
+    // Data buckets
+    const [games, setGames] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [lists, setLists] = useState([]);
+    const [members, setMembers] = useState([]);
+    const [stats, setStats] = useState({ games: 0, reviews: 0, members: 0, lists: 0 });
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [gamesRes, listsRes, membersRes, reviewsRes, statsRes] = await Promise.all([
-                    api.get('/games', { params: { page_size: 6, dates: '2025-01-01,2025-12-31' } }),
-                    api.get('/lists/discover?sort=popular&limit=3'),
-                    api.get('/users?limit=3&sort=reviews'),
-                    api.get('/reviews/recent?limit=5'),
-                    api.get('/stats')
-                ]);
-                const games = gamesRes.data.results || gamesRes.data || [];
-                setPopularGames(games);
-                setNewReleases(games.slice(0, 3));
-                setPopularLists(listsRes.data.lists || []);
-                setTopReviewers(membersRes.data.members || []);
-                setRecentReviews(reviewsRes.data || []);
-                setStats(statsRes.data);
-                setLoading(false);
-            } catch (err) {
-                console.error("Failed to fetch home data", err);
-                setLoading(false);
-            }
-        };
-        fetchData();
+        // Just grab everything at once
+        Promise.all([
+            api.get('/games', { params: { page_size: 6, dates: '2025-01-01,2025-12-31' } }),
+            api.get('/lists/discover?sort=popular&limit=3'),
+            api.get('/users?limit=3&sort=reviews'),
+            api.get('/reviews/recent?limit=5'),
+            api.get('/stats')
+        ]).then(([g, l, m, r, s]) => {
+            setGames(g.data.results || []);
+            setLists(l.data.lists || []);
+            setMembers(m.data.members || []);
+            setReviews(r.data || []);
+            setStats(s.data);
+            setLoading(false); // Done
+        }).catch(err => {
+            console.error('Home load failed', err);
+            setLoading(false);
+        });
     }, []);
+
+    // Derived state / Helpers can go here if needed
+    const heroGame = games[0];
 
     return (
         <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
             <Navbar />
 
-            {/* Global Background Ambience */}
+            {/* Background noise */}
             <div className="absolute inset-0 z-0 pointer-events-none">
                 <div className="absolute top-[-100px] left-[-100px] w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[120px]" />
                 <div className="absolute top-[40%] right-[-100px] w-[500px] h-[500px] bg-lime-900/10 rounded-full blur-[120px]" />
                 <div className="absolute bottom-[-100px] left-[20%] w-[800px] h-[600px] bg-zinc-900/20 rounded-full blur-[120px]" />
             </div>
 
-            {/* Hero Section */}
             <section className="relative pt-32 pb-8 px-6 lg:px-12 z-10 overflow-hidden">
-                {/* Hero Background Image */}
+                {/* Hero BG */}
                 <div className="absolute inset-0 z-0 select-none pb-20">
-                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10"></div>
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10" />
                     <img
                         src="/clair.jpg"
-                        alt="Clair Obscur Atmosphere"
+                        alt="Background"
                         className="w-full h-full object-cover opacity-80 object-center"
                     />
                 </div>
@@ -85,30 +83,20 @@ export default function Home() {
 
                         <div className="animate-fade-in-up stagger-3 flex flex-wrap justify-center gap-4">
                             {!user ? (
-                                <Link
-                                    href="/signup"
-                                    className="bg-lime-500 hover:bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_40px_rgba(132,204,22,0.5)] transform hover:-translate-y-1"
-                                >
+                                <Link href="/signup" className="bg-lime-500 hover:bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_40px_rgba(132,204,22,0.5)] transform hover:-translate-y-1">
                                     Start Logging
                                 </Link>
                             ) : (
-                                <Link
-                                    href="/profile"
-                                    className="bg-lime-500 hover:bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_40px_rgba(132,204,22,0.5)] transform hover:-translate-y-1"
-                                >
+                                <Link href="/profile" className="bg-lime-500 hover:bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_40px_rgba(132,204,22,0.5)] transform hover:-translate-y-1">
                                     My Profile
                                 </Link>
                             )}
-                            <Link
-                                href="/games"
-                                className="flex items-center gap-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wide transition-all border border-white/10 hover:border-white/20"
-                            >
+                            <Link href="/games" className="flex items-center gap-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wide transition-all border border-white/10 hover:border-white/20">
                                 <Play className="w-4 h-4 fill-current" /> How It Works
                             </Link>
                         </div>
                     </div>
 
-                    {/* Stats Strip */}
                     <div className="mt-20 animate-fade-in-up stagger-4">
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
                             {[
@@ -116,12 +104,12 @@ export default function Home() {
                                 { label: 'Reviews', value: stats.reviews, color: 'text-white' },
                                 { label: 'Lists Created', value: stats.lists, color: 'text-lime-400' },
                                 { label: 'Active Members', value: stats.members, color: 'text-white' }
-                            ].map((stat, i) => (
+                            ].map((s, i) => (
                                 <div key={i} className="bg-zinc-900/30 backdrop-blur border border-white/5 p-6 rounded-2xl text-center group hover:border-lime-500/20 transition-colors">
-                                    <div className={`text-3xl font-black ${stat.color} mb-1 group-hover:scale-110 transition-transform`}>
-                                        {stat.value.toLocaleString()}
+                                    <div className={`text-3xl font-black ${s.color} mb-1 group-hover:scale-110 transition-transform`}>
+                                        {s.value.toLocaleString()}
                                     </div>
-                                    <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{stat.label}</div>
+                                    <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{s.label}</div>
                                 </div>
                             ))}
                         </div>
@@ -129,7 +117,6 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Trending Section */}
             <section className="pt-10 pb-20 px-6 lg:px-12 border-t border-white/5 relative z-10">
                 <div className="max-w-7xl mx-auto">
                     <div className="flex items-end justify-between mb-10">
@@ -150,7 +137,7 @@ export default function Home() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
-                            {popularGames.map(game => (
+                            {games.map(game => (
                                 <GameCard key={game._id || game.igdbId} game={game} />
                             ))}
                         </div>
@@ -158,11 +145,9 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Community Feed */}
             <section className="py-20 px-6 lg:px-12 bg-zinc-900/20 border-t border-white/5 relative z-10">
                 <div className="max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-12 gap-12">
-                        {/* Main Feed */}
                         <div className="lg:col-span-8">
                             <div className="flex items-center gap-2 mb-8">
                                 <MessageCircle className="w-6 h-6 text-lime-400" />
@@ -170,11 +155,11 @@ export default function Home() {
                             </div>
 
                             <div className="space-y-4">
-                                {recentReviews.length > 0 ? recentReviews.map((review) => (
-                                    <div key={review._id} className="group flex gap-5 p-5 rounded-2xl bg-zinc-900/40 border border-white/5 hover:border-lime-500/30 transition-all hover:bg-zinc-900/60">
-                                        <Link href={`/games/${review.game?._id || review.game?.igdbId}`} className="flex-shrink-0 w-24 h-36 rounded-lg overflow-hidden relative shadow-lg">
-                                            {review.game?.coverImage ? (
-                                                <img src={review.game.coverImage} alt={review.game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                {reviews.length > 0 ? reviews.map((r) => (
+                                    <div key={r._id} className="group flex gap-5 p-5 rounded-2xl bg-zinc-900/40 border border-white/5 hover:border-lime-500/30 transition-all hover:bg-zinc-900/60">
+                                        <Link href={`/games/${r.game?._id || r.game?.igdbId}`} className="flex-shrink-0 w-24 h-36 rounded-lg overflow-hidden relative shadow-lg">
+                                            {r.game?.coverImage ? (
+                                                <img src={r.game.coverImage} alt={r.game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             ) : (
                                                 <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
                                                     <Gamepad2 className="w-8 h-8 text-zinc-700" />
@@ -183,37 +168,37 @@ export default function Home() {
                                         </Link>
                                         <div className="flex-1 min-w-0 py-1">
                                             <div className="flex items-center justify-between mb-2">
-                                                <Link href={`/games/${review.game?._id || review.game?.igdbId}`}>
-                                                    <h3 className="text-xl font-bold text-white hover:text-lime-400 transition-colors truncate">{review.game?.title}</h3>
+                                                <Link href={`/games/${r.game?._id || r.game?.igdbId}`}>
+                                                    <h3 className="text-xl font-bold text-white hover:text-lime-400 transition-colors truncate">{r.game?.title}</h3>
                                                 </Link>
                                                 <div className="flex gap-0.5">
                                                     {[...Array(5)].map((_, i) => (
-                                                        <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-lime-400 fill-lime-400' : 'text-zinc-700'}`} />
+                                                        <Star key={i} className={`w-3.5 h-3.5 ${i < r.rating ? 'text-lime-400 fill-lime-400' : 'text-zinc-700'}`} />
                                                     ))}
                                                 </div>
                                             </div>
 
                                             <div className="flex items-center gap-2 mb-4">
                                                 <div className="w-6 h-6 rounded-full bg-zinc-800 overflow-hidden border border-white/10">
-                                                    {review.user?.profilePicture ? (
-                                                        <img src={review.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                                                    {r.user?.profilePicture ? (
+                                                        <img src={r.user.profilePicture} alt="" className="w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-[10px] font-bold text-zinc-500">
-                                                            {review.user?.username?.[0] || 'U'}
+                                                            {r.user?.username?.[0] || 'U'}
                                                         </div>
                                                     )}
                                                 </div>
-                                                <span className="text-sm font-medium text-zinc-300">{review.user?.username}</span>
-                                                <span className="text-zinc-600 text-xs">• {new Date(review.createdAt).toLocaleDateString()}</span>
+                                                <span className="text-sm font-medium text-zinc-300">{r.user?.username}</span>
+                                                <span className="text-zinc-600 text-xs">• {new Date(r.createdAt).toLocaleDateString()}</span>
                                             </div>
 
-                                            {review.text && (
-                                                <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 md:line-clamp-3 mb-3">"{review.text}"</p>
+                                            {r.text && (
+                                                <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 md:line-clamp-3 mb-3">"{r.text}"</p>
                                             )}
 
                                             <div className="flex items-center gap-4">
                                                 <button className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 group-hover:text-lime-400 transition-colors">
-                                                    <Heart className="w-3.5 h-3.5" /> {review.likesCount || 0} Likes
+                                                    <Heart className="w-3.5 h-3.5" /> {r.likesCount || 0} Likes
                                                 </button>
                                             </div>
                                         </div>
@@ -226,16 +211,14 @@ export default function Home() {
                             </div>
                         </div>
 
-                        {/* Sidebar */}
                         <div className="lg:col-span-4 space-y-10">
-                            {/* Popular Lists */}
                             <div>
                                 <div className="flex items-center gap-2 mb-6">
                                     <Trophy className="w-5 h-5 text-lime-400" />
                                     <h3 className="text-lg font-black text-white italic tracking-tighter">POPULAR LISTS</h3>
                                 </div>
                                 <div className="space-y-4">
-                                    {popularLists.map(list => (
+                                    {lists.map(list => (
                                         <Link key={list._id} href={`/lists/${list._id}`} className="group block p-4 rounded-xl bg-zinc-900/40 border border-white/5 hover:border-lime-500/30 transition-colors">
                                             <div className="flex items-center justify-between mb-3">
                                                 <div className="font-bold text-white group-hover:text-lime-400 transition-colors truncate pr-4">{list.name}</div>
@@ -253,19 +236,18 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            {/* Community Stars */}
                             <div>
                                 <h3 className="text-lg font-black text-white italic tracking-tighter mb-6">TOP REVIEWERS</h3>
                                 <div className="space-y-3">
-                                    {topReviewers.map((reviewer, i) => (
-                                        <Link key={reviewer._id} href={`/users/${reviewer.username}`} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+                                    {members.map((m, i) => (
+                                        <Link key={m._id} href={`/users/${m.username}`} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group">
                                             <div className="relative">
                                                 <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-zinc-800 group-hover:border-lime-400 transition-colors">
-                                                    {reviewer.profilePicture ? (
-                                                        <img src={reviewer.profilePicture} alt="" className="w-full h-full object-cover" />
+                                                    {m.profilePicture ? (
+                                                        <img src={m.profilePicture} alt="" className="w-full h-full object-cover" />
                                                     ) : (
                                                         <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500 font-bold">
-                                                            {reviewer.username?.[0]}
+                                                            {m.username?.[0]}
                                                         </div>
                                                     )}
                                                 </div>
@@ -274,8 +256,8 @@ export default function Home() {
                                                 </div>
                                             </div>
                                             <div>
-                                                <div className="font-bold text-white group-hover:text-lime-400 transition-colors">{reviewer.username}</div>
-                                                <div className="text-xs text-zinc-500 font-bold uppercase">{reviewer.stats?.reviews || 0} Reviews</div>
+                                                <div className="font-bold text-white group-hover:text-lime-400 transition-colors">{m.username}</div>
+                                                <div className="text-xs text-zinc-500 font-bold uppercase">{m.stats?.reviews || 0} Reviews</div>
                                             </div>
                                         </Link>
                                     ))}
@@ -286,7 +268,6 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Footer CTA */}
             {!user && (
                 <section className="py-24 px-6 text-center border-t border-white/5 relative overflow-hidden">
                     <div className="absolute inset-0 bg-lime-500/5 z-0" />
