@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
-import { User, Mail, Lock, Image as ImageIcon, Loader2 } from 'lucide-react';
+import Footer from '@/components/Footer';
+import { User, Mail, Lock, Image as ImageIcon, Loader2, Save, Upload } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/utils/api';
 
 export default function Settings() {
-    const { user, login } = useAuth(); // We might need a way to refresh user, but for now we'll handle it manually or reload
+    const { user, login } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
@@ -30,9 +31,6 @@ export default function Settings() {
                 profilePicture: user.profilePicture || ''
             });
             setLoading(false);
-        } else {
-            // Wait a bit for auth to load, if still no user, maybe redirect (handled by Layout/Protection usually)
-            // But here we rely on AuthContext. If AuthContext is done loading and no user, we might redirect.
         }
     }, [user]);
 
@@ -49,9 +47,6 @@ export default function Settings() {
         try {
             const res = await api.put('/auth/me', formData);
             setSuccess('Profile updated successfully!');
-            // Ideally update context user here. 
-            // Since useAuth doesn't expose a setUser, we can force a reload or just assume it's okay for now.
-            // A page reload is simple and effective to re-fetch "me".
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
@@ -62,124 +57,147 @@ export default function Settings() {
         }
     };
 
-    if (!user) return <div className="min-h-screen bg-black flex items-center justify-center text-white"><Loader2 className="animate-spin" /></div>;
+    if (!user) return (
+        <div className="min-h-screen bg-black flex items-center justify-center text-white">
+            <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
+        </div>
+    );
 
     return (
-        <div className="min-h-screen bg-black text-zinc-100 pb-12">
+        <div className="min-h-screen bg-black text-zinc-100 flex flex-col">
             <Navbar />
 
-            <div className="max-w-3xl mx-auto px-4 py-12">
-                <h1 className="text-3xl font-bold text-white mb-8">Settings</h1>
+            <main className="flex-grow relative px-4 py-20 flex items-center justify-center overflow-hidden">
+                {/* Background Glows */}
+                <div className="absolute top-20 left-1/4 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none" />
+                <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-                <div className="bg-zinc-900 rounded-xl border border-zinc-800 overflow-hidden">
-                    <div className="flex flex-col md:flex-row">
-                        {/* Sidebar */}
-                        <div className="w-full md:w-64 bg-zinc-900/50 border-b md:border-b-0 md:border-r border-zinc-800 p-4">
-                            <nav className="space-y-1">
-                                <button className="w-full flex items-center gap-3 px-4 py-2 bg-zinc-800 text-white rounded-lg text-sm font-medium">
-                                    <User className="w-4 h-4" /> Profile
-                                </button>
-                                <button disabled className="w-full flex items-center gap-3 px-4 py-2 text-zinc-500 rounded-lg text-sm font-medium cursor-not-allowed">
-                                    <Lock className="w-4 h-4" /> Account (Coming Soon)
-                                </button>
-                                <button disabled className="w-full flex items-center gap-3 px-4 py-2 text-zinc-500 rounded-lg text-sm font-medium cursor-not-allowed">
-                                    <ImageIcon className="w-4 h-4" /> Appearance (Coming Soon)
-                                </button>
-                            </nav>
-                        </div>
+                <div className="w-full max-w-2xl relative z-10">
+                    <div className="mb-8 text-center animate-fade-in-up">
+                        <h1 className="text-4xl font-black text-white mb-2 tracking-tight">PROFILE SETTINGS</h1>
+                        <p className="text-zinc-400">Customize your Hitbox identity</p>
+                    </div>
 
-                        {/* Content */}
-                        <div className="flex-1 p-8">
-                            <h2 className="text-xl font-bold text-white mb-6">Profile Settings</h2>
+                    <div className="backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-8 shadow-2xl animate-fade-in-up stagger-1">
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl text-sm flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                                {error}
+                            </div>
+                        )}
+                        {success && (
+                            <div className="mb-6 p-4 bg-lime-500/10 border border-lime-500/20 text-lime-400 rounded-xl text-sm flex items-center gap-3">
+                                <span className="w-1.5 h-1.5 rounded-full bg-lime-500 animate-pulse" />
+                                {success}
+                            </div>
+                        )}
 
-                            {error && <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-500 rounded-lg text-sm">{error}</div>}
-                            {success && <div className="mb-4 p-3 bg-lime-400/10 border border-lime-400/20 text-lime-400 rounded-lg text-sm">{success}</div>}
-
-                            <form className="space-y-6" onSubmit={handleSubmit}>
-                                {/* Avatar */}
-                                <div>
-                                    <label className="block text-sm font-medium text-zinc-300 mb-2">Profile Picture URL</label>
-                                    <div className="flex items-center gap-6">
-                                        <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center">
-                                            {formData.profilePicture ? (
-                                                <img src={formData.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <User className="w-8 h-8 text-zinc-500" />
-                                            )}
+                        <form className="space-y-8" onSubmit={handleSubmit}>
+                            {/* Avatar Section */}
+                            <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-black/20 rounded-xl border border-white/5">
+                                <div className="relative group">
+                                    <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center group-hover:border-lime-400 transition-colors duration-300">
+                                        {formData.profilePicture ? (
+                                            <img src={formData.profilePicture} alt="Avatar" className="w-full h-full object-cover" />
+                                        ) : (
+                                            <User className="w-10 h-10 text-zinc-500 group-hover:text-lime-400 transition-colors" />
+                                        )}
+                                    </div>
+                                    <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                                        <Upload className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+                                <div className="flex-1 w-full relative">
+                                    <label className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Profile Picture URL</label>
+                                    <div className="relative">
+                                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                            <ImageIcon className="h-4 w-4 text-zinc-600" />
                                         </div>
                                         <input
                                             type="text"
                                             id="profilePicture"
                                             value={formData.profilePicture}
                                             onChange={handleChange}
-                                            placeholder="https://example.com/avatar.jpg"
-                                            className="flex-1 px-4 py-2 bg-black border border-zinc-700 rounded-lg text-white text-sm focus:outline-none focus:border-lime-400"
+                                            placeholder="https://imgur.com/..."
+                                            className="block w-full pl-10 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white text-sm placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-all font-mono"
                                         />
                                     </div>
+                                    <p className="mt-2 text-xs text-zinc-500">Paste a direct image link (JPEG, PNG, GIF)</p>
                                 </div>
+                            </div>
 
+                            <div className="grid gap-6">
                                 {/* Username */}
                                 <div>
-                                    <label htmlFor="username" className="block text-sm font-medium text-zinc-300 mb-2">Username</label>
+                                    <label htmlFor="username" className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Username</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <User className="h-5 w-5 text-zinc-500" />
+                                            <User className="h-4 w-4 text-zinc-600" />
                                         </div>
                                         <input
                                             type="text"
                                             id="username"
                                             value={formData.username}
                                             onChange={handleChange}
-                                            className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-lg bg-black text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors"
+                                            className="block w-full pl-10 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-all font-bold tracking-tight"
                                         />
                                     </div>
                                 </div>
 
-                                {/* Bio */}
-                                <div>
-                                    <label htmlFor="bio" className="block text-sm font-medium text-zinc-300 mb-2">Bio</label>
-                                    <textarea
-                                        id="bio"
-                                        rows={4}
-                                        value={formData.bio}
-                                        onChange={handleChange}
-                                        className="block w-full px-4 py-2.5 border border-zinc-700 rounded-lg bg-black text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors resize-none"
-                                    ></textarea>
-                                    <p className="mt-1 text-xs text-zinc-500">Brief description for your profile.</p>
-                                </div>
-
                                 {/* Email */}
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-zinc-300 mb-2">Email Address</label>
+                                    <label htmlFor="email" className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Email Address</label>
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                            <Mail className="h-5 w-5 text-zinc-500" />
+                                            <Mail className="h-4 w-4 text-zinc-600" />
                                         </div>
                                         <input
                                             type="email"
                                             id="email"
                                             value={formData.email}
                                             onChange={handleChange}
-                                            className="block w-full pl-10 pr-3 py-2.5 border border-zinc-700 rounded-lg bg-black text-white placeholder-zinc-500 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors"
+                                            className="block w-full pl-10 pr-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-all"
                                         />
                                     </div>
                                 </div>
 
-                                <div className="pt-4 flex justify-end">
-                                    <button
-                                        type="submit"
-                                        disabled={saving}
-                                        className="px-6 py-2 bg-lime-500 hover:bg-lime-600 text-white font-bold rounded-lg transition-colors disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {saving && <Loader2 className="w-4 h-4 animate-spin" />}
-                                        Save Changes
-                                    </button>
+                                {/* Bio */}
+                                <div>
+                                    <label htmlFor="bio" className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Bio</label>
+                                    <textarea
+                                        id="bio"
+                                        rows={4}
+                                        value={formData.bio}
+                                        onChange={handleChange}
+                                        placeholder="Tell us about your gaming history..."
+                                        className="block w-full px-4 py-3 bg-zinc-900/50 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-all resize-none leading-relaxed"
+                                    ></textarea>
                                 </div>
-                            </form>
-                        </div>
+                            </div>
+
+                            <div className="pt-4 flex justify-end gap-4 border-t border-white/5">
+                                <button
+                                    type="button"
+                                    onClick={() => router.back()}
+                                    className="px-6 py-3 text-zinc-400 hover:text-white font-bold text-sm transition-colors uppercase tracking-wide"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={saving}
+                                    className="px-8 py-3 bg-lime-400 hover:bg-lime-300 text-black font-black rounded-lg transition-all transform hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 flex items-center gap-2 uppercase tracking-wide text-sm shadow-[0_0_20px_rgba(163,230,53,0.3)] hover:shadow-[0_0_30px_rgba(163,230,53,0.5)]"
+                                >
+                                    {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    Save Changes
+                                </button>
+                            </div>
+                        </form>
                     </div>
                 </div>
-            </div>
+            </main>
+
+            <Footer />
         </div>
     );
 }
