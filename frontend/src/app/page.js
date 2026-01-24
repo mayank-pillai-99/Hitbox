@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Play, ArrowRight, Star, Heart, MessageCircle, Loader2 } from 'lucide-react';
+import { Play, ArrowRight, Star, Heart, MessageCircle, Loader2, Sparkles, Gamepad2, Activity, Trophy } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
@@ -24,7 +24,7 @@ export default function Home() {
             try {
                 const [gamesRes, listsRes, membersRes, reviewsRes, statsRes] = await Promise.all([
                     api.get('/games', { params: { page_size: 6, dates: '2025-01-01,2025-12-31' } }),
-                    api.get('/lists/discover?sort=popular&limit=2'),
+                    api.get('/lists/discover?sort=popular&limit=3'),
                     api.get('/users?limit=3&sort=reviews'),
                     api.get('/reviews/recent?limit=5'),
                     api.get('/stats')
@@ -35,10 +35,7 @@ export default function Home() {
                 setPopularLists(listsRes.data.lists || []);
                 setTopReviewers(membersRes.data.members || []);
                 setRecentReviews(reviewsRes.data || []);
-
-                // Set stats from dedicated API
                 setStats(statsRes.data);
-
                 setLoading(false);
             } catch (err) {
                 console.error("Failed to fetch home data", err);
@@ -49,161 +46,110 @@ export default function Home() {
     }, []);
 
     return (
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen bg-black text-white relative overflow-x-hidden">
             <Navbar />
 
-            {/* Hero Section */}
-            <section className="relative px-6 lg:px-12 py-16 lg:py-24">
-                <div className="max-w-7xl mx-auto">
-                    <div className="grid lg:grid-cols-2 gap-12 items-center">
-                        {/* Left Side - Text */}
-                        <div>
-                            <h1 className="animate-fade-in-up text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-none mb-6">
-                                TRACK YOUR<br />
-                                <span className="text-lime-400">VIRTUAL LIFE.</span>
-                            </h1>
-                            <p className="animate-fade-in-up stagger-2 text-base sm:text-lg text-zinc-400 max-w-md mb-8">
-                                The social network for pixel purists. Log every boss defeated, rate every narrative, and build the ultimate archive of your gaming history.
-                            </p>
-                            <div className="flex flex-wrap gap-4 mb-12">
-                                {!user ? (
-                                    <Link
-                                        href="/signup"
-                                        className="bg-lime-400 hover:bg-lime-300 text-black px-6 py-3 rounded font-bold uppercase tracking-wide transition-colors"
-                                    >
-                                        Start Logging
-                                    </Link>
-                                ) : (
-                                    <Link
-                                        href="/profile"
-                                        className="bg-lime-400 hover:bg-lime-300 text-black px-6 py-3 rounded font-bold uppercase tracking-wide transition-colors"
-                                    >
-                                        My Profile
-                                    </Link>
-                                )}
-                                <Link
-                                    href="/games"
-                                    className="flex items-center gap-2 bg-zinc-900 hover:bg-zinc-800 text-white px-6 py-3 rounded font-bold uppercase tracking-wide transition-colors border border-zinc-800"
-                                >
-                                    <Play className="w-4 h-4" /> How It Works
-                                </Link>
-                            </div>
+            {/* Global Background Ambience */}
+            <div className="absolute inset-0 z-0 pointer-events-none">
+                <div className="absolute top-[-100px] left-[-100px] w-[600px] h-[600px] bg-lime-500/10 rounded-full blur-[120px]" />
+                <div className="absolute top-[40%] right-[-100px] w-[500px] h-[500px] bg-lime-900/10 rounded-full blur-[120px]" />
+                <div className="absolute bottom-[-100px] left-[20%] w-[800px] h-[600px] bg-zinc-900/20 rounded-full blur-[120px]" />
+            </div>
 
-                            {/* Stats */}
-                            <div className="flex flex-wrap gap-6 sm:gap-12">
-                                <div>
-                                    <div className="text-2xl sm:text-3xl font-black text-white">{stats.reviews.toLocaleString()}</div>
-                                    <div className="text-xs text-zinc-500 uppercase tracking-wider">Reviews Logged</div>
-                                </div>
-                                <div>
-                                    <div className="text-2xl sm:text-3xl font-black text-white">{stats.lists.toLocaleString()}</div>
-                                    <div className="text-xs text-zinc-500 uppercase tracking-wider">Lists Created</div>
-                                </div>
-                                <div>
-                                    <div className="text-2xl sm:text-3xl font-black text-white">{stats.members.toLocaleString()}</div>
-                                    <div className="text-xs text-zinc-500 uppercase tracking-wider">Active Players</div>
-                                </div>
-                            </div>
+            {/* Hero Section */}
+            <section className="relative pt-32 pb-8 px-6 lg:px-12 z-10 overflow-hidden">
+                {/* Hero Background Image */}
+                <div className="absolute inset-0 z-0 select-none pb-20">
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/20 to-black z-10"></div>
+                    <img
+                        src="/clair.jpg"
+                        alt="Clair Obscur Atmosphere"
+                        className="w-full h-full object-cover opacity-80 object-center"
+                    />
+                </div>
+
+                <div className="max-w-7xl mx-auto relative z-20">
+                    <div className="flex flex-col items-center text-center">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-400/10 border border-lime-400/20 text-xs font-bold uppercase tracking-widest text-lime-400 mb-8 animate-fade-in-up">
+                            <Sparkles className="w-3 h-3" /> The Social Network for Gamers
                         </div>
 
-                        {/* Right Side - Glassmorphism Stats Dashboard */}
-                        <div className="relative hidden lg:block">
-                            <div className="relative w-full max-w-md">
-                                {/* Background Glow Effects */}
-                                <div className="absolute -top-10 -right-10 w-72 h-72 bg-lime-500/20 rounded-full blur-3xl" />
-                                <div className="absolute -bottom-10 -left-10 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl" />
+                        <h1 className="animate-fade-in-up stagger-1 text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-none mb-8 text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">
+                            TRACK YOUR<br />
+                            <span className="text-glow animate-pulse-slow">VIRTUAL LIFE</span>
+                        </h1>
 
-                                {/* Main Stats Card */}
-                                <div className="relative backdrop-blur-xl bg-white/5 border border-white/10 rounded-2xl p-6 shadow-2xl animate-fade-in-up">
-                                    {/* Header */}
-                                    <div className="flex items-center justify-between mb-6">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-2 h-2 bg-lime-400 rounded-full animate-pulse" />
-                                            <span className="text-xs text-zinc-400 uppercase tracking-wider">Live Activity</span>
-                                        </div>
-                                        <div className="text-xs text-zinc-500">Updated just now</div>
+                        <p className="animate-fade-in-up stagger-2 text-lg sm:text-xl text-zinc-400 max-w-2xl mb-10 leading-relaxed">
+                            Log every boss defeated, rate every narrative, and build the ultimate archive of your gaming history. Join a community of pixel purists.
+                        </p>
+
+                        <div className="animate-fade-in-up stagger-3 flex flex-wrap justify-center gap-4">
+                            {!user ? (
+                                <Link
+                                    href="/signup"
+                                    className="bg-lime-500 hover:bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_40px_rgba(132,204,22,0.5)] transform hover:-translate-y-1"
+                                >
+                                    Start Logging
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/profile"
+                                    className="bg-lime-500 hover:bg-lime-400 text-black px-8 py-4 rounded-xl font-black uppercase tracking-wide transition-all shadow-[0_0_20px_rgba(132,204,22,0.3)] hover:shadow-[0_0_40px_rgba(132,204,22,0.5)] transform hover:-translate-y-1"
+                                >
+                                    My Profile
+                                </Link>
+                            )}
+                            <Link
+                                href="/games"
+                                className="flex items-center gap-2 bg-zinc-900/50 hover:bg-zinc-800/80 backdrop-blur-sm text-white px-8 py-4 rounded-xl font-bold uppercase tracking-wide transition-all border border-white/10 hover:border-white/20"
+                            >
+                                <Play className="w-4 h-4 fill-current" /> How It Works
+                            </Link>
+                        </div>
+                    </div>
+
+                    {/* Stats Strip */}
+                    <div className="mt-20 animate-fade-in-up stagger-4">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+                            {[
+                                { label: 'Games Logged', value: stats.games, color: 'text-lime-400' },
+                                { label: 'Reviews', value: stats.reviews, color: 'text-white' },
+                                { label: 'Lists Created', value: stats.lists, color: 'text-lime-400' },
+                                { label: 'Active Members', value: stats.members, color: 'text-white' }
+                            ].map((stat, i) => (
+                                <div key={i} className="bg-zinc-900/30 backdrop-blur border border-white/5 p-6 rounded-2xl text-center group hover:border-lime-500/20 transition-colors">
+                                    <div className={`text-3xl font-black ${stat.color} mb-1 group-hover:scale-110 transition-transform`}>
+                                        {stat.value.toLocaleString()}
                                     </div>
-
-                                    {/* Stats Grid */}
-                                    <div className="grid grid-cols-2 gap-4 mb-6">
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-lime-500/30 transition-colors">
-                                            <div className="text-3xl font-black text-lime-400 mb-1">{stats.games.toLocaleString()}</div>
-                                            <div className="text-xs text-zinc-400">Games Tracked</div>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-white/20 transition-colors">
-                                            <div className="text-3xl font-black text-white mb-1">{stats.reviews.toLocaleString()}</div>
-                                            <div className="text-xs text-zinc-400">Total Reviews</div>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-purple-500/30 transition-colors">
-                                            <div className="text-3xl font-black text-purple-400 mb-1">{stats.members.toLocaleString()}</div>
-                                            <div className="text-xs text-zinc-400">Community</div>
-                                        </div>
-                                        <div className="bg-white/5 rounded-xl p-4 border border-white/5 hover:border-amber-500/30 transition-colors">
-                                            <div className="text-3xl font-black text-amber-400 mb-1">{stats.lists.toLocaleString()}</div>
-                                            <div className="text-xs text-zinc-400">Curated Lists</div>
-                                        </div>
-                                    </div>
-
-                                    {/* Trending Game */}
-                                    {popularGames.length > 0 && (
-                                        <Link href={`/games/${popularGames[0]._id || popularGames[0].id}`} className="block bg-gradient-to-r from-lime-500/10 to-transparent rounded-xl p-4 border border-lime-500/20 hover:border-lime-500/40 transition-colors group">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-12 h-16 rounded-lg overflow-hidden bg-zinc-800 flex-shrink-0">
-                                                    {popularGames[0].coverImage && (
-                                                        <img src={popularGames[0].coverImage} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                                                    )}
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="text-xs text-lime-400 font-medium mb-1">🔥 Trending Now</div>
-                                                    <div className="text-white font-bold truncate group-hover:text-lime-400 transition-colors">{popularGames[0].title}</div>
-                                                    <div className="text-xs text-zinc-400">Most played this week</div>
-                                                </div>
-                                            </div>
-                                        </Link>
-                                    )}
+                                    <div className="text-xs text-zinc-500 uppercase tracking-widest font-bold">{stat.label}</div>
                                 </div>
-
-                                {/* Floating Mini Card */}
-                                <div className="absolute -top-4 -right-4 backdrop-blur-lg bg-white/10 border border-white/20 rounded-xl px-4 py-2 shadow-xl animate-fade-in-up stagger-2">
-                                    <div className="flex items-center gap-2">
-                                        <Star className="w-4 h-4 text-lime-400 fill-lime-400" />
-                                        <span className="text-sm font-bold text-white">4.8</span>
-                                        <span className="text-xs text-zinc-400">avg rating</span>
-                                    </div>
-                                </div>
-
-                                {/* Floating Activity Indicator */}
-                                <div className="absolute -bottom-3 -left-3 backdrop-blur-lg bg-white/10 border border-white/20 rounded-xl px-3 py-2 shadow-xl animate-fade-in-up stagger-4">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                                        <span className="text-xs text-zinc-300">{stats.members} active members</span>
-                                    </div>
-                                </div>
-                            </div>
+                            ))}
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Popular This Week */}
-            <section className="px-6 lg:px-12 py-12 border-t border-zinc-900">
+            {/* Trending Section */}
+            <section className="pt-10 pb-20 px-6 lg:px-12 border-t border-white/5 relative z-10">
                 <div className="max-w-7xl mx-auto">
-                    <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-end justify-between mb-10">
                         <div>
-                            <div className="text-lime-400 text-xs font-bold uppercase tracking-wider mb-1">Trend Report</div>
-                            <h2 className="text-2xl font-black text-white">Popular This Week</h2>
+                            <div className="flex items-center gap-2 text-lime-500 text-xs font-bold uppercase tracking-wider mb-2">
+                                <Activity className="w-4 h-4" /> Trending Now
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-black text-white italic tracking-tighter">POPULAR THIS WEEK</h2>
                         </div>
-                        <Link href="/games" className="flex items-center gap-1 text-sm text-zinc-500 hover:text-white transition-colors">
-                            Browse All <ArrowRight className="w-4 h-4" />
+                        <Link href="/games" className="group flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-white transition-colors">
+                            VIEW ALL GAMES <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </Link>
                     </div>
 
                     {loading ? (
                         <div className="flex justify-center py-12">
-                            <Loader2 className="w-6 h-6 animate-spin text-lime-400" />
+                            <Loader2 className="w-8 h-8 animate-spin text-lime-400" />
                         </div>
                     ) : (
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-6">
                             {popularGames.map(game => (
                                 <GameCard key={game._id || game.igdbId} game={game} />
                             ))}
@@ -212,119 +158,127 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Just Reviewed + Sidebar */}
-            <section className="px-6 lg:px-12 py-12 border-t border-zinc-900">
+            {/* Community Feed */}
+            <section className="py-20 px-6 lg:px-12 bg-zinc-900/20 border-t border-white/5 relative z-10">
                 <div className="max-w-7xl mx-auto">
-                    <div className="grid lg:grid-cols-3 gap-12">
-                        {/* Just Reviewed */}
-                        <div className="lg:col-span-2">
-                            <h2 className="text-2xl font-black text-white mb-6">Just Reviewed</h2>
+                    <div className="grid lg:grid-cols-12 gap-12">
+                        {/* Main Feed */}
+                        <div className="lg:col-span-8">
+                            <div className="flex items-center gap-2 mb-8">
+                                <MessageCircle className="w-6 h-6 text-lime-400" />
+                                <h2 className="text-2xl font-black text-white italic tracking-tighter">JUST REVIEWED</h2>
+                            </div>
 
-                            {/* Review Cards */}
-                            <div className="space-y-6">
+                            <div className="space-y-4">
                                 {recentReviews.length > 0 ? recentReviews.map((review) => (
-                                    <div key={review._id} className="card-hover flex gap-4 group p-3 rounded-lg bg-zinc-900/30 border border-transparent hover:border-zinc-800">
-                                        <Link
-                                            href={`/games/${review.game?._id || review.game?.igdbId}`}
-                                            className="img-hover-zoom w-16 h-24 bg-zinc-800 rounded overflow-hidden flex-shrink-0"
-                                        >
+                                    <div key={review._id} className="group flex gap-5 p-5 rounded-2xl bg-zinc-900/40 border border-white/5 hover:border-lime-500/30 transition-all hover:bg-zinc-900/60">
+                                        <Link href={`/games/${review.game?._id || review.game?.igdbId}`} className="flex-shrink-0 w-24 h-36 rounded-lg overflow-hidden relative shadow-lg">
                                             {review.game?.coverImage ? (
-                                                <img src={review.game.coverImage} alt={review.game.title} className="w-full h-full object-cover" />
+                                                <img src={review.game.coverImage} alt={review.game.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                                             ) : (
-                                                <div className="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-900" />
+                                                <div className="w-full h-full bg-zinc-800 flex items-center justify-center">
+                                                    <Gamepad2 className="w-8 h-8 text-zinc-700" />
+                                                </div>
                                             )}
                                         </Link>
-                                        <div className="flex-1">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <Link
-                                                    href={`/games/${review.game?._id || review.game?.igdbId}`}
-                                                    className="font-bold text-white hover:text-lime-400 transition-colors"
-                                                >
-                                                    {review.game?.title || 'Unknown Game'}
+                                        <div className="flex-1 min-w-0 py-1">
+                                            <div className="flex items-center justify-between mb-2">
+                                                <Link href={`/games/${review.game?._id || review.game?.igdbId}`}>
+                                                    <h3 className="text-xl font-bold text-white hover:text-lime-400 transition-colors truncate">{review.game?.title}</h3>
                                                 </Link>
                                                 <div className="flex gap-0.5">
-                                                    {[...Array(5)].map((_, j) => (
-                                                        <Star key={j} className={`w-4 h-4 ${j < review.rating ? 'text-lime-400 fill-lime-400' : 'text-zinc-700'}`} />
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <Star key={i} className={`w-3.5 h-3.5 ${i < review.rating ? 'text-lime-400 fill-lime-400' : 'text-zinc-700'}`} />
                                                     ))}
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-2 mb-2">
-                                                {review.user?.profilePicture ? (
-                                                    <img src={review.user.profilePicture} alt="" className="w-5 h-5 rounded-full object-cover" />
-                                                ) : (
-                                                    <div className="w-5 h-5 rounded-full bg-lime-500" />
-                                                )}
-                                                <span className="text-sm text-zinc-400">{review.user?.username || 'Anonymous'}</span>
-                                                <span className="text-xs text-zinc-600">• {new Date(review.createdAt).toLocaleDateString()}</span>
+
+                                            <div className="flex items-center gap-2 mb-4">
+                                                <div className="w-6 h-6 rounded-full bg-zinc-800 overflow-hidden border border-white/10">
+                                                    {review.user?.profilePicture ? (
+                                                        <img src={review.user.profilePicture} alt="" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-zinc-800 text-[10px] font-bold text-zinc-500">
+                                                            {review.user?.username?.[0] || 'U'}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <span className="text-sm font-medium text-zinc-300">{review.user?.username}</span>
+                                                <span className="text-zinc-600 text-xs">• {new Date(review.createdAt).toLocaleDateString()}</span>
                                             </div>
-                                            {review.text && <p className="text-sm text-zinc-400 line-clamp-2 mb-2">{review.text}</p>}
-                                            <div className="flex items-center gap-1 text-xs text-zinc-500">
-                                                <Heart className="w-3.5 h-3.5" />
-                                                <span>{review.likesCount || 0}</span>
+
+                                            {review.text && (
+                                                <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 md:line-clamp-3 mb-3">"{review.text}"</p>
+                                            )}
+
+                                            <div className="flex items-center gap-4">
+                                                <button className="flex items-center gap-1.5 text-xs font-bold text-zinc-500 group-hover:text-lime-400 transition-colors">
+                                                    <Heart className="w-3.5 h-3.5" /> {review.likesCount || 0} Likes
+                                                </button>
                                             </div>
                                         </div>
                                     </div>
                                 )) : (
-                                    <p className="text-zinc-500">No reviews yet. Be the first to review a game!</p>
+                                    <div className="p-8 text-center text-zinc-500 bg-zinc-900/20 rounded-2xl border border-white/5 border-dashed">
+                                        No reviews yet. Be the first!
+                                    </div>
                                 )}
                             </div>
                         </div>
 
                         {/* Sidebar */}
-                        <div className="space-y-8">
+                        <div className="lg:col-span-4 space-y-10">
                             {/* Popular Lists */}
                             <div>
-                                <h3 className="text-lg font-black text-white mb-4">Popular Lists</h3>
+                                <div className="flex items-center gap-2 mb-6">
+                                    <Trophy className="w-5 h-5 text-lime-400" />
+                                    <h3 className="text-lg font-black text-white italic tracking-tighter">POPULAR COLLECTIONS</h3>
+                                </div>
                                 <div className="space-y-4">
-                                    {popularLists.length > 0 ? popularLists.map(list => (
-                                        <Link key={list._id} href={`/lists/${list._id}`} className="card-hover glow-hover block group p-3 rounded-lg bg-zinc-900/30 border border-zinc-800">
-                                            <div className="flex gap-1 mb-2 overflow-hidden rounded">
-                                                {list.previewGames?.slice(0, 5).map((game, i) => (
-                                                    <div key={i} className="w-12 h-16 bg-zinc-800 overflow-hidden">
+                                    {popularLists.map(list => (
+                                        <Link key={list._id} href={`/lists/${list._id}`} className="group block p-4 rounded-xl bg-zinc-900/40 border border-white/5 hover:border-lime-500/30 transition-colors">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <div className="font-bold text-white group-hover:text-lime-400 transition-colors truncate pr-4">{list.name}</div>
+                                                <span className="text-[10px] font-bold bg-white/5 px-2 py-0.5 rounded text-zinc-400">{list.gameCount} Games</span>
+                                            </div>
+                                            <div className="flex gap-1">
+                                                {list.previewGames?.slice(0, 4).map((game, i) => (
+                                                    <div key={i} className="w-10 h-14 bg-zinc-800 rounded-sm overflow-hidden opacity-70 group-hover:opacity-100 transition-opacity">
                                                         {game.coverImage && <img src={game.coverImage} alt="" className="w-full h-full object-cover" />}
                                                     </div>
                                                 ))}
                                             </div>
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <div className="font-bold text-white group-hover:text-lime-400 transition-colors">{list.name}</div>
-                                                    <div className="text-xs text-zinc-500">{list.gameCount} games</div>
-                                                </div>
-                                                <div className="text-xs text-zinc-600">by {list.user?.username}</div>
-                                            </div>
                                         </Link>
-                                    )) : (
-                                        <p className="text-zinc-500 text-sm">No lists yet</p>
-                                    )}
+                                    ))}
                                 </div>
                             </div>
 
-                            {/* Top Reviewers */}
+                            {/* Community Stars */}
                             <div>
-                                <h3 className="text-lg font-black text-white mb-4">Top Reviewers</h3>
+                                <h3 className="text-lg font-black text-white italic tracking-tighter mb-6">TOP REVIEWERS</h3>
                                 <div className="space-y-3">
-                                    {topReviewers.length > 0 ? topReviewers.map(member => (
-                                        <div key={member._id} className="card-hover flex items-center justify-between p-2 rounded-lg hover:bg-zinc-900/50">
-                                            <Link href={`/users/${member.username}`} className="flex items-center gap-3 group">
-                                                <div className="w-10 h-10 rounded-full bg-zinc-800 overflow-hidden transition-transform group-hover:scale-105">
-                                                    {member.profilePicture ? (
-                                                        <img src={member.profilePicture} alt="" className="w-full h-full object-cover" />
+                                    {topReviewers.map((reviewer, i) => (
+                                        <Link key={reviewer._id} href={`/users/${reviewer.username}`} className="flex items-center gap-4 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+                                            <div className="relative">
+                                                <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-zinc-800 group-hover:border-lime-400 transition-colors">
+                                                    {reviewer.profilePicture ? (
+                                                        <img src={reviewer.profilePicture} alt="" className="w-full h-full object-cover" />
                                                     ) : (
-                                                        <div className="w-full h-full bg-gradient-to-br from-zinc-700 to-zinc-900" />
+                                                        <div className="w-full h-full bg-zinc-800 flex items-center justify-center text-zinc-500 font-bold">
+                                                            {reviewer.username?.[0]}
+                                                        </div>
                                                     )}
                                                 </div>
-                                                <div>
-                                                    <div className="font-medium text-white group-hover:text-lime-400 transition-colors">{member.username}</div>
-                                                    <div className="text-xs text-zinc-500">{member.stats?.reviews || 0} reviews</div>
+                                                <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-zinc-900 rounded-full flex items-center justify-center border border-zinc-800 text-[10px] font-bold text-white">
+                                                    {i + 1}
                                                 </div>
-                                            </Link>
-                                            <button className="text-xs px-3 py-1 border border-zinc-700 rounded hover:border-lime-400 hover:text-lime-400 transition-colors">
-                                                Follow
-                                            </button>
-                                        </div>
-                                    )) : (
-                                        <p className="text-zinc-500 text-sm">No members yet</p>
-                                    )}
+                                            </div>
+                                            <div>
+                                                <div className="font-bold text-white group-hover:text-lime-400 transition-colors">{reviewer.username}</div>
+                                                <div className="text-xs text-zinc-500 font-bold uppercase">{reviewer.stats?.reviews || 0} Reviews</div>
+                                            </div>
+                                        </Link>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -332,17 +286,16 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* Join The Crew CTA */}
+            {/* Footer CTA */}
             {!user && (
-                <section className="px-6 lg:px-12 py-20 border-t border-zinc-900">
-                    <div className="max-w-2xl mx-auto text-center">
-                        <h2 className="text-4xl lg:text-5xl font-black text-white mb-4">JOIN THE CREW</h2>
-                        <p className="text-zinc-400 mb-8">
-                            Create lists, share reviews, and follow your friends. It's free and always will be.
-                        </p>
+                <section className="py-24 px-6 text-center border-t border-white/5 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-lime-500/5 z-0" />
+                    <div className="relative z-10 max-w-2xl mx-auto">
+                        <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-6">Ready to Join the Crew?</h2>
+                        <p className="text-zinc-400 text-lg mb-10">Start building your legacy today. It's free, forever.</p>
                         <Link
                             href="/signup"
-                            className="inline-block bg-lime-400 hover:bg-lime-300 text-black px-8 py-3 rounded font-bold transition-colors"
+                            className="inline-block bg-white text-black hover:bg-lime-400 px-10 py-4 rounded-xl font-black uppercase tracking-wide transition-colors shadow-2xl"
                         >
                             Create Account
                         </Link>
