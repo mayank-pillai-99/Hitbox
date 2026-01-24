@@ -21,7 +21,7 @@ function BrowseGamesContent() {
     // Filter States
     const [selectedGenre, setSelectedGenre] = useState('All');
     const [selectedPlatform, setSelectedPlatform] = useState('All');
-    const [sortBy, setSortBy] = useState('-added'); // Default: Popularity
+    const [sortBy, setSortBy] = useState('-added');
     const [isSortOpen, setIsSortOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(false);
@@ -75,7 +75,6 @@ function BrowseGamesContent() {
         fetchGames();
     }, [searchQuery, selectedGenre, selectedPlatform, page, sortBy]);
 
-    // Reset page on filter change
     const handleGenreChange = (genre) => {
         setSelectedGenre(genre);
         setPage(1);
@@ -90,12 +89,10 @@ function BrowseGamesContent() {
         <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans relative overflow-x-hidden">
             <Navbar />
 
-            {/* Background Glows */}
             <div className="fixed top-20 right-0 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] pointer-events-none" />
             <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-lime-500/10 rounded-full blur-[120px] pointer-events-none" />
 
             <main className="flex-grow max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full relative z-10">
-                {/* Header Section */}
                 <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-6 animate-fade-in-up">
                     <div>
                         <h1 className="text-4xl sm:text-6xl font-black tracking-tighter text-white uppercase italic leading-none mb-2">
@@ -119,7 +116,6 @@ function BrowseGamesContent() {
                                 <ChevronDown className={`w-4 h-4 text-zinc-500 transition-transform ${isSortOpen ? 'rotate-180' : ''}`} />
                             </button>
 
-                            {/* Dropdown Menu */}
                             {isSortOpen && (
                                 <div className="absolute right-0 mt-2 w-full md:w-56 bg-zinc-900/95 backdrop-blur-xl border border-zinc-800 rounded-xl shadow-2xl z-50 overflow-hidden animate-scale-in origin-top-right">
                                     {SORT_OPTIONS.map((option) => (

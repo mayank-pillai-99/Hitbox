@@ -111,10 +111,7 @@ function MemberCard({ member }) {
                             )}
                         </div>
                     </div>
-                    {/* Status Dot (Optional - mocked for now) */}
-                    <div className="absolute bottom-1 right-1 w-5 h-5 bg-black rounded-full flex items-center justify-center">
-                        <div className="w-3 h-3 bg-lime-500 rounded-full border border-black animate-pulse" />
-                    </div>
+
                 </div>
 
                 {/* Info */}

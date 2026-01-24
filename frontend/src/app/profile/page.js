@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash2, X, Heart, Gamepad2, List, Calendar } from 'lucide-react';
-import GameCard from '@/components/GameCard';
+import { Settings, Loader2, Plus, Check, Play, BookmarkPlus, Star, Pencil, Trash2, X, Gamepad2, List, Calendar } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -12,7 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
 export default function Profile() {
-    const { user, logout } = useAuth();
+    const { user } = useAuth();
     const [lists, setLists] = useState([]);
     const [gameCounts, setGameCounts] = useState({ total: 0, played: 0, playing: 0, want_to_play: 0 });
     const [gameStatuses, setGameStatuses] = useState({ played: [], playing: [], want_to_play: [] });
@@ -20,7 +19,6 @@ export default function Profile() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
-    // Edit review state
     const [editingReview, setEditingReview] = useState(null);
     const [editRating, setEditRating] = useState(0);
     const [editText, setEditText] = useState('');
@@ -43,10 +41,10 @@ export default function Profile() {
                 setGameCounts(countsRes.data);
                 setGameStatuses(statusesRes.data);
                 setReviews(reviewsRes.data);
-                setLoading(false);
             } catch (err) {
                 console.error("Failed to fetch profile data", err);
                 setError('Failed to load profile.');
+            } finally {
                 setLoading(false);
             }
         };
@@ -71,7 +69,6 @@ export default function Profile() {
         );
     }
 
-    // Calculate basic stats
     const stats = {
         gamesPlayed: gameCounts.total || 0,
         reviews: user.stats?.reviews || 0,
@@ -82,15 +79,11 @@ export default function Profile() {
         <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans relative overflow-x-hidden">
             <Navbar />
 
-            {/* Cinematic Header Background (Consistent with Public Profile) */}
             <div className="relative h-[400px] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black z-10" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80 z-10" />
-
-                {/* Simulated dynamic background */}
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800 via-black to-black opacity-50" />
 
-                {/* Optional: Use a game image from 'playing' or 'played' as banner */}
                 {gameStatuses.playing.length > 0 && gameStatuses.playing[0].game.coverImage && (
                     <img
                         src={gameStatuses.playing[0].game.coverImage}
@@ -119,7 +112,6 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    {/* User Info */}
                     <div className="flex-1 pb-4">
                         <div className="flex items-center gap-4 mb-2">
                             <h1 className="text-5xl md:text-6xl font-black text-white uppercase italic tracking-tighter leading-none text-glow">
@@ -147,7 +139,6 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    {/* Stats */}
                     <div className="flex gap-4 pb-4">
                         <div className="bg-zinc-900/80 backdrop-blur border border-white/10 rounded-xl p-4 text-center min-w-[100px] shadow-lg">
                             <div className="text-3xl font-black text-white leading-none mb-1">{stats.gamesPlayed}</div>
@@ -165,7 +156,6 @@ export default function Profile() {
                 </div>
 
                 <div className="space-y-16 pb-20">
-                    {/* Game Status Libraries */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Playing */}
                         <div className="bg-zinc-900/30 backdrop-blur rounded-2xl border border-white/5 p-6 h-full flex flex-col">
@@ -219,7 +209,7 @@ export default function Profile() {
                             )}
                         </div>
 
-                        {/* Played Recently (or just Played) */}
+                        {/* Played */}
                         <div className="bg-zinc-900/30 backdrop-blur rounded-2xl border border-white/5 p-6 h-full flex flex-col">
                             <div className="flex items-center gap-3 mb-6">
                                 <div className="p-2 bg-lime-400/10 rounded-lg text-lime-400">
@@ -246,7 +236,6 @@ export default function Profile() {
                         </div>
                     </div>
 
-                    {/* My Lists Section */}
                     <div>
                         <div className="flex items-center justify-between gap-4 mb-6">
                             <div className="flex items-center gap-3">
@@ -307,7 +296,6 @@ export default function Profile() {
                         )}
                     </div>
 
-                    {/* Recent Reviews */}
                     {reviews.length > 0 && (
                         <div>
                             <div className="flex items-center gap-3 mb-6">
@@ -400,7 +388,7 @@ export default function Profile() {
                 confirmText="Delete"
                 variant="danger"
             />
-            {/* Edit Review Modal (Simplified inline for now) */}
+
             {editingReview && (
                 <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
                     <div className="bg-zinc-900 rounded-2xl border border-white/10 max-w-lg w-full p-6 shadow-2xl">

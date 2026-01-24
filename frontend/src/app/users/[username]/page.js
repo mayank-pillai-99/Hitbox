@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
-import { User, Calendar, Star, List, Loader2, Gamepad2, ArrowRight, Heart, MessageSquare } from 'lucide-react';
+import { Calendar, Star, List, Loader2, Gamepad2, ArrowRight, Heart, MessageSquare } from 'lucide-react';
 import api from '@/utils/api';
 import Footer from '@/components/Footer';
 
@@ -91,12 +91,9 @@ export default function PublicUserProfile({ params }) {
         <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans relative overflow-x-hidden">
             <Navbar />
 
-            {/* Cinematic Header Background */}
             <div className="relative h-[400px] w-full overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/50 to-black z-10" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80 z-10" />
-
-                {/* Simulated dynamic background using top reviewed game or abstract gradient */}
                 <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-zinc-800 via-black to-black opacity-50" />
 
                 {reviews.length > 0 && reviews[0].game?.coverImage && (
@@ -110,7 +107,6 @@ export default function PublicUserProfile({ params }) {
 
             <main className="flex-grow max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 w-full relative z-20 -mt-32">
                 <div className="flex flex-col md:flex-row items-end gap-8 mb-12">
-                    {/* Avatar */}
                     <div className="relative group">
                         <div className="w-40 h-40 rounded-full p-1 bg-gradient-to-tr from-zinc-800 to-zinc-700 group-hover:from-lime-400 group-hover:to-lime-200 transition-colors duration-500 shadow-2xl">
                             <div className="w-full h-full rounded-full overflow-hidden bg-black border-4 border-black relative">
@@ -127,7 +123,6 @@ export default function PublicUserProfile({ params }) {
                         </div>
                     </div>
 
-                    {/* Profile Info */}
                     <div className="flex-1 pb-4">
                         <h1 className="text-5xl md:text-6xl font-black text-white mb-2 uppercase italic tracking-tighter leading-none text-glow">
                             {profile.username}
@@ -145,7 +140,6 @@ export default function PublicUserProfile({ params }) {
                         </div>
                     </div>
 
-                    {/* Stats */}
                     <div className="flex gap-4 pb-4">
                         <div className="bg-zinc-900/80 backdrop-blur border border-white/10 rounded-xl p-4 text-center min-w-[100px] shadow-lg">
                             <div className="text-3xl font-black text-white leading-none mb-1">{profile.stats.reviews}</div>
@@ -162,9 +156,7 @@ export default function PublicUserProfile({ params }) {
                     </div>
                 </div>
 
-                {/* Tabs & Content */}
                 <div className="flex flex-col lg:flex-row gap-12">
-                    {/* Left Column - Tabs */}
                     <div className="lg:w-64 flex-shrink-0">
                         <div className="sticky top-24 space-y-2">
                             <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest px-4 mb-2">Feeds</h3>
@@ -199,7 +191,6 @@ export default function PublicUserProfile({ params }) {
                         </div>
                     </div>
 
-                    {/* Right Column - Feed Content */}
                     <div className="flex-1 min-w-0">
                         {activeTab === 'reviews' && (
                             <div className="space-y-4 animate-fade-in-up">
@@ -275,7 +266,6 @@ export default function PublicUserProfile({ params }) {
                                             href={`/lists/${list._id}`}
                                             className="group bg-zinc-900/40 backdrop-blur-sm rounded-2xl border border-white/5 hover:border-lime-400/50 hover:bg-zinc-900/60 transition-all duration-300 overflow-hidden hover:shadow-2xl hover:-translate-y-1 block h-full"
                                         >
-                                            {/* Preview Covers */}
                                             <div className="flex h-32 border-b border-white/5 relative">
                                                 <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/90 to-transparent z-10" />
                                                 {list.previewGames && list.previewGames.length > 0 ? (

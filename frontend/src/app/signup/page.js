@@ -28,7 +28,6 @@ export default function Signup() {
 
     return (
         <div className="flex items-center justify-center min-h-[calc(100vh-4rem)] bg-black px-4 relative overflow-hidden">
-            {/* Background Glows */}
             <div className="absolute top-0 right-1/4 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none animate-pulse" />
             <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
 

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Play, ArrowRight, Star, Heart, MessageCircle, Loader2, Sparkles, Gamepad2, Activity, Trophy } from 'lucide-react';
+import { Play, ArrowRight, Star, Heart, MessageCircle, Loader2, Gamepad2, Activity, Trophy } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
@@ -13,7 +13,6 @@ export default function Home() {
     const { user } = useAuth();
     const [loading, setLoading] = useState(true);
 
-    // Data buckets
     const [games, setGames] = useState([]);
     const [reviews, setReviews] = useState([]);
     const [lists, setLists] = useState([]);
@@ -21,7 +20,6 @@ export default function Home() {
     const [stats, setStats] = useState({ games: 0, reviews: 0, members: 0, lists: 0 });
 
     useEffect(() => {
-        // Just grab everything at once
         Promise.all([
             api.get('/games', { params: { page_size: 6, dates: '2025-01-01,2025-12-31' } }),
             api.get('/lists/discover?sort=popular&limit=3'),
@@ -34,14 +32,13 @@ export default function Home() {
             setMembers(m.data.members || []);
             setReviews(r.data || []);
             setStats(s.data);
-            setLoading(false); // Done
+            setLoading(false);
         }).catch(err => {
             console.error('Home load failed', err);
             setLoading(false);
         });
     }, []);
 
-    // Derived state / Helpers can go here if needed
     const heroGame = games[0];
 
     return (
@@ -69,7 +66,7 @@ export default function Home() {
                 <div className="max-w-7xl mx-auto relative z-20">
                     <div className="flex flex-col items-center text-center">
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-lime-400/10 border border-lime-400/20 text-xs font-bold uppercase tracking-widest text-lime-400 mb-8 animate-fade-in-up">
-                            <Sparkles className="w-3 h-3" /> The Social Network for Gamers
+                            The Social Network for Gamers
                         </div>
 
                         <h1 className="animate-fade-in-up stagger-1 text-5xl sm:text-7xl md:text-8xl font-black tracking-tighter leading-none mb-8 text-transparent bg-clip-text bg-gradient-to-b from-white via-white to-zinc-500">

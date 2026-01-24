@@ -70,7 +70,6 @@ export default function GameDetails({ params }) {
         <div className="min-h-screen bg-black text-zinc-100 flex flex-col font-sans relative overflow-x-hidden">
             <Navbar />
 
-            {/* Cinematic Backdrop */}
             <div className="absolute top-0 left-0 w-full h-[80vh] overflow-hidden pointer-events-none z-0">
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-black/60 to-black z-10" />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-transparent to-black/80 z-10" />
@@ -85,7 +84,6 @@ export default function GameDetails({ params }) {
 
             <main className="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 w-full relative z-10 pt-24 md:pt-48">
                 <div className="flex flex-col md:flex-row gap-12 items-start">
-                    {/* Cover Art Section */}
                     <div className="md:sticky md:top-24 w-full md:w-80 flex-shrink-0 animate-fade-in-up">
                         <div className="group relative aspect-[3/4] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-zinc-900 transition-transform duration-500 hover:scale-[1.02]">
                             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity z-20" />
@@ -94,11 +92,9 @@ export default function GameDetails({ params }) {
                             ) : (
                                 <div className="w-full h-full flex items-center justify-center text-zinc-600 font-bold bg-zinc-800">No Image</div>
                             )}
-                            {/* Neon Rim Glow */}
                             <div className="absolute inset-0 rounded-2xl ring-1 ring-white/10 group-hover:ring-lime-400/50 transition-all duration-500 z-30" />
                         </div>
 
-                        {/* Quick Stats */}
                         <div className="mt-8 grid grid-cols-2 gap-4">
                             <div className="backdrop-blur-xl bg-white/5 border border-white/10 p-4 rounded-xl text-center">
                                 <div className="text-sm text-zinc-400 mb-1 font-medium">Rating</div>
@@ -115,13 +111,11 @@ export default function GameDetails({ params }) {
                             </div>
                         </div>
 
-                        {/* Status Buttons */}
                         <div className="mt-6">
                             <GameStatusButtons gameId={gameId} />
                         </div>
                     </div>
 
-                    {/* Main Content */}
                     <div className="flex-1 min-w-0 animate-fade-in-up stagger-1">
                         <div className="mb-2 flex items-center gap-3">
                             <span className="px-3 py-1 rounded-full bg-lime-400/10 text-lime-400 text-xs font-bold uppercase tracking-wider border border-lime-400/20">
@@ -172,7 +166,6 @@ export default function GameDetails({ params }) {
                             </div>
                         </div>
 
-                        {/* Action Bar */}
                         <div className="flex flex-wrap items-center gap-4 mb-16">
                             {user ? (
                                 <Link
@@ -198,7 +191,6 @@ export default function GameDetails({ params }) {
                             </button>
                         </div>
 
-                        {/* Reviews Section */}
                         <div className="animate-fade-in-up stagger-2">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-2xl font-black text-white flex items-center gap-3">

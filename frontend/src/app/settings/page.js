@@ -4,12 +4,12 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import { User, Mail, Lock, Image as ImageIcon, Loader2, Save, Upload } from 'lucide-react';
+import { User, Mail, Image as ImageIcon, Loader2, Save, Upload } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/utils/api';
 
 export default function Settings() {
-    const { user, login } = useAuth();
+    const { user } = useAuth();
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [formData, setFormData] = useState({
@@ -45,7 +45,7 @@ export default function Settings() {
         setSuccess('');
 
         try {
-            const res = await api.put('/auth/me', formData);
+            await api.put('/auth/me', formData);
             setSuccess('Profile updated successfully!');
             setTimeout(() => {
                 window.location.reload();
@@ -68,7 +68,6 @@ export default function Settings() {
             <Navbar />
 
             <main className="flex-grow relative px-4 py-20 flex items-center justify-center overflow-hidden">
-                {/* Background Glows */}
                 <div className="absolute top-20 left-1/4 w-96 h-96 bg-lime-500/10 rounded-full blur-[100px] pointer-events-none" />
                 <div className="absolute bottom-20 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
 
@@ -93,7 +92,6 @@ export default function Settings() {
                         )}
 
                         <form className="space-y-8" onSubmit={handleSubmit}>
-                            {/* Avatar Section */}
                             <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-black/20 rounded-xl border border-white/5">
                                 <div className="relative group">
                                     <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-zinc-700 bg-zinc-800 flex items-center justify-center group-hover:border-lime-400 transition-colors duration-300">
@@ -127,7 +125,6 @@ export default function Settings() {
                             </div>
 
                             <div className="grid gap-6">
-                                {/* Username */}
                                 <div>
                                     <label htmlFor="username" className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Username</label>
                                     <div className="relative">
@@ -144,7 +141,6 @@ export default function Settings() {
                                     </div>
                                 </div>
 
-                                {/* Email */}
                                 <div>
                                     <label htmlFor="email" className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Email Address</label>
                                     <div className="relative">
@@ -161,7 +157,6 @@ export default function Settings() {
                                     </div>
                                 </div>
 
-                                {/* Bio */}
                                 <div>
                                     <label htmlFor="bio" className="block text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2">Bio</label>
                                     <textarea
