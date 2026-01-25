@@ -32,7 +32,7 @@ export const findOrCreateGame = async (gameId) => {
 
     // Mongoose Model
     const newGame = new Game({
-        igdbId: mapped.id, // mapped.id is igdb id from mapper
+        igdbId: mapped.igdbId, // mapped.igdbId is set in the mapper
         title: mapped.title,
         slug: mapped.slug,
         description: mapped.description,

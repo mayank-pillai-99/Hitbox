@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect, Suspense } from 'react';
-import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -14,7 +13,6 @@ const PLATFORMS = ["All", "PC", "PlayStation", "Xbox", "Nintendo"];
 
 function BrowseGamesContent() {
     const [games, setGames] = useState([]);
-    const [totalCount, setTotalCount] = useState(0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 

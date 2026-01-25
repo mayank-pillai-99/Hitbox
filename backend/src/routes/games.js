@@ -70,8 +70,11 @@ router.get('/', async (req, res) => {
 
         const results = igdbGames.map(g => {
             const mapped = mapIGDBGame(g);
-            if (localMap[g.id] && localMap[g.id].averageRating > 0) {
-                mapped.rating = localMap[g.id].averageRating;
+            if (localMap[g.id]) {
+                mapped._id = localMap[g.id]._id; // Use local Mongo ID if available
+                if (localMap[g.id].averageRating > 0) {
+                    mapped.rating = localMap[g.id].averageRating;
+                }
             }
             return mapped;
         });
