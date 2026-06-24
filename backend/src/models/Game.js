@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const gameSchema = new mongoose.Schema({
-    igdbId: { type: Number, unique: true, sparse: true }, // External ID from IGDB
+    igdbId: { type: Number, unique: true}, // External ID from IGDB
     title: { type: String, required: true },
     slug: { type: String },
     description: { type: String },

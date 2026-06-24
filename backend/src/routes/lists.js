@@ -143,7 +143,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 router.delete('/:id/game/:gameId', auth, async (req, res) => {
-    try {
+    try { 
         const list = await List.findOne({ _id: req.params.id, user: req.user.id });
         if (!list) return res.status(404).json({ message: 'List not found' });
 

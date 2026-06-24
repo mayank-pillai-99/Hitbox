@@ -115,9 +115,6 @@ router.get('/:id', async (req, res) => {
         if (!data || data.length === 0) return res.status(404).json({ message: 'Game not found' });
 
         game = mapIGDBGame(data[0]);
-        if (data[0].involved_companies) {
-            game.developer = data[0].involved_companies.map(c => c.company.name).join(', ');
-        }
 
         res.json(game);
 
