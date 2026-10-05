@@ -2,6 +2,7 @@ import { Inter, Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
+import ServerWakeNotice from '@/components/ServerWakeNotice';
 import { SITE_URL } from '@/utils/site';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -26,6 +27,7 @@ export default function RootLayout({ children }) {
                 <AuthProvider>
                     <ToastProvider>
                         {children}
+                        <ServerWakeNotice />
                     </ToastProvider>
                 </AuthProvider>
             </body>

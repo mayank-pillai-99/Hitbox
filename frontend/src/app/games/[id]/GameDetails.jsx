@@ -105,6 +105,11 @@ export default function GameDetails({ id }) {
                     <div className="grid grid-cols-2 gap-3">
                         <StatTile label="Rating" value={rating} accent />
                         <StatTile label="Release" value={game.releaseDate ? new Date(game.releaseDate).getFullYear() : 'TBA'} />
+                        {extras.data?.timeToBeat && (
+                            <div className="col-span-2">
+                                <StatTile label="Typical time to beat" value={`${extras.data.timeToBeat}h`} />
+                            </div>
+                        )}
                     </div>
                     <GameStatusButtons gameId={id} onChange={stats.reload} />
                     <RatingHistogram stats={stats.data} />

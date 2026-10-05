@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Settings, Plus, Pencil, Trash2, Check, Play, BookmarkPlus, ListX, MessageSquare, Gamepad2 } from 'lucide-react';
+import { Settings, Dices, Plus, Pencil, Trash2, Check, Play, BookmarkPlus, ListX, MessageSquare, Gamepad2 } from 'lucide-react';
 import PageShell from '@/components/ui/PageShell';
 import SectionHeader from '@/components/ui/SectionHeader';
 import StatTile from '@/components/ui/StatTile';
@@ -91,9 +91,14 @@ export default function Profile() {
             <ProfileHeader
                 profile={user}
                 actions={
-                    <Link href="/settings" className="btn-ghost">
-                        <Settings className="w-4 h-4" aria-hidden="true" /> Edit profile
-                    </Link>
+                    <>
+                        <Link href="/backlog" className="btn-primary">
+                            <Dices className="w-4 h-4" aria-hidden="true" /> What to play next
+                        </Link>
+                        <Link href="/settings" className="btn-ghost">
+                            <Settings className="w-4 h-4" aria-hidden="true" /> Edit profile
+                        </Link>
+                    </>
                 }
             >
                 <StatTile label="Played" value={c.played} accent />

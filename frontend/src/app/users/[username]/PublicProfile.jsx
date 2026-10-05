@@ -12,11 +12,14 @@ import ToggleGroup from '@/components/ui/ToggleGroup';
 import { ProfileSkeleton, ListRowsSkeleton, CardGridSkeleton } from '@/components/ui/Skeleton';
 import ProfileHeader from '@/components/ProfileHeader';
 import FollowButton from '@/components/FollowButton';
+import TasteMatch from '@/components/TasteMatch';
 import ReviewCard from '@/components/ReviewCard';
 import ListCard from '@/components/ListCard';
 import useApi from '@/hooks/useApi';
+import { useAuth } from '@/context/AuthContext';
 
 export default function PublicProfile({ username }) {
+    const { user } = useAuth();
     const [tab, setTab] = useState('reviews');
     const [page, setPage] = useState(1);
     const [followers, setFollowers] = useState(null); // follower count after following or unfollowing here
@@ -65,6 +68,8 @@ export default function PublicProfile({ username }) {
             </ProfileHeader>
 
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+                {user && user.username !== profile.username && <TasteMatch key={profile.username} username={profile.username} />}
+
                 <ToggleGroup
                     label="Profile sections"
                     options={[['reviews', `Reviews (${profile.stats.reviews})`], ['lists', `Lists (${profile.stats.lists})`]]}

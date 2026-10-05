@@ -51,6 +51,7 @@ function AccountMenu({ user, logout }) {
             {open && (
                 <div className="absolute right-0 top-full mt-1 w-48 panel z-50">
                     <Link href="/profile" onClick={() => setOpen(false)} className={item}>Profile</Link>
+                    <Link href="/backlog" onClick={() => setOpen(false)} className={item}>Backlog</Link>
                     <Link href="/settings" onClick={() => setOpen(false)} className={item}>Settings</Link>
                     <button onClick={() => { setOpen(false); logout(); }} className={`${item} border-t border-line`}>Log out</button>
                 </div>
@@ -128,6 +129,7 @@ export default function Navbar() {
                             ))}
                             {user && (
                                 <>
+                                    <li><Link href="/backlog" onClick={closeMenu} className="flex items-center min-h-[44px] px-3 font-bold uppercase tracking-wide text-muted hover:text-neon">Backlog</Link></li>
                                     <li><Link href="/profile" onClick={closeMenu} className="flex items-center min-h-[44px] px-3 font-bold uppercase tracking-wide text-muted hover:text-neon">Profile</Link></li>
                                     <li><Link href="/settings" onClick={closeMenu} className="flex items-center min-h-[44px] px-3 font-bold uppercase tracking-wide text-muted hover:text-neon">Settings</Link></li>
                                 </>
