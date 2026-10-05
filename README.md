@@ -1,141 +1,126 @@
-# 🎮 Hitbox
+# Hitbox
 
-A social gaming platform for tracking, reviewing, and sharing your gaming experiences. Think Letterboxd, but for video games.
+**Track, review and share the games you play, then let Hitbox tell you what to play next.**
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
-![Node.js](https://img.shields.io/badge/Node.js-Express-green?logo=node.js)
-![MongoDB](https://img.shields.io/badge/MongoDB-Database-green?logo=mongodb)
-![IGDB](https://img.shields.io/badge/IGDB-API-purple)
+A full-stack social app for gamers in the spirit of Letterboxd and Backloggd, with a backlog planner that ranks your want-to-play list by how well each game fits your taste and how long it takes to beat.
 
-## ✨ Features
+**[Live site](https://hitbox-6d3o.vercel.app)** · **[API health](https://hitbox-b83d.onrender.com/health)**
 
-### Core Features
-- **Game Discovery** - Browse 500K+ games from IGDB with search, filters, and sorting
-- **Reviews & Ratings** - Write reviews, rate games (1-5 stars), view community ratings
-- **Game Status Tracking** - Mark games as Played, Playing, or Want to Play
-- **Custom Lists** - Create curated game lists with descriptions
-- **User Profiles** - Public profiles with reviews, lists, and stats
+> The API runs on a free tier that sleeps when quiet. The first request after a quiet spell can take up to a minute; the site tells you when that is happening, and a scheduled ping keeps it awake most of the time.
 
-### Social Features
-- **Like Reviews** - Like/unlike reviews from other users
-- **List Comments** - Discuss and comment on game lists
-- **Members Discovery** - Browse and discover other users
+![Home page](docs/images/home.jpg)
 
-### User Experience
-- **Mobile Responsive** - Hamburger menu, collapsible filters, optimized layouts
-- **Real-time Updates** - Instant UI updates for likes, comments, and status changes
+## What makes it different
 
-## 🛠️ Tech Stack
+### What should I play next?
+Mark games as *Want to play* and the backlog planner ranks them by how well each fits the genres you rate highly and how members rate it, using real time-to-beat data from IGDB. It shows how many hours your backlog adds up to, filters by length, and has a *Surprise me* button. Every pick says why it was chosen.
 
-### Frontend
-- **Next.js 16** - React framework with App Router
-- **Tailwind CSS** - Utility-first styling
-- **Lucide React** - Icon library
-- **Axios** - API requests
+![Backlog planner](docs/images/backlog.jpg)
 
-### Backend
-- **Node.js + Express** - REST API server
-- **MongoDB + Mongoose** - Database and ODM
-- **JWT** - Authentication
-- **bcrypt** - Password hashing
-- **zod, helmet, express-rate-limit, pino** - Validation, security headers, rate limiting, structured logging
-- **vitest + supertest** - Tests
+### Taste match
+Open any member's profile to see how alike your ratings are: a match percentage, the games you both loved, and the games you disagree on. It is honest about small samples: a match based on one shared game is dimmed and labelled low confidence.
 
-### External APIs
-- **IGDB** - Game database (covers, metadata, ratings)
+![Taste match](docs/images/taste-match.jpg)
 
-## 🚀 Getting Started
+## Features
 
-### Prerequisites
-- Node.js 20+ (22 recommended)
-- MongoDB (local or Atlas)
-- IGDB API credentials ([Twitch Developer console](https://dev.twitch.tv/console/apps))
+- **Discover**: browse and search 500K+ games from IGDB with filters and sorting that live in the URL; *Popular this week* blends IGDB's visit popularity with Hitbox's own activity; instant search across games, members and lists.
+- **Game pages**: ratings histogram, played/playing/want-to-play counts, trailer, screenshot gallery, similar games, typical time to beat, and "members who liked this also liked".
+- **Review and track**: 1-5 star reviews with a spoiler toggle, likes, and statuses (played, playing, want to play).
+- **Lists and comments**: curated lists with discussion threads.
+- **Social**: follow members and get a feed of their reviews, lists and activity.
+- **Recommended for you**: picks from similar members' ratings, your genre taste and IGDB's similar games, each with a plain-language reason.
 
-### Installation
+![A game page](docs/images/game.jpg)
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/yourusername/hitbox.git
-cd hitbox
+![Instant search](docs/images/search.jpg)
+
+## Architecture
+
+```mermaid
+flowchart LR
+  B[Browser] --> V[Next.js on Vercel]
+  V -->|REST + JWT| A[Express API on Render]
+  A --> M[(MongoDB Atlas)]
+  A -->|Twitch OAuth token| T[Twitch]
+  A -->|games, media, popularity,<br/>time to beat| I[IGDB]
+  G[GitHub Actions] -->|ping every 10 min| A
 ```
 
-2. **Setup Backend**
+- **Frontend**: Next.js 16 (App Router), React 19, Tailwind 4. Game, list and member pages render their titles and share previews on the server; the rest is client-side with a small data hook (`useApi`).
+- **Backend**: Express 5 and Mongoose. Routes stay thin; logic lives in services, with the scoring (recommendations, backlog, taste match, trending) written as pure functions so it can be tested without a database. Every request is validated with zod.
+- **IGDB**: games are fetched on demand and saved locally the first time anyone reviews, lists or tracks one. Screenshots, similar games and time to beat are cached on the game.
+
+### Decisions worth reading
+- [The feed is built on read, not stored](docs/decisions/0001-feed-built-on-read.md)
+- [Recommendations are explainable heuristics, not machine learning](docs/decisions/0002-explainable-recommendations.md)
+- ["Popular this week" blends two signals](docs/decisions/0003-trending-blends-igdb-and-hitbox.md)
+- [A flat design system, and plain `<img>` tags](docs/decisions/0004-flat-design-and-plain-img.md)
+- [The backlog planner and taste match](docs/decisions/0005-backlog-and-taste-match.md)
+- [Security notes and known gaps](docs/security.md)
+
+## Quality
+
+- **Backend**: 200+ tests (vitest and supertest), including integration tests against a real MongoDB with IGDB mocked.
+- **Frontend**: component and hook tests (vitest and Testing Library); an automated axe scan found 0 WCAG 2.1 AA violations across the main pages, and no page scrolls sideways at 375px.
+- **CI** (GitHub Actions) runs lint, formatting, tests and the build for both apps on every push.
+- Validation on every route, rate limiting, security headers, structured logging, and a short list of [known gaps](docs/security.md).
+
+## Tech stack
+
+Next.js 16 · React 19 · Tailwind CSS 4 · Express 5 · MongoDB and Mongoose · zod · JWT and bcrypt · pino · helmet · IGDB (via Twitch OAuth) · Vitest · Testing Library · GitHub Actions · Vercel and Render.
+
+## Run it locally
+
+You need Node 20 or newer (22 recommended), a MongoDB (local or Atlas) and [Twitch developer credentials](https://dev.twitch.tv/console/apps) for IGDB.
+
 ```bash
+git clone https://github.com/mayank-pillai-99/Hitbox.git
+cd Hitbox
+
+# Backend (port 8000)
 cd backend
 npm install
-cp .env.example .env   # then fill in the values
-```
+cp .env.example .env     # fill in the values; the server lists anything missing at startup
+npm run dev
 
-The backend validates its environment at startup and exits with a list of what is missing. See `backend/.env.example` for every variable (`DB_CONNECTION_SECRET`, `JWT_SECRET`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `PORT`, `CORS_ORIGIN`, ...).
-
-3. **Setup Frontend**
-```bash
-cd ../frontend
+# Frontend (new terminal)
+cd frontend
 npm install
 cp .env.example .env.local
+npm run dev              # http://localhost:3000
 ```
 
-4. **Run the Application**
-
-Backend (port 8000):
-```bash
-cd backend
-npm run dev
-```
-
-Frontend (new terminal):
-```bash
-cd frontend
-npm run dev
-```
-
-Visit `http://localhost:3000`
-
-## ✅ Quality checks
+Checks:
 
 ```bash
-cd backend
-npm run lint && npm run format:check
-npm test                                   # unit and API tests, no database needed
-MONGO_TEST_URI=mongodb://127.0.0.1:27017/hitbox-test npm test   # adds the MongoDB integration tests (wipes that database)
+cd backend  && npm run lint && npm run format:check && npm test
+# add the MongoDB integration tests (this wipes that database):
+MONGO_TEST_URI=mongodb://127.0.0.1:27017/hitbox-test npm test
 
-cd ../frontend
-npm run lint && npm test && npm run build
+cd frontend && npm run lint && npm test && npm run build
 ```
 
-CI runs all of these on every push. The security decisions are written up in [docs/security.md](docs/security.md).
-
-## 📁 Project Structure
+## Project structure
 
 ```
-hitbox/
-├── backend/
-│   ├── src/
-│   │   ├── config/         # Environment validation (zod), database connection
-│   │   ├── lib/            # Logger, errors, IGDB client, IGDB-to-app mapper
-│   │   ├── middleware/     # Auth, validation, rate limits, error handler
-│   │   ├── models/         # Mongoose schemas
-│   │   ├── routes/         # Thin route handlers
-│   │   ├── schemas/        # zod schemas for every request
-│   │   ├── services/       # Game lookup/caching, IGDB query builder, stats
-│   │   ├── app.js          # Express app (no listen, so tests can import it)
-│   │   └── index.js        # Entry point
-│   ├── tests/              # vitest + supertest
-│   └── package.json
-│
-├── frontend/
-│   ├── src/
-│   │   ├── app/            # Next.js pages
-│   │   ├── components/     # Reusable components
-│   │   ├── context/        # Auth and toast contexts
-│   │   └── utils/          # API client
-│   └── package.json
-│
-├── docs/security.md
-└── README.md
+backend/src
+  config/       environment validation (zod), database connection
+  lib/          logger, errors, IGDB client, IGDB-to-app mapper, regex helpers
+  middleware/   auth, validation, rate limits, error handler
+  models/       Mongoose schemas
+  routes/       thin route handlers
+  schemas/      zod schemas for every request
+  services/     game caching, IGDB queries, scoring (recommend, backlog, taste match, trending), search, feed
+frontend/src
+  app/          pages (server wrappers for game, list and member pages)
+  components/   domain components; components/ui holds the shared design-system pieces
+  hooks/        useApi, useRequireAuth
+  context/      auth and toasts
+docs/           decisions (ADRs), security notes, screenshots
 ```
 
-## 🔌 API Endpoints
+## API
 
 Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON: `{ "message": "..." }`.
 
@@ -157,6 +142,7 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 | GET | `/api/games/:id` | Game details (local id or IGDB id) |
 | GET | `/api/games/:id/extras` | Screenshots, trailers and similar games (cached) |
 | GET | `/api/games/:id/also-liked` | Games loved by members who loved this one |
+| GET | `/api/backlog` | Your want-to-play list ranked by fit and time to beat (`time=any|short|medium|long`) |
 | GET | `/api/games/:id/stats` | Rating histogram, average and played/playing/want-to-play counts |
 
 ### Reviews
@@ -211,26 +197,13 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 | GET | `/api/users/:username/followers` | A member's followers |
 | GET | `/api/users/:username/following` | Who a member follows |
 | GET | `/api/recommendations` | Personalised picks with reasons (popular games until you've rated something) |
+| GET | `/api/users/:username/match` | Taste match with another member |
 | GET | `/api/feed` | Activity feed from members you follow (`before`, `limit`) |
 | GET | `/api/stats` | Site-wide counts |
 | GET | `/health` | Liveness check |
 
-## 📸 Screenshots
+## Credits
 
-> Add screenshots of your application here
+Game data and images from [IGDB](https://www.igdb.com). Visual direction inspired by [Marathon](https://marathonthegame.com).
 
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📝 License
-
-This project is for educational purposes.
-
----
-
-Built with 💚 by Mayank Pillai
+Built by Mayank Pillai.
