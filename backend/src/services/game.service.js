@@ -59,3 +59,16 @@ export const updateGameRating = async (gameId) => {
     const rating = stats ? Math.round(stats.averageRating * 10) / 10 : 0;
     await Game.findByIdAndUpdate(gameId, { averageRating: rating });
 };
+
+// Overlays what Hitbox knows locally onto games mapped from IGDB: its own id and the community rating.
+export const withLocalData = async (mapped) => {
+    const local = await Game.find({ igdbId: { $in: mapped.map((g) => g.igdbId) } })
+        .select('igdbId averageRating')
+        .lean();
+    const byIgdbId = new Map(local.map((g) => [g.igdbId, g]));
+    return mapped.map((game) => {
+        const saved = byIgdbId.get(game.igdbId);
+        if (!saved) return game;
+        return { ...game, _id: saved._id, ...(saved.averageRating > 0 && { rating: saved.averageRating }) };
+    });
+};

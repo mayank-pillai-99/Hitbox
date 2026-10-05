@@ -15,6 +15,7 @@ import gameStatusRoutes from './routes/gameStatus.js';
 import commentRoutes from './routes/comments.js';
 import recommendationRoutes from './routes/recommendations.js';
 import feedRoutes from './routes/feed.js';
+import searchRoutes from './routes/search.js';
 import statsRoutes from './routes/stats.js';
 
 export function createApp() {
@@ -44,6 +45,8 @@ export function createApp() {
     app.use('/api/comments', commentRoutes);
     app.use('/api/feed', feedRoutes);
     app.use('/api/recommendations', recommendationRoutes);
+    // Search spends IGDB quota on every uncached query, so it shares the tighter games limit.
+    app.use('/api/search', gamesLimiter, searchRoutes);
     app.use('/api/stats', statsRoutes);
 
     app.use(notFoundHandler);

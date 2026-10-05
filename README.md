@@ -152,6 +152,7 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/games` | Browse and search games (`search`, `ordering`, `genres`, `platforms`, `dates`, `page`) |
+| GET | `/api/search?q=` | Search games, members and lists at once (5 each, cached 60 s) |
 | GET | `/api/games/trending` | Popular this week: IGDB visit popularity blended with Hitbox's last 7 days of reviews and status changes (cached 15 minutes) |
 | GET | `/api/games/:id` | Game details (local id or IGDB id) |
 | GET | `/api/games/:id/extras` | Screenshots, trailers and similar games (cached) |
@@ -173,7 +174,7 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 ### Lists
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/lists/discover` | Browse lists (`sort=popular|recent`) |
+| GET | `/api/lists/discover` | Browse lists (`q`, `sort=popular|recent`, `page`, `limit`) |
 | GET | `/api/lists` | Your lists |
 | GET | `/api/lists/:id` | List details |
 | POST | `/api/lists` | Create list |
@@ -201,7 +202,7 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 ### Users and stats
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/users` | Members directory |
+| GET | `/api/users` | Members directory (`q`, `sort`, `page`, `limit`) |
 | GET | `/api/users/:username` | Public profile |
 | GET | `/api/users/:username/reviews` | A member's reviews |
 | GET | `/api/users/:username/lists` | A member's lists |

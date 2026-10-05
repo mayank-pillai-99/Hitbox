@@ -5,6 +5,7 @@ import igdb from '../lib/igdb.js';
 import logger from '../lib/logger.js';
 import { mapIGDBGame } from '../lib/mappers.js';
 import { buildBrowseQuery, buildPopularityQuery, buildTrendingDetailsQuery } from './igdbQuery.js';
+import { withLocalData } from './game.service.js';
 
 // "Popular this week" blends two signals:
 //   - IGDB's visit popularity across the whole catalog, refreshed by IGDB daily
@@ -57,18 +58,6 @@ const weeklyActivity = async (now) => {
         .select('igdbId')
         .lean();
     return new Map(games.map((g) => [g.igdbId, points.get(String(g._id))]));
-};
-
-const withLocalData = async (mapped) => {
-    const local = await Game.find({ igdbId: { $in: mapped.map((g) => g.igdbId) } })
-        .select('igdbId averageRating')
-        .lean();
-    const byIgdbId = new Map(local.map((g) => [g.igdbId, g]));
-    return mapped.map((game) => {
-        const saved = byIgdbId.get(game.igdbId);
-        if (!saved) return game;
-        return { ...game, _id: saved._id, ...(saved.averageRating > 0 && { rating: saved.averageRating }) };
-    });
 };
 
 // Used if IGDB's popularity data is unavailable: the most-rated releases of the past year.

@@ -55,7 +55,7 @@ const toUnixSeconds = (value) => {
     return Number.isNaN(ms) ? null : Math.floor(ms / 1000);
 };
 
-export function buildBrowseQuery({ search, ordering, platforms, genres, dates, page = 1 }) {
+export function buildBrowseQuery({ search, ordering, platforms, genres, dates, page = 1, limit = PAGE_SIZE }) {
     const where = [];
 
     const genreIds = genres && GENRES[genres.toLowerCase()];
@@ -70,7 +70,7 @@ export function buildBrowseQuery({ search, ordering, platforms, genres, dates, p
         if (end !== null && end !== undefined) where.push(`first_release_date <= ${end}`);
     }
 
-    let query = `fields ${LIST_FIELDS}; limit ${PAGE_SIZE}; offset ${(page - 1) * PAGE_SIZE};`;
+    let query = `fields ${LIST_FIELDS}; limit ${limit}; offset ${(page - 1) * limit};`;
     if (search) query += ` search ${quote(search)};`;
     if (where.length > 0) query += ` where ${where.join(' & ')};`;
     // IGDB doesn't allow `sort` together with `search`; results are relevance-ordered then.

@@ -78,7 +78,12 @@ export const reviews = {
 };
 
 export const lists = {
-    discoverQuery: z.object({ page, limit: limit(50, 20), sort: z.enum(['popular', 'recent']).default('popular') }),
+    discoverQuery: z.object({
+        page,
+        limit: limit(50, 20),
+        sort: z.enum(['popular', 'recent']).default('popular'),
+        q: z.string().trim().max(60).optional(),
+    }),
     create: z.object({
         name: z.string().trim().min(1, 'List name is required').max(100),
         description: z.string().trim().max(500).optional(),
@@ -106,7 +111,12 @@ export const gameStatus = {
 };
 
 export const users = {
-    membersQuery: z.object({ page, limit: limit(50, 20), sort: z.enum(['reviews', 'recent']).default('reviews') }),
+    membersQuery: z.object({
+        page,
+        limit: limit(50, 20),
+        sort: z.enum(['reviews', 'recent']).default('reviews'),
+        q: z.string().trim().max(60).optional(),
+    }),
     reviewsQuery: z.object({ page, limit: limit(50, 10) }),
     params: z.object({ username: z.string().min(1).max(30) }),
     followListQuery: z.object({ page, limit: limit(50, 20) }),
@@ -114,6 +124,10 @@ export const users = {
 
 export const recommendations = {
     query: z.object({ limit: limit(24, 12) }),
+};
+
+export const search = {
+    query: z.object({ q: z.string().trim().min(2, 'Type at least 2 characters').max(60) }),
 };
 
 export const feed = {

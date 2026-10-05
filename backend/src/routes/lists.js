@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Comment from '../models/Comment.js';
 import auth from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
+import { containsPattern } from '../lib/regex.js';
 import { conflict, notFound } from '../lib/errors.js';
 import { findOrCreateGame } from '../services/game.service.js';
 import { pagination } from '../services/stats.service.js';
@@ -27,11 +28,13 @@ const saveList = async (promise) => {
 // Public discovery. Sorting, paging and counting happen in the database, so
 // "popular" ranks every list, not just the current page.
 router.get('/discover', validate({ query: schemas.lists.discoverQuery }), async (req, res) => {
-    const { page, limit, sort } = req.valid.query;
+    const { page, limit, sort, q } = req.valid.query;
+    const match = q ? { name: containsPattern(q) } : {};
 
     const order = sort === 'popular' ? { gameCount: -1, createdAt: -1 } : { createdAt: -1 };
     const [lists, total] = await Promise.all([
         List.aggregate([
+            { $match: match },
             { $addFields: { gameCount: { $size: '$games' } } },
             { $sort: order },
             { $skip: (page - 1) * limit },
@@ -47,7 +50,7 @@ router.get('/discover', validate({ query: schemas.lists.discoverQuery }), async 
                 },
             },
         ]),
-        List.countDocuments(),
+        List.countDocuments(match),
     ]);
 
     const [users, games, commentCounts] = await Promise.all([

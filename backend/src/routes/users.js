@@ -8,6 +8,7 @@ import Follow from '../models/Follow.js';
 import auth from '../middleware/auth.js';
 import optionalAuth from '../middleware/optionalAuth.js';
 import validate from '../middleware/validate.js';
+import { containsPattern } from '../lib/regex.js';
 import { badRequest, notFound } from '../lib/errors.js';
 import { getUserStats, pagination } from '../services/stats.service.js';
 import * as schemas from '../schemas/index.js';
@@ -34,11 +35,13 @@ const findUserByName = async (username) => {
 };
 
 router.get('/', validate({ query: schemas.users.membersQuery }), async (req, res) => {
-    const { page, limit, sort } = req.valid.query;
+    const { page, limit, sort, q } = req.valid.query;
+    const match = q ? { username: containsPattern(q) } : {};
     const order = sort === 'recent' ? { createdAt: -1 } : { reviewsCount: -1, createdAt: -1 };
 
     const [users, total] = await Promise.all([
         User.aggregate([
+            { $match: match },
             countFor('reviews', 'reviewCounts'),
             countFor('lists', 'listCounts'),
             {
@@ -52,7 +55,7 @@ router.get('/', validate({ query: schemas.users.membersQuery }), async (req, res
             { $skip: (page - 1) * limit },
             { $limit: limit },
         ]),
-        User.countDocuments(),
+        User.countDocuments(match),
     ]);
 
     const userIds = users.map((u) => u._id);
