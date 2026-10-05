@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, Plus, Check, Loader2 } from 'lucide-react';
 import api from '@/utils/api';
 
@@ -10,43 +10,29 @@ export default function AddToListModal({ isOpen, onClose, gameId }) {
     const [addingTo, setAddingTo] = useState(null); // ID of list currently being added to
     const [addedLists, setAddedLists] = useState(new Set()); // Set of IDs of lists where game is added
 
-    useEffect(() => {
-        if (isOpen) {
-            fetchLists();
-        }
-    }, [isOpen]);
-
-    const fetchLists = async () => {
+    const fetchLists = useCallback(async () => {
         try {
             setLoading(true);
             const res = await api.get('/lists');
             setLists(res.data);
 
-            // Check which lists already contain this game
-            // Optimally, we'd check against the game's ID (local vs RAWG)
-            // But since the frontend might only know RAWG ID or Local ID depending on page context,
-            // and the list contains Objects or IDs...
-            // Let's rely on a simpler check if possible, or just let the user try and catch the "Already in list" error.
-            // For a better UX, we'll try to check:
+            // Mark lists that already contain this game. gameId may be a local id or an IGDB id.
             const alreadyIn = new Set();
             res.data.forEach(list => {
-                const games = list.games || [];
-                // Check if any game in the list matches our gameId (either _id or rawgId if we had it populated)
-                // Since lists populate games, list.games is an array of Game objects.
-                // We need to match game._id OR game.rawgId with our current gameId props.
-                const hasGame = games.some(g => g._id === gameId || String(g.rawgId) === String(gameId));
-                if (hasGame) {
-                    alreadyIn.add(list._id);
-                }
+                const hasGame = (list.games || []).some(g => g._id === gameId || String(g.igdbId) === String(gameId));
+                if (hasGame) alreadyIn.add(list._id);
             });
             setAddedLists(alreadyIn);
-
-            setLoading(false);
         } catch (err) {
             console.error("Failed to fetch lists", err);
+        } finally {
             setLoading(false);
         }
-    };
+    }, [gameId]);
+
+    useEffect(() => {
+        if (isOpen) fetchLists();
+    }, [isOpen, fetchLists]);
 
     const addToList = async (listId) => {
         setAddingTo(listId);
@@ -117,7 +103,7 @@ export default function AddToListModal({ isOpen, onClose, gameId }) {
                         </div>
                     ) : (
                         <div className="text-center py-8 text-zinc-500">
-                            <p>You don't have any lists yet.</p>
+                            <p>You don&apos;t have any lists yet.</p>
                         </div>
                     )}
                 </div>

@@ -190,7 +190,7 @@ export default function Home() {
                                             </div>
 
                                             {r.text && (
-                                                <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 md:line-clamp-3 mb-3">"{r.text}"</p>
+                                                <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 md:line-clamp-3 mb-3">&ldquo;{r.text}&rdquo;</p>
                                             )}
 
                                             <div className="flex items-center gap-4">
@@ -270,7 +270,7 @@ export default function Home() {
                     <div className="absolute inset-0 bg-lime-500/5 z-0" />
                     <div className="relative z-10 max-w-2xl mx-auto">
                         <h2 className="text-4xl md:text-5xl font-black text-white italic tracking-tighter mb-6">Ready to Join the Crew?</h2>
-                        <p className="text-zinc-400 text-lg mb-10">Start building your legacy today. It's free, forever.</p>
+                        <p className="text-zinc-400 text-lg mb-10">Start building your legacy today. It&apos;s free, forever.</p>
                         <Link
                             href="/signup"
                             className="inline-block bg-white text-black hover:bg-lime-400 px-10 py-4 rounded-xl font-black uppercase tracking-wide transition-colors shadow-2xl"

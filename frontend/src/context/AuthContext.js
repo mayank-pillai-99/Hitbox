@@ -46,9 +46,8 @@ export const AuthProvider = ({ children }) => {
         const { data } = await api.post('/auth/register', { username, email, password });
         localStorage.setItem('token', data.token);
         api.defaults.headers.common['x-auth-token'] = data.token;
-        setUser({ username, email }); // Optimistic set or fetch me? Better to just redirect.
-        // Actually the original code just set {username, email} which is risky if ID is needed immediately.
-        // I'll stick to original behavior for Zero Regression.
+        const userRes = await api.get('/auth/me');
+        setUser(userRes.data);
         router.push('/');
     };
 

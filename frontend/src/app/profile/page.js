@@ -129,7 +129,7 @@ export default function Profile() {
                             </span>
                             {user.bio ? (
                                 <span className="border-l border-zinc-700 pl-4 italic text-zinc-500 max-w-lg truncate">
-                                    "{user.bio}"
+                                    &ldquo;{user.bio}&rdquo;
                                 </span>
                             ) : (
                                 <Link href="/settings" className="border-l border-zinc-700 pl-4 text-zinc-600 hover:text-lime-400 text-sm transition-colors">

@@ -48,7 +48,7 @@ export default function MembersPage() {
                     </h1>
 
                     <p className="text-zinc-400 text-lg max-w-2xl font-medium leading-relaxed">
-                        Connect with fellow gamers, discover their collections, and see what they're playing.
+                        Connect with fellow gamers, discover their collections, and see what they&apos;re playing.
                         Join the ranks of the Hitbox elite.
                     </p>
                 </div>

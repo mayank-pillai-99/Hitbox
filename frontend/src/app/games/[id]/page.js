@@ -213,7 +213,7 @@ export default function GameDetails({ params }) {
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-10 h-10 rounded-full border border-white/10 overflow-hidden bg-zinc-800">
                                                         {review.user?.profilePicture ? (
-                                                            <img src={review.user.profilePicture} className="w-full h-full object-cover" />
+                                                            <img src={review.user.profilePicture} alt={review.user.username} className="w-full h-full object-cover" />
                                                         ) : (
                                                             <div className="w-full h-full flex items-center justify-center bg-lime-400/20 text-lime-400">
                                                                 <User className="w-5 h-5" />

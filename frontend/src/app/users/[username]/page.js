@@ -134,7 +134,7 @@ export default function PublicUserProfile({ params }) {
                             </span>
                             {profile.bio && (
                                 <span className="border-l border-zinc-700 pl-4 italic text-zinc-500 max-w-lg truncate">
-                                    "{profile.bio}"
+                                    &ldquo;{profile.bio}&rdquo;
                                 </span>
                             )}
                         </div>
@@ -198,7 +198,7 @@ export default function PublicUserProfile({ params }) {
                                     <div className="text-center py-16 bg-white/5 rounded-3xl border border-white/5 border-dashed">
                                         <Star className="w-16 h-16 mx-auto mb-4 text-zinc-700" />
                                         <p className="text-zinc-500 text-lg font-medium">No reviews yet</p>
-                                        <p className="text-zinc-600 text-sm mt-1">When {profile.username} reviews games, they'll appear here.</p>
+                                        <p className="text-zinc-600 text-sm mt-1">When {profile.username} reviews games, they&apos;ll appear here.</p>
                                     </div>
                                 ) : (
                                     <div className="grid grid-cols-1 gap-4">
@@ -231,7 +231,7 @@ export default function PublicUserProfile({ params }) {
 
                                                     {(review.text || review.content) && (
                                                         <p className="text-zinc-400 text-sm leading-relaxed line-clamp-2 mb-3 font-medium">
-                                                            "{review.text || review.content}"
+                                                            &ldquo;{review.text || review.content}&rdquo;
                                                         </p>
                                                     )}
 
@@ -257,7 +257,7 @@ export default function PublicUserProfile({ params }) {
                                     <div className="col-span-2 text-center py-16 bg-white/5 rounded-3xl border border-white/5 border-dashed">
                                         <List className="w-16 h-16 mx-auto mb-4 text-zinc-700" />
                                         <p className="text-zinc-500 text-lg font-medium">No lists created yet</p>
-                                        <p className="text-zinc-600 text-sm mt-1">When {profile.username} creates lists, they'll appear here.</p>
+                                        <p className="text-zinc-600 text-sm mt-1">When {profile.username} creates lists, they&apos;ll appear here.</p>
                                     </div>
                                 ) : (
                                     lists.map(list => (

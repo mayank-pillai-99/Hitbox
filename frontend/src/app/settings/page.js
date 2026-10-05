@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -22,17 +22,18 @@ export default function Settings() {
     const [success, setSuccess] = useState('');
     const router = useRouter();
 
-    useEffect(() => {
-        if (user) {
-            setFormData({
-                username: user.username || '',
-                email: user.email || '',
-                bio: user.bio || '',
-                profilePicture: user.profilePicture || ''
-            });
-            setLoading(false);
-        }
-    }, [user]);
+    // Fill the form once the user loads. Adjusting state during render avoids the extra render an effect would cause.
+    const [loadedUser, setLoadedUser] = useState(null);
+    if (user && user !== loadedUser) {
+        setLoadedUser(user);
+        setFormData({
+            username: user.username || '',
+            email: user.email || '',
+            bio: user.bio || '',
+            profilePicture: user.profilePicture || ''
+        });
+        setLoading(false);
+    }
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.id]: e.target.value });
