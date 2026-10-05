@@ -39,6 +39,7 @@ npm run lint && npm run build
 - The activity feed (`services/feed.service.js`) is fan-out on read: it queries reviews, lists and game statuses of followed members when asked and merges them with `mergeActivity`. There is no activity collection to keep in sync. Spoiler review text is never included.
 - Public routes whose response depends on the viewer use `optionalAuth` (a bad token means anonymous), not `auth`.
 - Mongoose ignores writes to `createdAt`; tests that need fixed timestamps write through `Model.collection`.
+- IGDB "extras" (screenshots, trailers, similar games) are cached on the `Game` for a week; games nobody has saved get a short in-memory cache and are never created just for browsing. Image and video ids from IGDB are validated before they go into URLs.
 - Log with pino (`lib/logger.js`), not `console`. Never log tokens, passwords or request bodies.
 - Read config from `config/env.js`, not `process.env`. Add new variables to its schema and to `.env.example`.
 - Write tests with each change. Tests that need MongoDB go in `tests/integration.test.js` and seed games directly; IGDB is never called from tests.

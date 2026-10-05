@@ -24,3 +24,35 @@ export const mapIGDBGame = (data) => {
         isRemote: true,
     };
 };
+
+const IGDB_IMAGES = 'https://images.igdb.com/igdb/image/upload';
+// IGDB ids go into image and embed URLs, so only plain tokens are accepted.
+const IMAGE_ID = /^[A-Za-z0-9_-]{3,40}$/;
+const VIDEO_ID = /^[A-Za-z0-9_-]{6,20}$/;
+
+export const MAX_SCREENSHOTS = 12;
+export const MAX_VIDEOS = 3;
+export const MAX_SIMILAR = 12;
+
+// Screenshots, trailers and similar games from an IGDB game record.
+export const mapIGDBExtras = (data) => ({
+    screenshots: (data.screenshots || [])
+        .filter((s) => IMAGE_ID.test(s.image_id ?? ''))
+        .slice(0, MAX_SCREENSHOTS)
+        .map((s) => ({
+            thumb: `${IGDB_IMAGES}/t_screenshot_med/${s.image_id}.jpg`,
+            full: `${IGDB_IMAGES}/t_screenshot_big/${s.image_id}.jpg`,
+        })),
+    // IGDB videos are YouTube ids.
+    videos: (data.videos || [])
+        .filter((v) => VIDEO_ID.test(v.video_id ?? ''))
+        .slice(0, MAX_VIDEOS)
+        .map((v) => ({ youtubeId: v.video_id, name: v.name || 'Trailer' })),
+    similarGames: (data.similar_games || [])
+        .filter((g) => g.id && g.name)
+        .slice(0, MAX_SIMILAR)
+        .map((g) => {
+            const game = mapIGDBGame(g);
+            return { _id: game._id, igdbId: game.igdbId, title: game.title, coverImage: game.coverImage };
+        }),
+});

@@ -13,6 +13,13 @@ const gameSchema = new mongoose.Schema(
         developer: { type: String },
         publisher: { type: String },
         averageRating: { type: Number, default: 0 },
+        // Screenshots, trailers and similar games from IGDB, cached so game pages don't spend IGDB quota.
+        extras: {
+            screenshots: [{ _id: false, thumb: String, full: String }],
+            videos: [{ _id: false, youtubeId: String, name: String }],
+            similarGames: [{ _id: false, igdbId: Number, title: String, coverImage: String }],
+            fetchedAt: Date,
+        },
     },
     {
         timestamps: true,

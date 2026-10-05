@@ -40,6 +40,9 @@ export const LIST_FIELDS =
 export const DETAIL_FIELDS =
     'name, cover.url, first_release_date, total_rating, summary, genres.name, platforms.name, slug, involved_companies.developer, involved_companies.publisher, involved_companies.company.name';
 
+export const EXTRAS_FIELDS =
+    'screenshots.image_id, videos.video_id, videos.name, similar_games.name, similar_games.cover.url';
+
 export const quote = (value) =>
     `"${String(value)
         .replace(/[\\"]/g, '\\$&')
@@ -79,4 +82,10 @@ export function buildDetailQuery(igdbId) {
     const id = Number(igdbId);
     if (!Number.isInteger(id) || id <= 0) throw new TypeError('IGDB id must be a positive integer');
     return `fields ${DETAIL_FIELDS}; where id = ${id};`;
+}
+
+export function buildExtrasQuery(igdbId) {
+    const id = Number(igdbId);
+    if (!Number.isInteger(id) || id <= 0) throw new TypeError('IGDB id must be a positive integer');
+    return `fields ${EXTRAS_FIELDS}; where id = ${id};`;
 }
