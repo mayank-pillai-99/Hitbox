@@ -154,6 +154,7 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 | GET | `/api/games` | Browse and search games (`search`, `ordering`, `genres`, `platforms`, `dates`, `page`) |
 | GET | `/api/games/:id` | Game details (local id or IGDB id) |
 | GET | `/api/games/:id/extras` | Screenshots, trailers and similar games (cached) |
+| GET | `/api/games/:id/also-liked` | Games loved by members who loved this one |
 | GET | `/api/games/:id/stats` | Rating histogram, average and played/playing/want-to-play counts |
 
 ### Reviews
@@ -207,6 +208,7 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 | DELETE | `/api/users/:username/follow` | Unfollow |
 | GET | `/api/users/:username/followers` | A member's followers |
 | GET | `/api/users/:username/following` | Who a member follows |
+| GET | `/api/recommendations` | Personalised picks with reasons (popular games until you've rated something) |
 | GET | `/api/feed` | Activity feed from members you follow (`before`, `limit`) |
 | GET | `/api/stats` | Site-wide counts |
 | GET | `/health` | Liveness check |

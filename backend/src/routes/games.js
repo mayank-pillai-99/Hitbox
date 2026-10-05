@@ -6,6 +6,7 @@ import { mapIGDBGame } from '../lib/mappers.js';
 import { notFound } from '../lib/errors.js';
 import { buildBrowseQuery, PAGE_SIZE } from '../services/igdbQuery.js';
 import { findLocalGame, fetchIGDBGame, isObjectId } from '../services/game.service.js';
+import { getAlsoLiked } from '../services/recommendations.service.js';
 import { getGameExtras } from '../services/gameExtras.service.js';
 import { getGameStats } from '../services/gameStats.service.js';
 import * as schemas from '../schemas/index.js';
@@ -30,6 +31,10 @@ router.get('/', validate({ query: schemas.games.query }), async (req, res) => {
     });
 
     res.json({ results, next: results.length === PAGE_SIZE });
+});
+
+router.get('/:id/also-liked', validate({ params: schemas.games.params }), async (req, res) => {
+    res.json(await getAlsoLiked(req.valid.params.id));
 });
 
 router.get('/:id/extras', validate({ params: schemas.games.params }), async (req, res) => {

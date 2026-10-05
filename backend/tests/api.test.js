@@ -106,4 +106,7 @@ describe('input validation', () => {
         expect(res.status).toBe(400);
         expect(res.body.message).toBe('Invalid date');
     });
+    it('requires login for recommendations', async () => {
+        expect((await request(app).get('/api/recommendations')).status).toBe(401);
+    });
 });

@@ -13,6 +13,7 @@ import listRoutes from './routes/lists.js';
 import userRoutes from './routes/users.js';
 import gameStatusRoutes from './routes/gameStatus.js';
 import commentRoutes from './routes/comments.js';
+import recommendationRoutes from './routes/recommendations.js';
 import feedRoutes from './routes/feed.js';
 import statsRoutes from './routes/stats.js';
 
@@ -42,6 +43,7 @@ export function createApp() {
     app.use('/api/game-status', gameStatusRoutes);
     app.use('/api/comments', commentRoutes);
     app.use('/api/feed', feedRoutes);
+    app.use('/api/recommendations', recommendationRoutes);
     app.use('/api/stats', statsRoutes);
 
     app.use(notFoundHandler);

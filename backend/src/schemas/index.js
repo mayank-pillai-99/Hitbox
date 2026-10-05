@@ -108,6 +108,10 @@ export const users = {
     followListQuery: z.object({ page, limit: limit(50, 20) }),
 };
 
+export const recommendations = {
+    query: z.object({ limit: limit(24, 12) }),
+};
+
 export const feed = {
     query: z.object({
         before: z.coerce.date({ message: 'Invalid date' }).optional(),
