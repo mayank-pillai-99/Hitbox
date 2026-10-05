@@ -10,6 +10,7 @@ import optionalAuth from '../middleware/optionalAuth.js';
 import validate from '../middleware/validate.js';
 import { containsPattern } from '../lib/regex.js';
 import { badRequest, notFound } from '../lib/errors.js';
+import { matchMembers } from '../services/tasteMatch.service.js';
 import { getUserStats, pagination } from '../services/stats.service.js';
 import * as schemas from '../schemas/index.js';
 
@@ -131,6 +132,14 @@ router.delete('/:username/follow', auth, validate({ params: schemas.users.params
     await Follow.deleteOne({ follower: req.user.id, following: target._id });
 
     res.json({ following: false, followersCount: await Follow.countDocuments({ following: target._id }) });
+});
+
+// How alike your ratings are to another member's.
+router.get('/:username/match', auth, validate({ params: schemas.users.params }), async (req, res) => {
+    const target = await findUserByName(req.valid.params.username);
+    if (target.id === req.user.id) throw badRequest('You cannot compare taste with yourself');
+
+    res.json(await matchMembers(req.user.id, target._id));
 });
 
 // side: which end of the relationship belongs to the profile being viewed.

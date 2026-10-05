@@ -60,3 +60,12 @@ export const mapIGDBExtras = (data) => ({
             return { _id: game._id, igdbId: game.igdbId, title: game.title, coverImage: game.coverImage };
         }),
 });
+
+// IGDB reports time to beat in seconds. Hours, rounded to the nearest half hour, read better.
+export const secondsToHours = (seconds) => Math.max(0.5, Math.round(seconds / 1800) / 2);
+
+// "Normally" is the typical playthrough; fall back to the quick one, then the completionist one.
+export const mapTimeToBeat = (row) => {
+    const seconds = row?.normally || row?.hastily || row?.completely;
+    return seconds > 0 ? secondsToHours(seconds) : null;
+};

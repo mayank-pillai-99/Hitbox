@@ -13,6 +13,8 @@ const gameSchema = new mongoose.Schema(
         developer: { type: String },
         publisher: { type: String },
         averageRating: { type: Number, default: 0 },
+        // Typical hours to beat, from IGDB. `hours: null` with a date means IGDB has no answer, so we don't ask again.
+        timeToBeat: { hours: Number, fetchedAt: Date },
         // Screenshots, trailers and similar games from IGDB, cached so game pages don't spend IGDB quota.
         extras: {
             screenshots: [{ _id: false, thumb: String, full: String }],

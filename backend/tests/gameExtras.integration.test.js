@@ -10,6 +10,8 @@ const { createApp } = await import('../src/app.js');
 const { default: Game } = await import('../src/models/Game.js');
 const { clearExtrasMemory, EXTRAS_TTL_MS } = await import('../src/services/gameExtras.service.js');
 
+const gamesCalls = () => post.mock.calls.filter(([endpoint]) => endpoint === '/games').length;
+
 const igdbRecord = {
     screenshots: [{ image_id: 'sc6abc' }],
     videos: [{ video_id: 'dQw4w9WgXcQ', name: 'Trailer' }],
@@ -48,7 +50,7 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('game extras cache', () => {
 
         const again = await request(app).get('/api/games/100/extras'); // by IGDB id this time
         expect(again.body).toEqual(first.body);
-        expect(post).toHaveBeenCalledTimes(1);
+        expect(gamesCalls()).toBe(1);
         expect((await Game.findById(saved._id)).extras.fetchedAt).toBeInstanceOf(Date);
     });
 
@@ -59,7 +61,7 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('game extras cache', () => {
             { $set: { 'extras.fetchedAt': new Date(Date.now() - EXTRAS_TTL_MS - 1000) } },
         );
         await request(app).get(`/api/games/${saved._id}/extras`);
-        expect(post).toHaveBeenCalledTimes(2);
+        expect(gamesCalls()).toBe(2);
     });
 
     it('caches unsaved games in memory without creating them', async () => {
@@ -67,7 +69,7 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('game extras cache', () => {
         const second = await request(app).get('/api/games/555/extras');
         expect(first.status).toBe(200);
         expect(second.body).toEqual(first.body);
-        expect(post).toHaveBeenCalledTimes(1);
+        expect(gamesCalls()).toBe(1);
         expect(await Game.countDocuments()).toBe(1);
     });
 

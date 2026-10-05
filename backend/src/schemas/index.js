@@ -126,6 +126,10 @@ export const recommendations = {
     query: z.object({ limit: limit(24, 12) }),
 };
 
+export const backlog = {
+    query: z.object({ time: z.enum(['any', 'short', 'medium', 'long']).default('any') }),
+};
+
 export const search = {
     query: z.object({ q: z.string().trim().min(2, 'Type at least 2 characters').max(60) }),
 };

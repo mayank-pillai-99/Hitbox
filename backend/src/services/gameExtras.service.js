@@ -2,7 +2,9 @@ import Game from '../models/Game.js';
 import igdb from '../lib/igdb.js';
 import { mapIGDBExtras } from '../lib/mappers.js';
 import { buildExtrasQuery } from './igdbQuery.js';
+import logger from '../lib/logger.js';
 import { findLocalGame, isObjectId } from './game.service.js';
+import { ensureTimesToBeat, fetchTimes } from './timeToBeat.service.js';
 
 // Extras change rarely, so a week-old copy is fine.
 export const EXTRAS_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -11,7 +13,12 @@ const MEMORY_TTL_MS = 60 * 60 * 1000;
 const MEMORY_MAX = 500;
 const memory = new Map(); // igdbId -> { extras, expires }
 
-export const clearExtrasMemory = () => memory.clear();
+const timeMemory = new Map(); // igdbId -> { hours, expires }, for games nobody has saved
+
+export const clearExtrasMemory = () => {
+    memory.clear();
+    timeMemory.clear();
+};
 
 const emptyExtras = () => ({ screenshots: [], videos: [], similarGames: [] });
 
@@ -27,6 +34,23 @@ const remember = (igdbId, extras, now) => {
     memory.set(igdbId, { extras, expires: now + MEMORY_TTL_MS });
 };
 
+// Hours to beat, or null when unknown. Never throws: this is a nice-to-have next to the main extras.
+const timeToBeatFor = async (local, igdbId, now) => {
+    try {
+        if (local) return (await ensureTimesToBeat([local], now)).get(String(local._id)) ?? null;
+
+        const cached = timeMemory.get(igdbId);
+        if (cached && cached.expires > now) return cached.hours;
+        const hours = (await fetchTimes([igdbId])).get(igdbId) ?? null;
+        if (timeMemory.size >= MEMORY_MAX) timeMemory.delete(timeMemory.keys().next().value);
+        timeMemory.set(igdbId, { hours, expires: now + MEMORY_TTL_MS });
+        return hours;
+    } catch (err) {
+        logger.warn({ err: err.message }, 'Time to beat unavailable');
+        return null;
+    }
+};
+
 // Returns null when the game doesn't exist. Saved games keep their extras in MongoDB;
 // others use a short in-memory cache, so browsing never creates a game record.
 export const getGameExtras = async (ref, now = Date.now()) => {
@@ -34,8 +58,14 @@ export const getGameExtras = async (ref, now = Date.now()) => {
     if (!local && isObjectId(ref)) return null;
 
     const igdbId = local ? local.igdbId : Number(ref);
-    if (!igdbId) return toResponse(emptyExtras());
+    if (!igdbId) return { ...toResponse(emptyExtras()), timeToBeat: null };
 
+    const extras = await loadExtras(local, igdbId, now);
+    if (!extras) return null;
+    return { ...extras, timeToBeat: await timeToBeatFor(local, igdbId, now) };
+};
+
+const loadExtras = async (local, igdbId, now) => {
     const savedAt = local?.extras?.fetchedAt;
     if (savedAt && now - savedAt.getTime() < EXTRAS_TTL_MS) return toResponse(local.extras);
 

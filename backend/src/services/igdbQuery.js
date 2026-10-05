@@ -110,3 +110,12 @@ export const buildTrendingDetailsQuery = (ids, nowSeconds) => {
     if (!Number.isFinite(now)) throw new TypeError('nowSeconds must be a number');
     return `fields ${LIST_FIELDS}; where id = (${clean.join(',')}) & cover != null & first_release_date != null & first_release_date <= ${now}; limit ${clean.length};`;
 };
+
+// Time-to-beat rows for many games at once. Games IGDB has no data for are simply absent.
+export const buildTimeToBeatQuery = (ids) => {
+    const clean = ids.map(Number);
+    if (clean.length === 0 || clean.length > 100 || clean.some((id) => !Number.isInteger(id) || id <= 0)) {
+        throw new TypeError('ids must be 1 to 100 positive integers');
+    }
+    return `fields game_id, hastily, normally, completely; where game_id = (${clean.join(',')}); limit ${clean.length};`;
+};
