@@ -8,6 +8,7 @@ import AddToListModal from '@/components/AddToListModal';
 import GameStatusButtons from '@/components/GameStatusButtons';
 import RatingHistogram from '@/components/RatingHistogram';
 import GameMedia from '@/components/GameMedia';
+import AlsoLiked from '@/components/AlsoLiked';
 import GameCard from '@/components/GameCard';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
@@ -339,6 +340,8 @@ function GameDetailsContent({ params }) {
                                 </div>
                             )}
                         </div>
+
+                        <AlsoLiked gameId={gameId} />
 
                         {extras?.similarGames?.length > 0 && (
                             <div className="mt-16">

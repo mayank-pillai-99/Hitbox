@@ -7,6 +7,7 @@ import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
 import FollowFeed from '@/components/FollowFeed';
+import RecommendedForYou from '@/components/RecommendedForYou';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -142,6 +143,8 @@ export default function Home() {
                     )}
                 </div>
             </section>
+
+            {user && <RecommendedForYou />}
 
             <section className="py-20 px-6 lg:px-12 bg-zinc-900/20 border-t border-white/5 relative z-10">
                 <div className="max-w-7xl mx-auto">
