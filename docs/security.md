@@ -10,7 +10,7 @@ What the backend does about the usual web-app risks, and what it leaves open.
 | IGDB query injection | All IGDB queries are built in `services/igdbQuery.js`. Search text is quoted and escaped, genres and platforms come from allow-lists, and IGDB ids must be positive integers. |
 | Credential leaks | Responses never include `password`. Public profiles and member cards also omit `email`. Removing a game from a list used to return the owner's full user document, password hash included; it now returns only `username` and `profilePicture`. Logs redact `x-auth-token`, `authorization` and `password`. |
 | Brute force | `/api/auth/*` is limited to 30 requests per 15 minutes per IP, `/api/games` to 60 per minute (it spends IGDB quota), everything else to 300 per minute. |
-| Weak configuration | `config/env.js` refuses to start without a database URL, Twitch credentials and a `JWT_SECRET` of at least 16 characters. In production `CORS_ORIGIN` is required. |
+| Weak configuration | `config/env.js` refuses to start without a database URL, Twitch credentials and a `JWT_SECRET`. In production `CORS_ORIGIN` is required and `JWT_SECRET` must be at least 16 characters. |
 | Cross-origin abuse | CORS is an allow-list from `CORS_ORIGIN`. Outside production an empty value allows any origin, for tunnels and local testing. |
 | Browser attacks | `helmet` sets security headers. JSON bodies are capped at 100 KB. Profile pictures must be `http(s)` URLs, so `javascript:` URLs are rejected. |
 | Account probing | Login returns the same message for an unknown email and a wrong password. |
