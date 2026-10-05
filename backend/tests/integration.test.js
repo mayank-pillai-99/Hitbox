@@ -238,4 +238,67 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('API with MongoDB', () => {
             expect(res.body).toEqual({ games: 3, reviews: 1, lists: 1, members: 2 });
         });
     });
+    describe('game page stats', () => {
+        let carol;
+        const celeste = () => String(games[0]._id);
+
+        it('returns zeros for games nobody has touched, saved or not', async () => {
+            const empty = { count: 0, average: 0, histogram: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } };
+            const saved = await request(app).get(`/api/games/${games[2]._id}/stats`);
+            expect(saved.status).toBe(200);
+            expect(saved.body).toMatchObject(empty);
+            expect((await request(app).get('/api/games/999/stats')).body).toMatchObject(empty);
+        });
+
+        it('builds the rating histogram and status counts', async () => {
+            bob = (await request(app).post('/api/auth/login').send({ email: 'bob@example.com', password })).body;
+            bob = { username: 'bob', token: bob.token };
+            carol = await register('carol');
+
+            await request(app).post('/api/reviews').set(as(bob)).send({ gameId: celeste(), rating: 3 });
+            await request(app)
+                .post('/api/reviews')
+                .set(as(carol))
+                .send({ gameId: celeste(), rating: 5, text: 'Ending!', spoiler: true });
+            await request(app).post('/api/game-status').set(as(bob)).send({ gameId: '1', status: 'played' });
+
+            const res = await request(app).get(`/api/games/${celeste()}/stats`);
+            expect(res.body.histogram).toEqual({ 1: 0, 2: 0, 3: 1, 4: 0, 5: 2 });
+            expect(res.body.count).toBe(3);
+            expect(res.body.average).toBe(4.3);
+            expect(res.body.statuses).toEqual({ played: 2, playing: 0, want_to_play: 0 });
+
+            // The IGDB id addresses the same game.
+            expect((await request(app).get('/api/games/1/stats')).body.count).toBe(3);
+        });
+
+        it('stores the spoiler flag, and can change it', async () => {
+            const reviews = (await request(app).get('/api/reviews/game/1')).body;
+            expect(reviews.find((r) => r.user.username === 'carol').spoiler).toBe(true);
+            expect(reviews.find((r) => r.user.username === 'bob').spoiler).toBe(false);
+
+            const mine = (await request(app).get('/api/reviews/my').set(as(carol))).body[0];
+            const updated = await request(app).put(`/api/reviews/${mine._id}`).set(as(carol)).send({ spoiler: false });
+            expect(updated.body.spoiler).toBe(false);
+            await request(app).put(`/api/reviews/${mine._id}`).set(as(carol)).send({ spoiler: true });
+        });
+
+        it('sorts reviews by newest or most liked', async () => {
+            const names = async (query) =>
+                (await request(app).get(`/api/reviews/game/1${query}`)).body.map((r) => r.user.username);
+
+            expect(await names('')).toEqual(['carol', 'bob', 'alice']);
+
+            const alices = (await request(app).get('/api/reviews/my').set(as(alice))).body[0];
+            await request(app).post(`/api/reviews/${alices._id}/like`).set(as(bob));
+            await request(app).post(`/api/reviews/${alices._id}/like`).set(as(carol));
+
+            const liked = (await request(app).get('/api/reviews/game/1?sort=liked')).body;
+            expect(liked.map((r) => r.user.username)).toEqual(['alice', 'carol', 'bob']);
+            expect(liked[0].likesCount).toBe(2);
+            expect(liked[0].user.password).toBeUndefined();
+
+            expect((await request(app).get('/api/reviews/game/1?sort=random')).status).toBe(400);
+        });
+    });
 });

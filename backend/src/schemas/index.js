@@ -60,13 +60,16 @@ export const reviews = {
         gameId: gameRef,
         rating: z.number().int().min(1).max(5),
         text: z.string().trim().max(5000).optional(),
+        spoiler: z.boolean().optional(),
     }),
     update: z.object({
         rating: z.number().int().min(1).max(5).optional(),
         text: z.string().trim().max(5000).optional(),
+        spoiler: z.boolean().optional(),
     }),
     params: z.object({ reviewId: objectId }),
     gameParams: z.object({ gameId: gameRef }),
+    gameQuery: z.object({ sort: z.enum(['recent', 'liked']).default('recent') }),
     recentQuery: z.object({ limit: limit(50, 5) }),
 };
 

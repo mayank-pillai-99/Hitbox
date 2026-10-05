@@ -3,6 +3,7 @@ import Review from '../models/Review.js';
 import auth from '../middleware/auth.js';
 import validate from '../middleware/validate.js';
 import { conflict, notFound } from '../lib/errors.js';
+import { toObjectId } from '../services/stats.service.js';
 import { findOrCreateGame, resolveLocalGameId, updateGameRating } from '../services/game.service.js';
 import * as schemas from '../schemas/index.js';
 
@@ -11,14 +12,14 @@ const router = express.Router();
 const withLikesCount = (reviews) => reviews.map((r) => ({ ...r, likesCount: r.likes?.length || 0 }));
 
 router.post('/', auth, validate({ body: schemas.reviews.create }), async (req, res) => {
-    const { gameId, rating, text } = req.valid.body;
+    const { gameId, rating, text, spoiler } = req.valid.body;
 
     const game = await findOrCreateGame(gameId);
     if (!game) throw notFound('Game not found');
 
     let review;
     try {
-        review = await Review.create({ user: req.user.id, game: game._id, rating, text });
+        review = await Review.create({ user: req.user.id, game: game._id, rating, text, spoiler });
     } catch (err) {
         if (err.code === 11000) throw conflict('Already reviewed');
         throw err;
@@ -49,30 +50,46 @@ router.get('/my', auth, async (req, res) => {
     res.json(withLikesCount(reviews));
 });
 
-router.get('/game/:gameId', validate({ params: schemas.reviews.gameParams }), async (req, res) => {
-    // A game that isn't saved locally has no reviews yet.
-    const gameId = await resolveLocalGameId(req.valid.params.gameId);
-    if (!gameId) return res.json([]);
+router.get(
+    '/game/:gameId',
+    validate({ params: schemas.reviews.gameParams, query: schemas.reviews.gameQuery }),
+    async (req, res) => {
+        // A game that isn't saved locally has no reviews yet.
+        const gameId = await resolveLocalGameId(req.valid.params.gameId);
+        if (!gameId) return res.json([]);
 
-    const reviews = await Review.find({ game: gameId })
-        .populate('user', 'username profilePicture')
-        .sort({ createdAt: -1 })
-        .lean();
+        let reviews;
+        if (req.valid.query.sort === 'liked') {
+            // likes is an array, so rank by its size in the database.
+            reviews = await Review.aggregate([
+                { $match: { game: toObjectId(gameId) } },
+                { $addFields: { likesCount: { $size: '$likes' } } },
+                { $sort: { likesCount: -1, createdAt: -1 } },
+            ]);
+            await Review.populate(reviews, { path: 'user', select: 'username profilePicture' });
+        } else {
+            reviews = await Review.find({ game: gameId })
+                .populate('user', 'username profilePicture')
+                .sort({ createdAt: -1 })
+                .lean();
+        }
 
-    res.json(withLikesCount(reviews));
-});
+        res.json(withLikesCount(reviews));
+    },
+);
 
 router.put(
     '/:reviewId',
     auth,
     validate({ params: schemas.reviews.params, body: schemas.reviews.update }),
     async (req, res) => {
-        const { rating, text } = req.valid.body;
+        const { rating, text, spoiler } = req.valid.body;
         const review = await Review.findOne({ _id: req.valid.params.reviewId, user: req.user.id });
         if (!review) throw notFound('Review not found');
 
         if (rating !== undefined) review.rating = rating;
         if (text !== undefined) review.text = text;
+        if (spoiler !== undefined) review.spoiler = spoiler;
         await review.save();
         await updateGameRating(review.game);
 

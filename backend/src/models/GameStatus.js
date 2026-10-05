@@ -25,5 +25,7 @@ const gameStatusSchema = new mongoose.Schema(
 
 // Ensure a user can only have one status per game
 gameStatusSchema.index({ user: 1, game: 1 }, { unique: true });
+// Per-game status counts on the game page.
+gameStatusSchema.index({ game: 1, status: 1 });
 
 export default mongoose.model('GameStatus', gameStatusSchema);
