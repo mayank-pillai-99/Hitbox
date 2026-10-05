@@ -13,71 +13,62 @@ export function useToast() {
     return context;
 }
 
+const STYLES = {
+    success: { color: 'var(--color-neon)', Icon: CheckCircle },
+    error: { color: 'var(--color-hot)', Icon: XCircle },
+    warning: { color: 'var(--color-warn)', Icon: AlertCircle },
+};
+
+let nextId = 0;
+
 export function ToastProvider({ children }) {
     const [toasts, setToasts] = useState([]);
 
-    const addToast = useCallback((message, type = 'success', duration = 3000) => {
-        const id = Date.now();
-        setToasts(prev => [...prev, { id, message, type }]);
-
-        setTimeout(() => {
-            setToasts(prev => prev.filter(toast => toast.id !== id));
-        }, duration);
-    }, []);
-
     const removeToast = useCallback((id) => {
-        setToasts(prev => prev.filter(toast => toast.id !== id));
+        setToasts((prev) => prev.filter((toast) => toast.id !== id));
     }, []);
+
+    const addToast = useCallback((message, type = 'success', duration = 3500) => {
+        const id = ++nextId;
+        setToasts((prev) => [...prev, { id, message, type }]);
+        setTimeout(() => removeToast(id), duration);
+    }, [removeToast]);
 
     const success = useCallback((message) => addToast(message, 'success'), [addToast]);
-    const error = useCallback((message) => addToast(message, 'error'), [addToast]);
-    const warning = useCallback((message) => addToast(message, 'warning'), [addToast]);
+    // Errors stay up longer so there is time to read them.
+    const error = useCallback((message) => addToast(message, 'error', 6000), [addToast]);
+    const warning = useCallback((message) => addToast(message, 'warning', 5000), [addToast]);
 
     return (
         <ToastContext.Provider value={{ success, error, warning }}>
             {children}
 
-            {/* Toast Container */}
-            <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2">
-                {toasts.map(toast => (
-                    <div
-                        key={toast.id}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg shadow-lg border backdrop-blur-sm animate-slide-in ${toast.type === 'success'
-                                ? 'bg-zinc-900/95 border-lime-500/50 text-lime-400'
-                                : toast.type === 'error'
-                                    ? 'bg-zinc-900/95 border-red-500/50 text-red-400'
-                                    : 'bg-zinc-900/95 border-yellow-500/50 text-yellow-400'
-                            }`}
-                    >
-                        {toast.type === 'success' && <CheckCircle className="w-5 h-5 flex-shrink-0" />}
-                        {toast.type === 'error' && <XCircle className="w-5 h-5 flex-shrink-0" />}
-                        {toast.type === 'warning' && <AlertCircle className="w-5 h-5 flex-shrink-0" />}
-                        <span className="text-sm text-white">{toast.message}</span>
-                        <button
-                            onClick={() => removeToast(toast.id)}
-                            className="ml-2 text-zinc-500 hover:text-white transition-colors"
+            <div
+                role="status"
+                aria-live="polite"
+                className="fixed bottom-4 right-4 left-4 sm:left-auto z-[120] flex flex-col gap-2 sm:w-96"
+            >
+                {toasts.map(({ id, message, type }) => {
+                    const { color, Icon } = STYLES[type];
+                    return (
+                        <div
+                            key={id}
+                            className="panel flex items-start gap-3 px-4 py-3 animate-slide-in"
+                            style={{ borderLeft: `4px solid ${color}` }}
                         >
-                            <X className="w-4 h-4" />
-                        </button>
-                    </div>
-                ))}
+                            <Icon className="w-5 h-5 mt-0.5 shrink-0" style={{ color }} aria-hidden="true" />
+                            <span className="flex-1 text-sm text-fg">{message}</span>
+                            <button
+                                onClick={() => removeToast(id)}
+                                aria-label="Dismiss notification"
+                                className="-m-2 w-11 h-11 flex items-center justify-center text-muted hover:text-fg"
+                            >
+                                <X className="w-4 h-4" aria-hidden="true" />
+                            </button>
+                        </div>
+                    );
+                })}
             </div>
-
-            <style jsx global>{`
-                @keyframes slide-in {
-                    from {
-                        transform: translateX(100%);
-                        opacity: 0;
-                    }
-                    to {
-                        transform: translateX(0);
-                        opacity: 1;
-                    }
-                }
-                .animate-slide-in {
-                    animation: slide-in 0.3s ease-out;
-                }
-            `}</style>
         </ToastContext.Provider>
     );
 }

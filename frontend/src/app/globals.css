@@ -1,37 +1,242 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/*
+ * Hitbox design tokens. The look is "graphic realism" in the spirit of Marathon:
+ * flat panels, hard borders, stark neon accents on near-black, mono labels.
+ * Everything visual is defined here, so a restyle is a change to this file.
+ */
+@theme {
+  /* Surfaces and lines */
+  --color-ink: #0b0b0c;
+  --color-panel: #121214;
+  --color-panel-2: #1a1a1d;
+  --color-line: #2a2a2e;
+  --color-line-strong: #43434a;
+
+  /* Text. muted and dim both clear WCAG AA (4.5:1) on ink and panel. */
+  --color-fg: #f4f4f0;
+  --color-muted: #a8a8b0;
+  --color-dim: #86868f;
+
+  /* Neon set. Lime leads; the others carry meaning, not decoration. */
+  --color-neon: #c8ff2e; /* primary action, emphasis */
+  --color-scan: #2ee6d6; /* information, following */
+  --color-hot: #ff3d8b; /* likes, destructive */
+  --color-warn: #ffb020; /* spoilers, warnings */
+
+  /* Existing lime-* classes now resolve to the neon, so unconverted markup follows the restyle. */
+  --color-lime-300: #dcff7a;
+  --color-lime-400: #c8ff2e;
+  --color-lime-500: #b0e61a;
+  --color-lime-600: #8fbf10;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-inter), system-ui, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  color-scheme: dark;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--color-ink);
+  color: var(--color-fg);
+  font-family: var(--font-sans);
 }
 
-/* ===== CUSTOM ANIMATIONS ===== */
+/* Every interactive element shows where keyboard focus is. */
+:focus-visible {
+  outline: 2px solid var(--color-neon);
+  outline-offset: 2px;
+}
 
-/* Fade In Up Animation */
+::selection {
+  background: var(--color-neon);
+  color: #000;
+}
+
+/* ===== COMPONENT PRIMITIVES ===== */
+
+/* Flat panel: solid surface, hard 1px border, square corners. */
+.panel {
+  background: var(--color-panel);
+  border: 1px solid var(--color-line);
+}
+
+.panel-hover {
+  transition: border-color 0.15s steps(3);
+}
+
+.panel-hover:hover,
+.panel-hover:focus-visible {
+  border-color: var(--color-neon);
+}
+
+/* Emphasis is a solid lime edge, not a glow. */
+.panel-accent {
+  border-left: 4px solid var(--color-neon);
+}
+
+/* Small uppercase mono caption for counts, dates, indexes and section tags. */
+.label {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-dim);
+}
+
+/* Heavy display type. Width comes from the variable font's wdth axis. */
+.display {
+  font-family: var(--font-display);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  font-stretch: 112%;
+  word-spacing: 0.12em;
+}
+
+/* Large outlined numerals for stats. */
+.numeral {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-stretch: 112%;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--color-fg);
+}
+
+.text-outline-lime {
+  color: transparent;
+  -webkit-text-stroke: 2px var(--color-neon);
+}
+
+/* Diagonal hazard strip, used as a divider. */
+.stripes {
+  height: 8px;
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--color-neon) 0 8px,
+    transparent 8px 16px
+  );
+}
+
+/* Corner brackets framing a hero image or cover. Add to a position:relative element. */
+.brackets {
+  position: relative;
+}
+
+.brackets::before,
+.brackets::after {
+  content: "";
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 0 solid var(--color-neon);
+  pointer-events: none;
+}
+
+.brackets::before {
+  top: -1px;
+  left: -1px;
+  border-top-width: 3px;
+  border-left-width: 3px;
+}
+
+.brackets::after {
+  right: -1px;
+  bottom: -1px;
+  border-right-width: 3px;
+  border-bottom-width: 3px;
+}
+
+/* Cut corners on solid shapes (buttons, tags). Don't use on bordered panels: it clips the border. */
+.chamfer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 10px) 0,
+    100% 10px,
+    100% 100%,
+    10px 100%,
+    0 calc(100% - 10px)
+  );
+}
+
+.btn-primary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px; /* comfortable touch target */
+  padding: 0.5rem 1.25rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-stretch: 105%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.12s steps(2), color 0.12s steps(2), border-color 0.12s steps(2);
+}
+
+.btn-primary {
+  background: var(--color-neon);
+  color: #000;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.btn-primary:hover {
+  background: var(--color-fg);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-fg);
+  border: 1px solid var(--color-line-strong);
+}
+
+.btn-ghost:hover {
+  border-color: var(--color-neon);
+  color: var(--color-neon);
+}
+
+.btn-primary:disabled,
+.btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Form field shared by every input, textarea and select. */
+.field {
+  width: 100%;
+  min-height: 44px;
+  background: var(--color-ink);
+  border: 1px solid var(--color-line-strong);
+  color: var(--color-fg);
+  padding: 0.5rem 0.75rem;
+}
+
+.field::placeholder {
+  color: var(--color-dim);
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--color-neon);
+  box-shadow: 0 0 0 1px var(--color-neon);
+}
+
+/* ===== MOTION ===== */
+/* Short and hard-edged. Everything is switched off under prefers-reduced-motion. */
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
@@ -39,7 +244,6 @@ body {
   }
 }
 
-/* Fade In Animation */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -49,11 +253,10 @@ body {
   }
 }
 
-/* Scale In Animation */
 @keyframes scaleIn {
   from {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.97);
   }
   to {
     opacity: 1;
@@ -61,23 +264,26 @@ body {
   }
 }
 
-/* Heart Pop Animation */
-@keyframes heartPop {
-  0% {
-    transform: scale(1);
+@keyframes wipe {
+  from {
+    clip-path: inset(0 100% 0 0);
   }
-  25% {
-    transform: scale(1.3);
-  }
-  50% {
-    transform: scale(0.9);
-  }
-  100% {
-    transform: scale(1);
+  to {
+    clip-path: inset(0 0 0 0);
   }
 }
 
-/* Shimmer Loading Animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -87,67 +293,65 @@ body {
   }
 }
 
-/* Utility Classes */
 .animate-fade-in {
-  animation: fadeIn 0.5s ease-out forwards;
+  animation: fadeIn 0.25s ease-out forwards;
 }
 
 .animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
+  animation: fadeInUp 0.25s ease-out forwards;
 }
 
 .animate-scale-in {
-  animation: scaleIn 0.3s ease-out forwards;
+  animation: scaleIn 0.18s ease-out forwards;
 }
 
-.animate-heart-pop {
-  animation: heartPop 0.4s ease-out;
+.animate-wipe {
+  animation: wipe 0.4s steps(8) forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.2s ease-out;
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, #27272a 25%, #3f3f46 50%, #27272a 75%);
+  background: linear-gradient(90deg, var(--color-panel) 25%, var(--color-panel-2) 50%, var(--color-panel) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
 
-/* Staggered Animation Delays */
-.stagger-1 { animation-delay: 0.05s; opacity: 0; }
-.stagger-2 { animation-delay: 0.1s; opacity: 0; }
-.stagger-3 { animation-delay: 0.15s; opacity: 0; }
-.stagger-4 { animation-delay: 0.2s; opacity: 0; }
-.stagger-5 { animation-delay: 0.25s; opacity: 0; }
-.stagger-6 { animation-delay: 0.3s; opacity: 0; }
+.stagger-1 { animation-delay: 0.04s; opacity: 0; }
+.stagger-2 { animation-delay: 0.08s; opacity: 0; }
+.stagger-3 { animation-delay: 0.12s; opacity: 0; }
+.stagger-4 { animation-delay: 0.16s; opacity: 0; }
 
-/* Card Hover Lift Effect */
+/* Cards lift by a hard step and the cover zooms slightly. No soft shadow. */
 .card-hover {
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.12s steps(3);
 }
 
 .card-hover:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 40px -10px rgba(163, 230, 53, 0.15);
+  transform: translateY(-3px);
 }
 
-/* Glow Border Effect */
-.glow-hover {
-  transition: box-shadow 0.3s ease, border-color 0.3s ease;
-}
-
-.glow-hover:hover {
-  box-shadow: 0 0 20px rgba(163, 230, 53, 0.2);
-  border-color: rgba(163, 230, 53, 0.5);
-}
-
-/* Smooth Image Scale on Hover */
 .img-hover-zoom {
   overflow: hidden;
 }
 
 .img-hover-zoom img {
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .img-hover-zoom:hover img {
-  transform: scale(1.05);
+  transform: scale(1.04);
 }
 
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

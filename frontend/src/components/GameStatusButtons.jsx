@@ -7,9 +7,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 
 const STATUS_OPTIONS = [
-    { key: 'played', label: 'Played', icon: Check, color: 'emerald' },
-    { key: 'playing', label: 'Playing', icon: Play, color: 'blue' },
-    { key: 'want_to_play', label: 'Want to Play', icon: BookmarkPlus, color: 'amber' }
+    { key: 'played', label: 'Played', icon: Check, color: 'var(--color-neon)' },
+    { key: 'playing', label: 'Playing', icon: Play, color: 'var(--color-scan)' },
+    { key: 'want_to_play', label: 'Want to play', icon: BookmarkPlus, color: 'var(--color-warn)' }
 ];
 
 export default function GameStatusButtons({ gameId, onChange }) {
@@ -60,6 +60,7 @@ export default function GameStatusButtons({ gameId, onChange }) {
             }
         } catch (err) {
             console.error("Failed to update status", err);
+            toast.error(err.response?.data?.message || 'Could not update your status.');
         } finally {
             setLoading(false);
         }
@@ -71,44 +72,34 @@ export default function GameStatusButtons({ gameId, onChange }) {
 
     if (fetching) {
         return (
-            <div className="flex gap-2">
-                <div className="h-10 w-24 bg-zinc-800 rounded animate-pulse" />
-                <div className="h-10 w-24 bg-zinc-800 rounded animate-pulse" />
-                <div className="h-10 w-32 bg-zinc-800 rounded animate-pulse" />
+            <div className="flex flex-wrap gap-2" role="status" aria-busy="true">
+                <span className="sr-only">Loading your status</span>
+                {[0, 1, 2].map((i) => <div key={i} className="h-11 w-28 animate-shimmer border border-line" />)}
             </div>
         );
     }
 
     return (
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Your status for this game">
             {STATUS_OPTIONS.map(({ key, label, icon: Icon, color }) => {
                 const isActive = currentStatus === key;
-                const colorClasses = {
-                    emerald: isActive
-                        ? 'bg-lime-400/20 border-lime-400 text-lime-300'
-                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-lime-400/50 hover:text-lime-300',
-                    blue: isActive
-                        ? 'bg-blue-500/20 border-blue-500 text-blue-400'
-                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-blue-500/50 hover:text-blue-400',
-                    amber: isActive
-                        ? 'bg-amber-500/20 border-amber-500 text-amber-400'
-                        : 'bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-amber-500/50 hover:text-amber-400'
-                };
 
                 return (
                     <button
                         key={key}
                         onClick={() => handleStatusClick(key)}
                         disabled={loading}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg border transition-all ${colorClasses[color]} disabled:opacity-50`}
+                        aria-pressed={isActive}
+                        className="flex items-center gap-2 min-h-[44px] px-4 border transition-colors disabled:opacity-50 bg-panel hover:bg-panel-2"
+                        style={{
+                            borderColor: isActive ? color : 'var(--color-line-strong)',
+                            color: isActive ? color : 'var(--color-muted)',
+                            boxShadow: isActive ? `inset 0 -3px 0 ${color}` : undefined,
+                        }}
                     >
-                        {loading ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                        ) : (
-                            <Icon className="w-4 h-4" />
-                        )}
-                        <span className="text-sm font-medium">{label}</span>
-                        {isActive && <X className="w-3 h-3 ml-1 opacity-60" />}
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" /> : <Icon className="w-4 h-4" aria-hidden="true" />}
+                        <span className="text-sm font-bold uppercase tracking-wide">{label}</span>
+                        {isActive && <X className="w-3 h-3 opacity-70" aria-label="Click to remove" />}
                     </button>
                 );
             })}

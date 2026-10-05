@@ -1,41 +1,52 @@
-'use client';
-
 import Link from 'next/link';
-import { Gamepad2 } from 'lucide-react';
+
+const NAV = [
+    { href: '/', label: 'Home' },
+    { href: '/games', label: 'Games' },
+    { href: '/lists', label: 'Lists' },
+    { href: '/members', label: 'Members' },
+];
 
 export default function Footer() {
     return (
-        <footer className="px-4 sm:px-6 lg:px-12 py-12 border-t border-zinc-900 bg-black">
-            <div className="max-w-7xl mx-auto">
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 text-center sm:text-left">
-                    <div>
-                        <h4 className="font-bold text-white uppercase text-sm mb-4">HitBox</h4>
-                        <ul className="space-y-2 text-sm text-zinc-500">
-                            <li><Link href="/" className="hover:text-white transition-colors">Home</Link></li>
-                            <li><Link href="/games" className="hover:text-white transition-colors">Games</Link></li>
-                            <li><Link href="/lists" className="hover:text-white transition-colors">Lists</Link></li>
-                            <li><Link href="/members" className="hover:text-white transition-colors">Members</Link></li>
-                            <li><Link href="/profile" className="hover:text-white transition-colors">Profile</Link></li>
-                        </ul>
+        <footer className="border-t border-line bg-ink mt-auto">
+            <div className="stripes opacity-60" aria-hidden="true" />
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 grid gap-8 sm:grid-cols-3">
+                <div>
+                    <div className="flex items-center gap-2 mb-3">
+                        <span className="w-4 h-4 bg-neon chamfer" aria-hidden="true" />
+                        <span className="display text-xl">Hitbox</span>
                     </div>
-                    <div>
-                        <h4 className="font-bold text-white uppercase text-sm mb-4">Social</h4>
-                        <ul className="space-y-2 text-sm text-zinc-500">
-                            <li><Link href="#" className="hover:text-white transition-colors">Twitter</Link></li>
-                            <li><Link href="#" className="hover:text-white transition-colors">Discord</Link></li>
-                            <li><Link href="#" className="hover:text-white transition-colors">Instagram</Link></li>
-                        </ul>
-                    </div>
-                    <div className="text-sm text-zinc-600 sm:col-span-2 md:col-span-1">
-                        <div className="flex items-center justify-center sm:justify-start gap-2 text-lime-400 font-black text-lg mb-3">
-                            <Gamepad2 className="w-5 h-5" />
-                            HITBOX
-                        </div>
-                        <p>© 2025 HitBox.</p>
-                        <p>Data provided by IGDB.</p>
-                        <p className="mt-2 text-zinc-500">Made for the love of the game.</p>
-                    </div>
+                    <p className="text-sm text-muted">Track, review and share the games you play.</p>
                 </div>
+
+                <nav aria-label="Footer">
+                    <h2 className="label text-neon mb-3">Explore</h2>
+                    <ul className="space-y-1">
+                        {NAV.map(({ href, label }) => (
+                            <li key={href}>
+                                <Link href={href} className="inline-flex items-center min-h-[44px] text-sm text-muted hover:text-neon">{label}</Link>
+                            </li>
+                        ))}
+                    </ul>
+                </nav>
+
+                <div>
+                    <h2 className="label text-neon mb-3">About</h2>
+                    <ul className="space-y-1 text-sm text-muted">
+                        <li>
+                            <a href="https://github.com/mayank-pillai-99/Hitbox" className="inline-flex items-center min-h-[44px] hover:text-neon" rel="noopener noreferrer">
+                                Source on GitHub
+                            </a>
+                        </li>
+                        <li className="label min-h-[44px] flex items-center">Game data from IGDB</li>
+                    </ul>
+                </div>
+            </div>
+            <div className="border-t border-line">
+                <p className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 label">
+                    &copy; {new Date().getFullYear()} Hitbox
+                </p>
             </div>
         </footer>
     );

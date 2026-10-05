@@ -18,7 +18,7 @@ export default function FollowButton({ username, initialFollowing, onChange }) {
 
     const toggle = async () => {
         if (!user) {
-            toast.warning('Please login to follow members');
+            toast.warning('Please log in to follow members');
             return;
         }
 
@@ -42,13 +42,9 @@ export default function FollowButton({ username, initialFollowing, onChange }) {
             onClick={toggle}
             disabled={busy}
             aria-pressed={following}
-            className={`flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold uppercase tracking-wider transition-colors disabled:opacity-60 ${
-                following
-                    ? 'bg-white/5 border border-white/10 text-zinc-300 hover:border-rose-500/50 hover:text-rose-400'
-                    : 'bg-lime-400 text-black hover:bg-lime-300'
-            }`}
+            className={following ? 'btn-ghost' : 'btn-primary'}
         >
-            <Icon className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} />
+            <Icon className={`w-4 h-4 ${busy ? 'animate-spin' : ''}`} aria-hidden="true" />
             {following ? 'Following' : 'Follow'}
         </button>
     );

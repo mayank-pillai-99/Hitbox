@@ -2,9 +2,13 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Users, Loader2 } from 'lucide-react';
+import { Users } from 'lucide-react';
 import api from '@/utils/api';
 import FeedItem from './FeedItem';
+import EmptyState from '@/components/ui/EmptyState';
+import ErrorState from '@/components/ui/ErrorState';
+import SectionHeader from '@/components/ui/SectionHeader';
+import { ListRowsSkeleton } from '@/components/ui/Skeleton';
 
 // Activity from the members you follow, newest first, loaded a page at a time.
 export default function FollowFeed() {
@@ -30,6 +34,7 @@ export default function FollowFeed() {
 
     const loadMore = async () => {
         setLoadingMore(true);
+        setError('');
         try {
             await load(nextBefore);
         } catch {
@@ -39,39 +44,42 @@ export default function FollowFeed() {
         }
     };
 
+    const retry = () => {
+        setLoading(true);
+        setError('');
+        load()
+            .catch(() => setError('Could not load your feed.'))
+            .finally(() => setLoading(false));
+    };
+
     return (
-        <div className="mb-12">
-            <div className="flex items-center gap-2 mb-8">
-                <Users className="w-6 h-6 text-lime-400" />
-                <h2 className="text-2xl font-black text-white italic tracking-tighter">FOLLOWING</h2>
-            </div>
+        <section className="mb-12" aria-labelledby="following-heading">
+            <SectionHeader tag="Following" title="Your feed" />
+            <span id="following-heading" className="sr-only">Activity from members you follow</span>
 
             {loading ? (
-                <Loader2 className="w-6 h-6 text-lime-400 animate-spin" />
+                <ListRowsSkeleton count={3} />
             ) : error && items.length === 0 ? (
-                <p className="text-zinc-500">{error}</p>
+                <ErrorState message={error} onRetry={retry} />
             ) : following === 0 ? (
-                <div className="p-6 rounded-2xl border border-dashed border-zinc-700 text-center text-zinc-500">
-                    You&apos;re not following anyone yet.{' '}
-                    <Link href="/members" className="text-lime-400 font-bold hover:underline">Find members</Link>
-                </div>
+                <EmptyState icon={Users} title="You're not following anyone yet" action={<Link href="/members" className="btn-primary">Find members</Link>}>
+                    Follow members to see their reviews, lists and updates here.
+                </EmptyState>
             ) : items.length === 0 ? (
-                <p className="text-zinc-500">Nothing new from the members you follow.</p>
+                <EmptyState icon={Users} title="Nothing new">The members you follow haven&apos;t been active lately.</EmptyState>
             ) : (
-                <div className="space-y-3">
-                    {items.map((item) => <FeedItem key={`${item.type}-${item._id}`} item={item} />)}
+                <>
+                    <ul className="space-y-3">
+                        {items.map((item) => <FeedItem key={`${item.type}-${item._id}`} item={item} />)}
+                    </ul>
+                    {error && <p role="alert" className="mt-3 text-sm text-hot">{error}</p>}
                     {nextBefore && (
-                        <button
-                            onClick={loadMore}
-                            disabled={loadingMore}
-                            className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-sm font-bold text-zinc-300 hover:text-white hover:border-lime-400/40 transition-colors disabled:opacity-60"
-                        >
+                        <button onClick={loadMore} disabled={loadingMore} className="btn-ghost w-full mt-3">
                             {loadingMore ? 'Loading...' : 'Load more'}
                         </button>
                     )}
-                    {error && <p className="text-sm text-rose-400">{error}</p>}
-                </div>
+                </>
             )}
-        </div>
+        </section>
     );
 }

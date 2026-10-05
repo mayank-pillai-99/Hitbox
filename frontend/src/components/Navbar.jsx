@@ -1,109 +1,176 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Gamepad2, Search, Menu, X } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import Avatar from '@/components/ui/Avatar';
 
-const Navbar = () => {
-    const { user, logout } = useAuth();
-    const [search, setSearch] = useState('');
-    const [mobileOpen, setMobileOpen] = useState(false);
+const LINKS = [
+    { href: '/games', label: 'Games' },
+    { href: '/lists', label: 'Lists' },
+    { href: '/members', label: 'Members' },
+];
+
+const isActive = (pathname, href) => pathname === href || pathname.startsWith(`${href}/`);
+
+function SearchForm({ className = '', inputClassName = '', onDone }) {
     const router = useRouter();
+    const [search, setSearch] = useState('');
 
-    const handleSearch = (e) => {
+    const submit = (e) => {
         e.preventDefault();
-        if (search.trim()) {
-            router.push(`/games?search=${encodeURIComponent(search)}`);
-            setMobileOpen(false);
-        }
+        const query = search.trim();
+        if (!query) return;
+        router.push(`/games?search=${encodeURIComponent(query)}`);
+        onDone?.();
     };
+
+    return (
+        <form onSubmit={submit} role="search" className={`relative ${className}`}>
+            <label htmlFor="site-search" className="sr-only">Search games</label>
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dim pointer-events-none" aria-hidden="true" />
+            <input
+                id="site-search"
+                type="search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search games"
+                className={`field pl-9 ${inputClassName}`}
+            />
+        </form>
+    );
+}
+
+// Account menu: a disclosure button that closes on Escape, on outside click and when a link is used.
+function AccountMenu({ user, logout }) {
+    const [open, setOpen] = useState(false);
+    const ref = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+        const onPointer = (e) => { if (!ref.current?.contains(e.target)) setOpen(false); };
+        const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+        document.addEventListener('mousedown', onPointer);
+        document.addEventListener('keydown', onKey);
+        return () => {
+            document.removeEventListener('mousedown', onPointer);
+            document.removeEventListener('keydown', onKey);
+        };
+    }, [open]);
+
+    const item = 'block w-full text-left px-4 min-h-[44px] flex items-center text-sm font-bold uppercase tracking-wide text-muted hover:text-neon hover:bg-panel-2';
+
+    return (
+        <div ref={ref} className="relative">
+            <button
+                onClick={() => setOpen(!open)}
+                aria-expanded={open}
+                aria-haspopup="true"
+                className="flex items-center gap-2 min-h-[44px] px-2 hover:text-neon"
+            >
+                <Avatar user={user} size={28} />
+                <span className="label text-fg hidden lg:inline">{user.username}</span>
+                <ChevronDown className="w-4 h-4" aria-hidden="true" />
+                <span className="sr-only">Account menu</span>
+            </button>
+            {open && (
+                <div className="absolute right-0 top-full mt-1 w-48 panel z-50">
+                    <Link href="/profile" onClick={() => setOpen(false)} className={item}>Profile</Link>
+                    <Link href="/settings" onClick={() => setOpen(false)} className={item}>Settings</Link>
+                    <button onClick={() => { setOpen(false); logout(); }} className={`${item} border-t border-line`}>Log out</button>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default function Navbar() {
+    const { user, logout } = useAuth();
+    const pathname = usePathname();
+    const [mobileOpen, setMobileOpen] = useState(false);
 
     const closeMenu = () => setMobileOpen(false);
 
+    const linkClass = (href) =>
+        `relative flex items-center min-h-[44px] label hover:text-fg ${isActive(pathname, href) ? 'text-fg' : ''}`;
+
     return (
-        <nav className="bg-black border-b border-zinc-900 text-white">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-14">
-                    <Link href="/" className="flex items-center gap-2 font-black text-xl tracking-tight text-lime-400">
-                        <Gamepad2 className="w-6 h-6" />
-                        HITBOX
+        <header className="bg-ink border-b border-line sticky top-0 z-40">
+            <nav aria-label="Main" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center justify-between h-16">
+                    <Link href="/" className="flex items-center gap-2 min-h-[44px]" aria-label="Hitbox home">
+                        <span className="w-4 h-4 bg-neon chamfer" aria-hidden="true" />
+                        <span className="display text-xl text-fg">Hitbox</span>
                     </Link>
 
-                    <div className="hidden md:flex items-center gap-6 text-sm">
-                        <Link href="/games" className="text-zinc-400 hover:text-white transition-colors">Games</Link>
-                        <Link href="/lists" className="text-zinc-400 hover:text-white transition-colors">Lists</Link>
-                        <Link href="/members" className="text-zinc-400 hover:text-white transition-colors">Members</Link>
-                        {user && <Link href="/profile" className="text-zinc-400 hover:text-white transition-colors">Profile</Link>}
+                    <div className="hidden md:flex items-center gap-6">
+                        {LINKS.map(({ href, label }) => (
+                            <Link key={href} href={href} aria-current={isActive(pathname, href) ? 'page' : undefined} className={linkClass(href)}>
+                                {label}
+                                {isActive(pathname, href) && <span className="absolute left-0 right-0 bottom-1 h-[3px] bg-neon" aria-hidden="true" />}
+                            </Link>
+                        ))}
                     </div>
 
-                    <div className="hidden md:flex items-center gap-4">
-                        <form onSubmit={handleSearch} className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="h-4 w-4 text-zinc-500" />
-                            </div>
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-48 lg:w-64 pl-9 pr-3 py-1.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors"
-                                placeholder="Search games..."
-                            />
-                        </form>
-
+                    <div className="hidden md:flex items-center gap-3">
+                        <SearchForm className="w-48 lg:w-64" />
                         {user ? (
-                            <button onClick={logout} className="text-sm text-zinc-400 hover:text-white transition-colors">Logout</button>
+                            <AccountMenu user={user} logout={logout} />
                         ) : (
-                            <Link href="/login" className="text-sm px-4 py-1.5 border border-zinc-700 rounded hover:border-lime-400 hover:text-lime-400 transition-colors">
-                                LOG IN
-                            </Link>
+                            <Link href="/login" className="btn-ghost">Log in</Link>
                         )}
                     </div>
 
-                    <button onClick={() => setMobileOpen(!mobileOpen)} className="md:hidden p-2 text-zinc-400 hover:text-white transition-colors">
-                        {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    <button
+                        onClick={() => setMobileOpen(!mobileOpen)}
+                        aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+                        aria-expanded={mobileOpen}
+                        aria-controls="mobile-menu"
+                        className="md:hidden w-11 h-11 flex items-center justify-center text-muted hover:text-neon"
+                    >
+                        {mobileOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
                     </button>
                 </div>
-            </div>
+            </nav>
 
             {mobileOpen && (
-                <div className="md:hidden border-t border-zinc-900 bg-black">
+                <div id="mobile-menu" className="md:hidden border-t border-line bg-ink">
                     <div className="px-4 py-4 space-y-4">
-                        <form onSubmit={handleSearch} className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <Search className="h-4 w-4 text-zinc-500" />
-                            </div>
-                            <input
-                                type="text"
-                                value={search}
-                                onChange={(e) => setSearch(e.target.value)}
-                                className="w-full pl-9 pr-3 py-2.5 border border-zinc-800 rounded bg-zinc-900 text-zinc-300 placeholder-zinc-600 focus:outline-none focus:border-zinc-700 text-sm transition-colors"
-                                placeholder="Search games..."
-                            />
-                        </form>
+                        <SearchForm onDone={closeMenu} />
 
-                        <div className="flex flex-col space-y-1">
-                            <Link href="/games" onClick={closeMenu} className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors">Games</Link>
-                            <Link href="/lists" onClick={closeMenu} className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors">Lists</Link>
-                            <Link href="/members" onClick={closeMenu} className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors">Members</Link>
-                            {user && <Link href="/profile" onClick={closeMenu} className="px-3 py-2.5 text-zinc-300 hover:bg-zinc-900 hover:text-white rounded transition-colors">Profile</Link>}
-                        </div>
+                        <ul>
+                            {LINKS.map(({ href, label }) => (
+                                <li key={href}>
+                                    <Link
+                                        href={href}
+                                        onClick={closeMenu}
+                                        aria-current={isActive(pathname, href) ? 'page' : undefined}
+                                        className={`flex items-center min-h-[44px] px-3 font-bold uppercase tracking-wide hover:text-neon ${isActive(pathname, href) ? 'text-neon border-l-4 border-neon' : 'text-muted'}`}
+                                    >
+                                        {label}
+                                    </Link>
+                                </li>
+                            ))}
+                            {user && (
+                                <>
+                                    <li><Link href="/profile" onClick={closeMenu} className="flex items-center min-h-[44px] px-3 font-bold uppercase tracking-wide text-muted hover:text-neon">Profile</Link></li>
+                                    <li><Link href="/settings" onClick={closeMenu} className="flex items-center min-h-[44px] px-3 font-bold uppercase tracking-wide text-muted hover:text-neon">Settings</Link></li>
+                                </>
+                            )}
+                        </ul>
 
-                        <div className="pt-2 border-t border-zinc-800">
+                        <div className="pt-3 border-t border-line">
                             {user ? (
-                                <button onClick={() => { logout(); closeMenu(); }} className="w-full px-3 py-2.5 text-left text-zinc-400 hover:bg-zinc-900 hover:text-white rounded transition-colors">Logout</button>
+                                <button onClick={() => { logout(); closeMenu(); }} className="btn-ghost w-full">Log out</button>
                             ) : (
-                                <Link href="/login" onClick={closeMenu} className="block w-full text-center py-2.5 border border-lime-400 text-lime-400 rounded hover:bg-lime-400 hover:text-black transition-colors font-medium">
-                                    LOG IN
-                                </Link>
+                                <Link href="/login" onClick={closeMenu} className="btn-primary w-full">Log in</Link>
                             )}
                         </div>
                     </div>
                 </div>
             )}
-        </nav>
+        </header>
     );
-};
-
-export default Navbar;
+}
