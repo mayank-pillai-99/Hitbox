@@ -57,177 +57,180 @@ body {
 }
 
 /* ===== COMPONENT PRIMITIVES ===== */
+/* In the components layer so Tailwind utilities (hidden, text-neon, w-full...) can still override them. */
+@layer components {
 
-/* Flat panel: solid surface, hard 1px border, square corners. */
-.panel {
-  background: var(--color-panel);
-  border: 1px solid var(--color-line);
-}
+  /* Flat panel: solid surface, hard 1px border, square corners. */
+  .panel {
+    background: var(--color-panel);
+    border: 1px solid var(--color-line);
+  }
 
-.panel-hover {
-  transition: border-color 0.15s steps(3);
-}
+  .panel-hover {
+    transition: border-color 0.15s steps(3);
+  }
 
-.panel-hover:hover,
-.panel-hover:focus-visible {
-  border-color: var(--color-neon);
-}
+  .panel-hover:hover,
+  .panel-hover:focus-visible {
+    border-color: var(--color-neon);
+  }
 
-/* Emphasis is a solid lime edge, not a glow. */
-.panel-accent {
-  border-left: 4px solid var(--color-neon);
-}
+  /* Emphasis is a solid lime edge, not a glow. */
+  .panel-accent {
+    border-left: 4px solid var(--color-neon);
+  }
 
-/* Small uppercase mono caption for counts, dates, indexes and section tags. */
-.label {
-  font-family: var(--font-mono);
-  font-size: 0.75rem;
-  line-height: 1rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--color-dim);
-}
+  /* Small uppercase mono caption for counts, dates, indexes and section tags. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    line-height: 1rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-dim);
+  }
 
-/* Heavy display type. Width comes from the variable font's wdth axis. */
-.display {
-  font-family: var(--font-display);
-  font-weight: 900;
-  text-transform: uppercase;
-  letter-spacing: -0.02em;
-  line-height: 0.95;
-  font-stretch: 112%;
-  word-spacing: 0.12em;
-}
+  /* Heavy display type. Width comes from the variable font's wdth axis. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    line-height: 0.95;
+    font-stretch: 112%;
+    word-spacing: 0.12em;
+  }
 
-/* Large outlined numerals for stats. */
-.numeral {
-  font-family: var(--font-display);
-  font-weight: 900;
-  font-stretch: 112%;
-  line-height: 1;
-  color: transparent;
-  -webkit-text-stroke: 1.5px var(--color-fg);
-}
+  /* Large outlined numerals for stats. */
+  .numeral {
+    font-family: var(--font-display);
+    font-weight: 900;
+    font-stretch: 112%;
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1.5px var(--color-fg);
+  }
 
-.text-outline-lime {
-  color: transparent;
-  -webkit-text-stroke: 2px var(--color-neon);
-}
+  .text-outline-lime {
+    color: transparent;
+    -webkit-text-stroke: 2px var(--color-neon);
+  }
 
-/* Diagonal hazard strip, used as a divider. */
-.stripes {
-  height: 8px;
-  background: repeating-linear-gradient(
-    -45deg,
-    var(--color-neon) 0 8px,
-    transparent 8px 16px
-  );
-}
+  /* Diagonal hazard strip, used as a divider. */
+  .stripes {
+    height: 8px;
+    background: repeating-linear-gradient(
+      -45deg,
+      var(--color-neon) 0 8px,
+      transparent 8px 16px
+    );
+  }
 
-/* Corner brackets framing a hero image or cover. Add to a position:relative element. */
-.brackets {
-  position: relative;
-}
+  /* Corner brackets framing a hero image or cover. Add to a position:relative element. */
+  .brackets {
+    position: relative;
+  }
 
-.brackets::before,
-.brackets::after {
-  content: "";
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  border: 0 solid var(--color-neon);
-  pointer-events: none;
-}
+  .brackets::before,
+  .brackets::after {
+    content: "";
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    border: 0 solid var(--color-neon);
+    pointer-events: none;
+  }
 
-.brackets::before {
-  top: -1px;
-  left: -1px;
-  border-top-width: 3px;
-  border-left-width: 3px;
-}
+  .brackets::before {
+    top: -1px;
+    left: -1px;
+    border-top-width: 3px;
+    border-left-width: 3px;
+  }
 
-.brackets::after {
-  right: -1px;
-  bottom: -1px;
-  border-right-width: 3px;
-  border-bottom-width: 3px;
-}
+  .brackets::after {
+    right: -1px;
+    bottom: -1px;
+    border-right-width: 3px;
+    border-bottom-width: 3px;
+  }
 
-/* Cut corners on solid shapes (buttons, tags). Don't use on bordered panels: it clips the border. */
-.chamfer {
-  clip-path: polygon(
-    0 0,
-    calc(100% - 10px) 0,
-    100% 10px,
-    100% 100%,
-    10px 100%,
-    0 calc(100% - 10px)
-  );
-}
+  /* Cut corners on solid shapes (buttons, tags). Don't use on bordered panels: it clips the border. */
+  .chamfer {
+    clip-path: polygon(
+      0 0,
+      calc(100% - 10px) 0,
+      100% 10px,
+      100% 100%,
+      10px 100%,
+      0 calc(100% - 10px)
+    );
+  }
 
-.btn-primary,
-.btn-ghost {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 44px; /* comfortable touch target */
-  padding: 0.5rem 1.25rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-stretch: 105%;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition: background-color 0.12s steps(2), color 0.12s steps(2), border-color 0.12s steps(2);
-}
+  .btn-primary,
+  .btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px; /* comfortable touch target */
+    padding: 0.5rem 1.25rem;
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-stretch: 105%;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.12s steps(2), color 0.12s steps(2), border-color 0.12s steps(2);
+  }
 
-.btn-primary {
-  background: var(--color-neon);
-  color: #000;
-  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
-}
+  .btn-primary {
+    background: var(--color-neon);
+    color: #000;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  }
 
-.btn-primary:hover {
-  background: var(--color-fg);
-}
+  .btn-primary:hover {
+    background: var(--color-fg);
+  }
 
-.btn-ghost {
-  background: transparent;
-  color: var(--color-fg);
-  border: 1px solid var(--color-line-strong);
-}
+  .btn-ghost {
+    background: transparent;
+    color: var(--color-fg);
+    border: 1px solid var(--color-line-strong);
+  }
 
-.btn-ghost:hover {
-  border-color: var(--color-neon);
-  color: var(--color-neon);
-}
+  .btn-ghost:hover {
+    border-color: var(--color-neon);
+    color: var(--color-neon);
+  }
 
-.btn-primary:disabled,
-.btn-ghost:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+  .btn-primary:disabled,
+  .btn-ghost:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-/* Form field shared by every input, textarea and select. */
-.field {
-  width: 100%;
-  min-height: 44px;
-  background: var(--color-ink);
-  border: 1px solid var(--color-line-strong);
-  color: var(--color-fg);
-  padding: 0.5rem 0.75rem;
-}
+  /* Form field shared by every input, textarea and select. */
+  .field {
+    width: 100%;
+    min-height: 44px;
+    background: var(--color-ink);
+    border: 1px solid var(--color-line-strong);
+    color: var(--color-fg);
+    padding: 0.5rem 0.75rem;
+  }
 
-.field::placeholder {
-  color: var(--color-dim);
-}
+  .field::placeholder {
+    color: var(--color-dim);
+  }
 
-.field:focus {
-  outline: none;
-  border-color: var(--color-neon);
-  box-shadow: 0 0 0 1px var(--color-neon);
+  .field:focus {
+    outline: none;
+    border-color: var(--color-neon);
+    box-shadow: 0 0 0 1px var(--color-neon);
+  }
 }
 
 /* ===== MOTION ===== */
@@ -293,56 +296,58 @@ body {
   }
 }
 
-.animate-fade-in {
-  animation: fadeIn 0.25s ease-out forwards;
-}
+@layer components {
+  .animate-fade-in {
+    animation: fadeIn 0.25s ease-out forwards;
+  }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.25s ease-out forwards;
-}
+  .animate-fade-in-up {
+    animation: fadeInUp 0.25s ease-out forwards;
+  }
 
-.animate-scale-in {
-  animation: scaleIn 0.18s ease-out forwards;
-}
+  .animate-scale-in {
+    animation: scaleIn 0.18s ease-out forwards;
+  }
 
-.animate-wipe {
-  animation: wipe 0.4s steps(8) forwards;
-}
+  .animate-wipe {
+    animation: wipe 0.4s steps(8) forwards;
+  }
 
-.animate-slide-in {
-  animation: slideIn 0.2s ease-out;
-}
+  .animate-slide-in {
+    animation: slideIn 0.2s ease-out;
+  }
 
-.animate-shimmer {
-  background: linear-gradient(90deg, var(--color-panel) 25%, var(--color-panel-2) 50%, var(--color-panel) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
+  .animate-shimmer {
+    background: linear-gradient(90deg, var(--color-panel) 25%, var(--color-panel-2) 50%, var(--color-panel) 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+  }
 
-.stagger-1 { animation-delay: 0.04s; opacity: 0; }
-.stagger-2 { animation-delay: 0.08s; opacity: 0; }
-.stagger-3 { animation-delay: 0.12s; opacity: 0; }
-.stagger-4 { animation-delay: 0.16s; opacity: 0; }
+  .stagger-1 { animation-delay: 0.04s; opacity: 0; }
+  .stagger-2 { animation-delay: 0.08s; opacity: 0; }
+  .stagger-3 { animation-delay: 0.12s; opacity: 0; }
+  .stagger-4 { animation-delay: 0.16s; opacity: 0; }
 
-/* Cards lift by a hard step and the cover zooms slightly. No soft shadow. */
-.card-hover {
-  transition: transform 0.12s steps(3);
-}
+  /* Cards lift by a hard step and the cover zooms slightly. No soft shadow. */
+  .card-hover {
+    transition: transform 0.12s steps(3);
+  }
 
-.card-hover:hover {
-  transform: translateY(-3px);
-}
+  .card-hover:hover {
+    transform: translateY(-3px);
+  }
 
-.img-hover-zoom {
-  overflow: hidden;
-}
+  .img-hover-zoom {
+    overflow: hidden;
+  }
 
-.img-hover-zoom img {
-  transition: transform 0.2s ease;
-}
+  .img-hover-zoom img {
+    transition: transform 0.2s ease;
+  }
 
-.img-hover-zoom:hover img {
-  transform: scale(1.04);
+  .img-hover-zoom:hover img {
+    transform: scale(1.04);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

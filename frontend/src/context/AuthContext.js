@@ -32,23 +32,33 @@ export const AuthProvider = ({ children }) => {
         initAuth();
     }, []);
 
-    const login = async (email, password) => {
+    // Only same-site paths are allowed as a post-login destination, never another origin.
+    const safeNext = (next) => (typeof next === 'string' && next.startsWith('/') && !next.startsWith('//') ? next : '/');
+
+    const login = async (email, password, next) => {
         const { data } = await api.post('/auth/login', { email, password });
         localStorage.setItem('token', data.token);
         api.defaults.headers.common['x-auth-token'] = data.token;
 
         const userRes = await api.get('/auth/me');
         setUser(userRes.data);
-        router.push('/');
+        router.push(safeNext(next));
     };
 
-    const signup = async (username, email, password) => {
+    const signup = async (username, email, password, next) => {
         const { data } = await api.post('/auth/register', { username, email, password });
         localStorage.setItem('token', data.token);
         api.defaults.headers.common['x-auth-token'] = data.token;
         const userRes = await api.get('/auth/me');
         setUser(userRes.data);
-        router.push('/');
+        router.push(safeNext(next));
+    };
+
+    // Re-read the signed-in member from the API, e.g. after editing their profile.
+    const refreshUser = async () => {
+        const { data } = await api.get('/auth/me');
+        setUser(data);
+        return data;
     };
 
     const logout = () => {
@@ -59,7 +69,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, signup, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, signup, logout, refreshUser, loading }}>
             {children}
         </AuthContext.Provider>
     );
