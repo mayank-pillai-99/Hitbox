@@ -30,6 +30,8 @@ const IGDB_IMAGES = 'https://images.igdb.com/igdb/image/upload';
 const IMAGE_ID = /^[A-Za-z0-9_-]{3,40}$/;
 const VIDEO_ID = /^[A-Za-z0-9_-]{6,20}$/;
 
+const isTrailer = (video) => /trailer/i.test(video.name ?? '');
+
 export const MAX_SCREENSHOTS = 12;
 export const MAX_VIDEOS = 3;
 export const MAX_SIMILAR = 12;
@@ -44,8 +46,10 @@ export const mapIGDBExtras = (data) => ({
             full: `${IGDB_IMAGES}/t_screenshot_big/${s.image_id}.jpg`,
         })),
     // IGDB videos are YouTube ids.
+    // Trailers first: the page plays the first video, and IGDB lists diaries and clips among them.
     videos: (data.videos || [])
         .filter((v) => VIDEO_ID.test(v.video_id ?? ''))
+        .sort((a, b) => Number(isTrailer(b)) - Number(isTrailer(a)))
         .slice(0, MAX_VIDEOS)
         .map((v) => ({ youtubeId: v.video_id, name: v.name || 'Trailer' })),
     similarGames: (data.similar_games || [])

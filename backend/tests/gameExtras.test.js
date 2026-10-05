@@ -46,6 +46,18 @@ describe('mapIGDBExtras', () => {
         expect(extras.similarGames[1].coverImage).toBeUndefined();
     });
 
+    it('puts trailers before other videos, keeping IGDB order otherwise', () => {
+        const { videos } = mapIGDBExtras({
+            videos: [
+                { video_id: 'diary12345', name: 'Developer Diary' },
+                { video_id: 'launch1234', name: 'Launch Trailer' },
+                { video_id: 'clip123456', name: 'Gameplay clip' },
+                { video_id: 'teaser1234', name: 'Teaser Trailer' },
+            ],
+        });
+        expect(videos.map((v) => v.youtubeId)).toEqual(['launch1234', 'teaser1234', 'diary12345']);
+    });
+
     it('returns empty lists when IGDB has none', () => {
         expect(mapIGDBExtras({})).toEqual({ screenshots: [], videos: [], similarGames: [] });
     });
