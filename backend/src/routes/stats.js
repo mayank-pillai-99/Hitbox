@@ -6,20 +6,15 @@ import User from '../models/User.js';
 
 const router = express.Router();
 
-router.get('/', async (req, res) => {
-    try {
-        const [games, reviews, lists, members] = await Promise.all([
-            Game.countDocuments(),
-            Review.countDocuments(),
-            List.countDocuments(),
-            User.countDocuments()
-        ]);
+router.get('/', async (_req, res) => {
+    const [games, reviews, lists, members] = await Promise.all([
+        Game.countDocuments(),
+        Review.countDocuments(),
+        List.countDocuments(),
+        User.countDocuments(),
+    ]);
 
-        res.json({ games, reviews, lists, members });
-    } catch (err) {
-        console.error('Stats error:', err.message);
-        res.status(500).json({ message: 'Server error' });
-    }
+    res.json({ games, reviews, lists, members });
 });
 
 export default router;

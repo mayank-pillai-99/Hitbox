@@ -1,25 +1,41 @@
 {
-  "name": "backend",
-  "version": "1.0.0",
-  "description": "",
-  "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "module",
-  "dependencies": {
-    "axios": "^1.13.2",
-    "bcryptjs": "^3.0.3",
-    "cors": "^2.8.5",
-    "dotenv": "^17.2.3",
-    "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "mongoose": "^9.0.2",
-    "nodemon": "^3.1.11"
-  }
+    "name": "hitbox-backend",
+    "version": "1.0.0",
+    "description": "Hitbox API: Express, MongoDB and IGDB",
+    "scripts": {
+        "start": "node src/index.js",
+        "dev": "NODE_ENV=development node --watch src/index.js",
+        "test": "vitest run",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "format:check": "prettier --check ."
+    },
+    "type": "module",
+    "dependencies": {
+        "axios": "^1.13.2",
+        "bcryptjs": "^3.0.3",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^5.2.1",
+        "express-rate-limit": "^8.7.0",
+        "helmet": "^8.3.0",
+        "jsonwebtoken": "^9.0.3",
+        "mongoose": "^9.0.2",
+        "pino": "^10.4.0",
+        "pino-http": "^11.0.0",
+        "zod": "^4.6.5"
+    },
+    "devDependencies": {
+        "@eslint/js": "^10.0.1",
+        "eslint": "^10.12.0",
+        "globals": "^17.13.0",
+        "pino-pretty": "^13.2.0",
+        "prettier": "^3.9.9",
+        "supertest": "^7.3.1",
+        "vitest": "^5.0.3"
+    },
+    "private": true,
+    "engines": {
+        "node": ">=20"
+    }
 }

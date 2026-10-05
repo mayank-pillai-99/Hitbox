@@ -1,113 +1,71 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import mongoose from 'mongoose';
 import User from '../models/User.js';
 import auth from '../middleware/auth.js';
+import validate from '../middleware/validate.js';
+import { authLimiter } from '../middleware/rateLimit.js';
+import { env } from '../config/env.js';
+import { badRequest, notFound } from '../lib/errors.js';
+import { getUserStats } from '../services/stats.service.js';
+import * as schemas from '../schemas/index.js';
 
 const router = express.Router();
 
-// Register
-router.post('/register', async (req, res) => {
-    try {
-        const { username, email, password } = req.body;
+const signToken = (user) => jwt.sign({ user: { id: user.id } }, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
 
-        if (await User.findOne({ email })) {
-            return res.status(400).json({ message: 'User already exists' });
-        }
+router.post('/register', authLimiter, validate({ body: schemas.auth.register }), async (req, res) => {
+    const { username, email, password } = req.valid.body;
 
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
+    if (await User.findOne({ email })) throw badRequest('User already exists');
+    if (await User.findOne({ username })) throw badRequest('Username taken');
 
-        const user = new User({ username, email, password: hashedPassword });
-        await user.save();
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, email, password: hashedPassword });
 
-        const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    res.json({ token: signToken(user) });
 });
 
-// Login
-router.post('/login', async (req, res) => {
-    try {
-        const { email, password } = req.body;
+router.post('/login', authLimiter, validate({ body: schemas.auth.login }), async (req, res) => {
+    const { email, password } = req.valid.body;
 
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: 'Invalid credentials' });
+    const user = await User.findOne({ email });
+    // Same message for an unknown email and a wrong password, so accounts can't be probed.
+    if (!user || !(await bcrypt.compare(password, user.password))) throw badRequest('Invalid credentials');
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
-
-        const token = jwt.sign({ user: { id: user.id } }, process.env.JWT_SECRET, { expiresIn: '1h' });
-        res.json({ token });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    res.json({ token: signToken(user) });
 });
 
-router.post('/logout', (_, res) => res.json({ message: 'Logged out successfully' }));
+// Tokens are stateless; the client discards its copy.
+router.post('/logout', (_req, res) => res.json({ message: 'Logged out successfully' }));
 
-// Get Current User
 router.get('/me', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id).select('-password');
-        if (!user) return res.status(404).json({ message: 'User not found' });
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) throw notFound('User not found');
 
-        const [reviews, lists] = await Promise.all([
-            mongoose.model('Review').countDocuments({ user: req.user.id }),
-            mongoose.model('List').countDocuments({ user: req.user.id })
-        ]);
-
-        res.json({
-            ...user.toObject(),
-            stats: {
-                reviews,
-                lists,
-                gamesPlayed: 0
-            }
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    res.json({ ...user.toObject(), stats: await getUserStats(user._id) });
 });
 
-// Update Profile
-router.put('/me', auth, async (req, res) => {
-    try {
-        const { username, email, bio, profilePicture } = req.body;
-        const userId = req.user.id;
+router.put('/me', auth, validate({ body: schemas.auth.updateProfile }), async (req, res) => {
+    const { username, email, bio, profilePicture } = req.valid.body;
+    const userId = req.user.id;
 
-        // Check conflicts
-        if (username) {
-            const exists = await User.findOne({ username });
-            if (exists && exists.id !== userId) return res.status(400).json({ message: 'Username taken' });
-        }
-
-        if (email) {
-            const exists = await User.findOne({ email });
-            if (exists && exists.id !== userId) return res.status(400).json({ message: 'Email taken' });
-        }
-
-        const update = {};
-        if (username) update.username = username;
-        if (email) update.email = email;
-        if (bio !== undefined) update.bio = bio;
-        if (profilePicture !== undefined) update.profilePicture = profilePicture;
-
-        const user = await User.findByIdAndUpdate(userId, { $set: update }, { new: true }).select('-password');
-        res.json(user);
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
+    if (username) {
+        const exists = await User.findOne({ username });
+        if (exists && exists.id !== userId) throw badRequest('Username taken');
     }
+    if (email) {
+        const exists = await User.findOne({ email });
+        if (exists && exists.id !== userId) throw badRequest('Email taken');
+    }
+
+    const update = Object.fromEntries(
+        Object.entries({ username, email, bio, profilePicture }).filter(([, value]) => value !== undefined),
+    );
+    const user = await User.findByIdAndUpdate(userId, { $set: update }, { new: true }).select('-password');
+    if (!user) throw notFound('User not found');
+
+    res.json(user);
 });
 
 export default router;

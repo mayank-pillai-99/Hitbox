@@ -2,69 +2,49 @@ import express from 'express';
 import Comment from '../models/Comment.js';
 import List from '../models/List.js';
 import auth from '../middleware/auth.js';
+import validate from '../middleware/validate.js';
+import { HttpError, notFound } from '../lib/errors.js';
+import * as schemas from '../schemas/index.js';
 
 const router = express.Router();
 
-// Get list comments
-router.get('/list/:listId', async (req, res) => {
-    try {
-        if (!await List.exists({ _id: req.params.listId })) {
-            return res.status(404).json({ message: 'List not found' });
-        }
+const assertListExists = async (listId) => {
+    if (!(await List.exists({ _id: listId }))) throw notFound('List not found');
+};
 
-        const comments = await Comment.find({ list: req.params.listId })
-            .populate('user', 'username profilePicture')
-            .sort({ createdAt: -1 });
+router.get('/list/:listId', validate({ params: schemas.comments.listParams }), async (req, res) => {
+    const { listId } = req.valid.params;
+    await assertListExists(listId);
 
-        res.json(comments);
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    const comments = await Comment.find({ list: listId })
+        .populate('user', 'username profilePicture')
+        .sort({ createdAt: -1 });
+
+    res.json(comments);
 });
 
-// Add comment
-router.post('/list/:listId', auth, async (req, res) => {
-    try {
-        const { text } = req.body;
-        if (!text?.trim()) return res.status(400).json({ message: 'Comment required' });
-        if (text.length > 1000) return res.status(400).json({ message: 'Too long' });
+router.post(
+    '/list/:listId',
+    auth,
+    validate({ params: schemas.comments.listParams, body: schemas.comments.create }),
+    async (req, res) => {
+        const { listId } = req.valid.params;
+        await assertListExists(listId);
 
-        if (!await List.exists({ _id: req.params.listId })) {
-            return res.status(404).json({ message: 'List not found' });
-        }
-
-        const comment = await new Comment({
-            user: req.user.id,
-            list: req.params.listId,
-            text: text.trim()
-        }).save();
-
+        const comment = await Comment.create({ user: req.user.id, list: listId, text: req.valid.body.text });
         await comment.populate('user', 'username profilePicture');
+
         res.status(201).json(comment);
+    },
+);
 
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
-});
+router.delete('/:commentId', auth, validate({ params: schemas.comments.params }), async (req, res) => {
+    const comment = await Comment.findById(req.valid.params.commentId);
+    if (!comment) throw notFound('Comment not found');
+    if (comment.user.toString() !== req.user.id) throw new HttpError(403, 'Unauthorized');
 
-// Delete comment
-router.delete('/:commentId', auth, async (req, res) => {
-    try {
-        const comment = await Comment.findById(req.params.commentId);
-        if (!comment) return res.status(404).json({ message: 'Comment not found' });
-
-        if (comment.user.toString() !== req.user.id) {
-            return res.status(403).json({ message: 'Unauthorized' });
-        }
-
-        await comment.deleteOne();
-        res.json({ message: 'Comment deleted' });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    await comment.deleteOne();
+    res.json({ message: 'Comment deleted' });
 });
 
 export default router;

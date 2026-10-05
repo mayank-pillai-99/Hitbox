@@ -1,16 +1,20 @@
 import mongoose from 'mongoose';
 
-const listSchema = new mongoose.Schema({
-    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    name: { type: String, required: true },
-    description: { type: String },
-    games: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
-    isCustom: { type: Boolean, default: false },
-}, {
-    timestamps: true
-});
+const listSchema = new mongoose.Schema(
+    {
+        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        name: { type: String, required: true },
+        description: { type: String },
+        games: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Game' }],
+        isCustom: { type: Boolean, default: false },
+    },
+    {
+        timestamps: true,
+    },
+);
 
 // Ensure a user can't have duplicate list names (optional, but good for default lists)
 listSchema.index({ user: 1, name: 1 }, { unique: true });
+listSchema.index({ createdAt: -1 });
 
 export default mongoose.model('List', listSchema);

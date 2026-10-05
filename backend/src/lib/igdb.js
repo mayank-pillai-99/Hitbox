@@ -1,82 +1,65 @@
 import axios from 'axios';
+import { env } from '../config/env.js';
+import logger from './logger.js';
 
 let accessToken = null;
 let tokenExpiry = 0;
-
 let tokenPromise = null;
 
-const getAccessToken = async () => {
-    // If we have a token and it's not expired (buffer of 60s), return it
-    if (accessToken && Date.now() < tokenExpiry - 60000) {
-        return accessToken;
-    }
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    // If a request is already in progress, wait for it
-    if (tokenPromise) {
-        return tokenPromise;
-    }
-
-    // Start a new request
-    tokenPromise = (async () => {
-        let retries = 3;
-        while (retries > 0) {
-            try {
-                const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
-                    params: {
-                        client_id: process.env.TWITCH_CLIENT_ID,
-                        client_secret: process.env.TWITCH_CLIENT_SECRET,
-                        grant_type: 'client_credentials'
-                    },
-                    timeout: 15000 // 15s timeout
-                });
-
-                accessToken = response.data.access_token;
-                tokenExpiry = Date.now() + (response.data.expires_in * 1000);
-                console.log('New IGDB Access Token Generated');
-                return accessToken;
-            } catch (error) {
-                console.error(`IGDB Auth Attempt Failed (${retries} retries left):`, error.message);
-                retries--;
-                if (retries === 0) {
-                    if (error.response) {
-                        console.error('Final Auth Error Response:', error.response.data);
-                    }
-                    console.error('IGDB Auth Failed after multiple attempts - returning null');
-                    return null; // Return null instead of throwing to prevent crash
-                }
-                // Wait 2s before retry
-                await new Promise(resolve => setTimeout(resolve, 2000));
-            }
+const requestToken = async () => {
+    for (let attemptsLeft = 3; attemptsLeft > 0; attemptsLeft--) {
+        try {
+            const response = await axios.post('https://id.twitch.tv/oauth2/token', null, {
+                params: {
+                    client_id: env.TWITCH_CLIENT_ID,
+                    client_secret: env.TWITCH_CLIENT_SECRET,
+                    grant_type: 'client_credentials',
+                },
+                timeout: 15000,
+            });
+            accessToken = response.data.access_token;
+            tokenExpiry = Date.now() + response.data.expires_in * 1000;
+            logger.info('Generated a new IGDB access token');
+            return accessToken;
+        } catch (error) {
+            logger.warn({ err: error.message, attemptsLeft: attemptsLeft - 1 }, 'IGDB auth attempt failed');
+            if (attemptsLeft > 1) await delay(2000);
         }
-        return null;
-    })();
+    }
+    // Resolve to null instead of throwing, so one outage can't crash the process.
+    return null;
+};
 
-    tokenPromise.finally(() => {
+export const getAccessToken = async () => {
+    // Reuse the token until 60s before it expires.
+    if (accessToken && Date.now() < tokenExpiry - 60000) return accessToken;
+
+    // Concurrent callers share one refresh request.
+    tokenPromise ??= requestToken().finally(() => {
         tokenPromise = null;
     });
-
     return tokenPromise;
 };
 
 const igdb = axios.create({
     baseURL: 'https://api.igdb.com/v4',
+    timeout: 15000,
 });
 
-// Interceptor to add auth headers just before sending
 igdb.interceptors.request.use(async (config) => {
     const token = await getAccessToken();
     if (!token) {
-        // If no token, reject the request gracefully
         const error = new Error('IGDB authentication unavailable');
         error.code = 'IGDB_AUTH_FAILED';
-        return Promise.reject(error);
+        throw error;
     }
-    config.headers['Client-ID'] = process.env.TWITCH_CLIENT_ID;
-    config.headers['Authorization'] = `Bearer ${token}`;
-    config.headers['Accept'] = 'application/json';
+    config.headers['Client-ID'] = env.TWITCH_CLIENT_ID;
+    config.headers.Authorization = `Bearer ${token}`;
+    config.headers.Accept = 'application/json';
     config.headers['Content-Type'] = 'text/plain';
     return config;
 });
 
 export default igdb;
-

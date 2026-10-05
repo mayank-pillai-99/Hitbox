@@ -1,43 +1,22 @@
-import express from 'express';
-import cors from 'cors';
-import dotenv from 'dotenv';
+import mongoose from 'mongoose';
+import { env } from './config/env.js';
 import connectDB from './config/database.js';
+import logger from './lib/logger.js';
+import { createApp } from './app.js';
 
-dotenv.config();
+// Connect first, so no request can arrive before the database is ready.
+await connectDB();
 
-const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Routes
-import authRoutes from './routes/auth.js';
-import gameRoutes from './routes/games.js';
-import reviewRoutes from './routes/reviews.js';
-import listRoutes from './routes/lists.js';
-import userRoutes from './routes/users.js';
-import gameStatusRoutes from './routes/gameStatus.js';
-import commentRoutes from './routes/comments.js';
-import statsRoutes from './routes/stats.js';
-
-app.use(cors());
-app.use(express.json());
-
-app.use('/api/auth', authRoutes);
-app.use('/api/games', gameRoutes);
-app.use('/api/reviews', reviewRoutes);
-app.use('/api/lists', listRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/game-status', gameStatusRoutes);
-app.use('/api/comments', commentRoutes);
-app.use('/api/stats', statsRoutes);
-
-// Basic route
-app.get('/', (req, res) => {
-    res.send('Hitbox API is running');
+const server = createApp().listen(env.PORT, () => {
+    logger.info(`Server running on port ${env.PORT}`);
 });
 
-// Connect to MongoDB
-connectDB();
-
-app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
+const shutdown = (signal) => {
+    logger.info(`${signal} received, shutting down`);
+    server.close(async () => {
+        await mongoose.disconnect();
+        process.exit(0);
+    });
+};
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
