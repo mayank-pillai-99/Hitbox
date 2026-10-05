@@ -45,6 +45,8 @@ describe('gameRef', () => {
     it('rejects everything else', () => {
         expect(schemas.games.params.safeParse({ id: '1942; drop' }).success).toBe(false);
         expect(schemas.games.params.safeParse({ id: '-1' }).success).toBe(false);
+        expect(schemas.games.params.safeParse({ id: '9999999999' }).success).toBe(false);
+        expect(schemas.games.params.safeParse({ id: '2147483647' }).success).toBe(true);
     });
 });
 

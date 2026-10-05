@@ -3,7 +3,10 @@ import { z } from 'zod';
 const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, 'Invalid id');
 
 // A game can be addressed by its local Mongo id or by its IGDB id.
-export const gameRef = z.union([objectId, z.coerce.number().int().positive()]).transform((v) => String(v));
+// IGDB ids are 32-bit integers; anything larger can't exist, and IGDB answers it with an error.
+export const gameRef = z
+    .union([objectId, z.coerce.number().int().positive().max(2_147_483_647)])
+    .transform((v) => String(v));
 
 const httpUrl = z
     .string()
