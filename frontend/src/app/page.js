@@ -6,6 +6,7 @@ import { Play, ArrowRight, Star, Heart, MessageCircle, Loader2, Gamepad2, Activi
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import GameCard from '@/components/GameCard';
+import FollowFeed from '@/components/FollowFeed';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 
@@ -146,6 +147,8 @@ export default function Home() {
                 <div className="max-w-7xl mx-auto">
                     <div className="grid lg:grid-cols-12 gap-12">
                         <div className="lg:col-span-8">
+                            {user && <FollowFeed />}
+
                             <div className="flex items-center gap-2 mb-8">
                                 <MessageCircle className="w-6 h-6 text-lime-400" />
                                 <h2 className="text-2xl font-black text-white italic tracking-tighter">JUST REVIEWED</h2>

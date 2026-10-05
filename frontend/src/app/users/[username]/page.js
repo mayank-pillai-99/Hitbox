@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import { Calendar, Star, List, Loader2, Gamepad2, ArrowRight, Heart, MessageSquare } from 'lucide-react';
 import api from '@/utils/api';
 import Footer from '@/components/Footer';
+import FollowButton from '@/components/FollowButton';
 
 export default function PublicUserProfile({ params }) {
     const [profile, setProfile] = useState(null);
@@ -138,9 +139,23 @@ export default function PublicUserProfile({ params }) {
                                 </span>
                             )}
                         </div>
+                        <FollowButton
+                            key={profile.username}
+                            username={profile.username}
+                            initialFollowing={profile.isFollowing}
+                            onChange={(_following, followersCount) => setProfile({ ...profile, followersCount })}
+                        />
                     </div>
 
-                    <div className="flex gap-4 pb-4">
+                    <div className="flex flex-wrap gap-4 pb-4">
+                        <div className="bg-zinc-900/80 backdrop-blur border border-white/10 rounded-xl p-4 text-center min-w-[100px] shadow-lg">
+                            <div className="text-3xl font-black text-white leading-none mb-1">{profile.followersCount || 0}</div>
+                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Followers</div>
+                        </div>
+                        <div className="bg-zinc-900/80 backdrop-blur border border-white/10 rounded-xl p-4 text-center min-w-[100px] shadow-lg">
+                            <div className="text-3xl font-black text-white leading-none mb-1">{profile.followingCount || 0}</div>
+                            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Following</div>
+                        </div>
                         <div className="bg-zinc-900/80 backdrop-blur border border-white/10 rounded-xl p-4 text-center min-w-[100px] shadow-lg">
                             <div className="text-3xl font-black text-white leading-none mb-1">{profile.stats.reviews}</div>
                             <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Reviews</div>
