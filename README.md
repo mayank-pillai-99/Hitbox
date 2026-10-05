@@ -38,6 +38,8 @@ A social gaming platform for tracking, reviewing, and sharing your gaming experi
 - **MongoDB + Mongoose** - Database and ODM
 - **JWT** - Authentication
 - **bcrypt** - Password hashing
+- **zod, helmet, express-rate-limit, pino** - Validation, security headers, rate limiting, structured logging
+- **vitest + supertest** - Tests
 
 ### External APIs
 - **IGDB** - Game database (covers, metadata, ratings)
@@ -45,9 +47,9 @@ A social gaming platform for tracking, reviewing, and sharing your gaming experi
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+ (22 recommended)
 - MongoDB (local or Atlas)
-- IGDB API credentials (Twitch Developer)
+- IGDB API credentials ([Twitch Developer console](https://dev.twitch.tv/console/apps))
 
 ### Installation
 
@@ -61,31 +63,21 @@ cd hitbox
 ```bash
 cd backend
 npm install
+cp .env.example .env   # then fill in the values
 ```
 
-Create `.env` file:
-```env
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/hitbox
-JWT_SECRET=your_jwt_secret
-TWITCH_CLIENT_ID=your_twitch_client_id
-TWITCH_CLIENT_SECRET=your_twitch_client_secret
-```
+The backend validates its environment at startup and exits with a list of what is missing. See `backend/.env.example` for every variable (`DB_CONNECTION_SECRET`, `JWT_SECRET`, `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET`, `PORT`, `CORS_ORIGIN`, ...).
 
 3. **Setup Frontend**
 ```bash
 cd ../frontend
 npm install
-```
-
-Create `.env.local` file:
-```env
-NEXT_PUBLIC_API_URL=http://localhost:5000/api
+cp .env.example .env.local
 ```
 
 4. **Run the Application**
 
-Backend:
+Backend (port 8000):
 ```bash
 cd backend
 npm run dev
@@ -99,49 +91,76 @@ npm run dev
 
 Visit `http://localhost:3000`
 
+To share a local copy with someone else, see [CLOUDFLARE_TUNNEL.md](CLOUDFLARE_TUNNEL.md).
+
+## ✅ Quality checks
+
+```bash
+cd backend
+npm run lint && npm run format:check
+npm test                                   # unit and API tests, no database needed
+MONGO_TEST_URI=mongodb://127.0.0.1:27017/hitbox-test npm test   # adds the MongoDB integration tests (wipes that database)
+
+cd ../frontend
+npm run lint && npm run build
+```
+
+CI runs all of these on every push. The security decisions are written up in [docs/security.md](docs/security.md).
+
 ## 📁 Project Structure
 
 ```
 hitbox/
 ├── backend/
 │   ├── src/
-│   │   ├── config/         # Database config
-│   │   ├── middleware/     # Auth middleware
+│   │   ├── config/         # Environment validation (zod), database connection
+│   │   ├── lib/            # Logger, errors, IGDB client, IGDB-to-app mapper
+│   │   ├── middleware/     # Auth, validation, rate limits, error handler
 │   │   ├── models/         # Mongoose schemas
-│   │   ├── routes/         # API routes
-│   │   ├── utils/          # IGDB, mappers
+│   │   ├── routes/         # Thin route handlers
+│   │   ├── schemas/        # zod schemas for every request
+│   │   ├── services/       # Game lookup/caching, IGDB query builder, stats
+│   │   ├── app.js          # Express app (no listen, so tests can import it)
 │   │   └── index.js        # Entry point
+│   ├── tests/              # vitest + supertest
 │   └── package.json
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── app/            # Next.js pages
 │   │   ├── components/     # Reusable components
-│   │   ├── context/        # Auth context
-│   │   └── utils/          # API utility
+│   │   ├── context/        # Auth and toast contexts
+│   │   └── utils/          # API client
 │   └── package.json
 │
+├── docs/security.md
 └── README.md
 ```
 
 ## 🔌 API Endpoints
 
+Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON: `{ "message": "..." }`.
+
 ### Auth
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/auth/signup` | Register user |
+| POST | `/api/auth/register` | Register user |
 | POST | `/api/auth/login` | Login user |
-| GET | `/api/auth/me` | Get current user |
+| POST | `/api/auth/logout` | Logout (the client discards its token) |
+| GET | `/api/auth/me` | Get current user and stats |
+| PUT | `/api/auth/me` | Update profile |
 
 ### Games
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/games` | Browse games |
-| GET | `/api/games/:id` | Game details |
+| GET | `/api/games` | Browse and search games (`search`, `ordering`, `genres`, `platforms`, `dates`, `page`) |
+| GET | `/api/games/:id` | Game details (local id or IGDB id) |
 
 ### Reviews
 | Method | Endpoint | Description |
 |--------|----------|-------------|
+| GET | `/api/reviews/recent` | Latest reviews |
+| GET | `/api/reviews/my` | Your reviews |
 | GET | `/api/reviews/game/:id` | Get game reviews |
 | POST | `/api/reviews` | Create review |
 | PUT | `/api/reviews/:id` | Update review |
@@ -152,11 +171,23 @@ hitbox/
 ### Lists
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/lists/discover` | Browse lists |
+| GET | `/api/lists/discover` | Browse lists (`sort=popular|recent`) |
+| GET | `/api/lists` | Your lists |
 | GET | `/api/lists/:id` | List details |
 | POST | `/api/lists` | Create list |
 | PUT | `/api/lists/:id` | Update list |
-| DELETE | `/api/lists/:id` | Delete list |
+| DELETE | `/api/lists/:id` | Delete list and its comments |
+| POST | `/api/lists/:id/add` | Add a game |
+| DELETE | `/api/lists/:id/game/:gameId` | Remove a game |
+
+### Game status
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/game-status` | Your games grouped by status |
+| GET | `/api/game-status/counts` | Counts per status |
+| GET | `/api/game-status/game/:id` | Your status for one game |
+| POST | `/api/game-status` | Set status (`played`, `playing`, `want_to_play`) |
+| DELETE | `/api/game-status/:id` | Clear status |
 
 ### Comments
 | Method | Endpoint | Description |
@@ -164,6 +195,16 @@ hitbox/
 | GET | `/api/comments/list/:id` | Get list comments |
 | POST | `/api/comments/list/:id` | Add comment |
 | DELETE | `/api/comments/:id` | Delete comment |
+
+### Users and stats
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/users` | Members directory |
+| GET | `/api/users/:username` | Public profile |
+| GET | `/api/users/:username/reviews` | A member's reviews |
+| GET | `/api/users/:username/lists` | A member's lists |
+| GET | `/api/stats` | Site-wide counts |
+| GET | `/health` | Liveness check |
 
 ## 📸 Screenshots
 
