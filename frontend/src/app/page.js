@@ -23,7 +23,7 @@ export default function Home() {
 
     useEffect(() => {
         Promise.all([
-            api.get('/games', { params: { page_size: 6, dates: '2025-01-01,2025-12-31' } }),
+            api.get('/games/trending', { params: { limit: 6 } }),
             api.get('/lists/discover?sort=popular&limit=3'),
             api.get('/users?limit=3&sort=reviews'),
             api.get('/reviews/recent?limit=5'),

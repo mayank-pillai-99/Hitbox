@@ -89,3 +89,24 @@ export function buildExtrasQuery(igdbId) {
     if (!Number.isInteger(id) || id <= 0) throw new TypeError('IGDB id must be a positive integer');
     return `fields ${EXTRAS_FIELDS}; where id = ${id};`;
 }
+
+// IGDB popularity type 1 is "Visits": how much attention each game page is getting right now.
+const VISITS_POPULARITY_TYPE = 1;
+
+export const buildPopularityQuery = (limit) => {
+    const n = Number(limit);
+    if (!Number.isInteger(n) || n < 1 || n > 500) throw new TypeError('limit must be an integer from 1 to 500');
+    return `fields game_id, value; where popularity_type = ${VISITS_POPULARITY_TYPE} & game_id != null; sort value desc; limit ${n};`;
+};
+
+// Released games with a cover, from a list of IGDB ids. Trending lists show covers, and an
+// unreleased or cover-less entry would look broken on the home page.
+export const buildTrendingDetailsQuery = (ids, nowSeconds) => {
+    const clean = ids.map(Number);
+    if (clean.length === 0 || clean.some((id) => !Number.isInteger(id) || id <= 0)) {
+        throw new TypeError('ids must be positive integers');
+    }
+    const now = Math.floor(Number(nowSeconds));
+    if (!Number.isFinite(now)) throw new TypeError('nowSeconds must be a number');
+    return `fields ${LIST_FIELDS}; where id = (${clean.join(',')}) & cover != null & first_release_date != null & first_release_date <= ${now}; limit ${clean.length};`;
+};

@@ -53,6 +53,7 @@ export const games = {
         page,
     }),
     params: z.object({ id: gameRef }),
+    trendingQuery: z.object({ limit: limit(12, 6) }),
 };
 
 export const reviews = {

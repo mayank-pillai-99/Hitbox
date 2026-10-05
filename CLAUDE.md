@@ -41,6 +41,7 @@ npm run lint && npm run build
 - Mongoose ignores writes to `createdAt`; tests that need fixed timestamps write through `Model.collection`.
 - IGDB "extras" (screenshots, trailers, similar games) are cached on the `Game` for a week; games nobody has saved get a short in-memory cache and are never created just for browsing. Image and video ids from IGDB are validated before they go into URLs.
 - Recommendations: `services/recommend.js` holds the pure scoring (similarity between members, collaborative votes, genre affinity, `rank`) and is unit-tested; `recommendations.service.js` loads the data and never calls IGDB (it only reads cached `Game.extras`). Every pick carries human-readable `reasons`; keep them honest if you change the weights. Not ML on purpose: with a small catalog, explainable heuristics beat a model.
+- `GET /api/games/trending` (`services/trending.service.js`) blends IGDB's "Visits" popularity with Hitbox's 7-day reviews/status changes (`scoreTrending` is pure and tested), shows only released games with covers, caches 15 minutes, and falls back to the past year's most-rated releases if IGDB popularity fails. Register static `/games/...` routes before `/:id`.
 - Log with pino (`lib/logger.js`), not `console`. Never log tokens, passwords or request bodies.
 - Read config from `config/env.js`, not `process.env`. Add new variables to its schema and to `.env.example`.
 - Write tests with each change. Tests that need MongoDB go in `tests/integration.test.js` and seed games directly; IGDB is never called from tests.

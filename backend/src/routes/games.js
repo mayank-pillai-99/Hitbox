@@ -6,6 +6,7 @@ import { mapIGDBGame } from '../lib/mappers.js';
 import { notFound } from '../lib/errors.js';
 import { buildBrowseQuery, PAGE_SIZE } from '../services/igdbQuery.js';
 import { findLocalGame, fetchIGDBGame, isObjectId } from '../services/game.service.js';
+import { getTrending, WINDOW_DAYS } from '../services/trending.service.js';
 import { getAlsoLiked } from '../services/recommendations.service.js';
 import { getGameExtras } from '../services/gameExtras.service.js';
 import { getGameStats } from '../services/gameStats.service.js';
@@ -31,6 +32,11 @@ router.get('/', validate({ query: schemas.games.query }), async (req, res) => {
     });
 
     res.json({ results, next: results.length === PAGE_SIZE });
+});
+
+// Registered before /:id so "trending" isn't read as a game id.
+router.get('/trending', validate({ query: schemas.games.trendingQuery }), async (req, res) => {
+    res.json({ results: await getTrending(req.valid.query.limit), windowDays: WINDOW_DAYS });
 });
 
 router.get('/:id/also-liked', validate({ params: schemas.games.params }), async (req, res) => {
