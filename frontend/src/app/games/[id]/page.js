@@ -1,17 +1,25 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { use, useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { Star, Calendar, Globe, User, Loader2, Heart, MessageSquare, Share2, EyeOff } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AddToListModal from '@/components/AddToListModal';
 import GameStatusButtons from '@/components/GameStatusButtons';
 import RatingHistogram from '@/components/RatingHistogram';
+import GameMedia from '@/components/GameMedia';
+import GameCard from '@/components/GameCard';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 import Footer from '@/components/Footer';
 
+// Keyed by game id, so following a "more like this" link starts from a clean slate.
 export default function GameDetails({ params }) {
+    const { id } = use(params);
+    return <GameDetailsContent key={id} params={params} />;
+}
+
+function GameDetailsContent({ params }) {
     const [game, setGame] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -20,6 +28,7 @@ export default function GameDetails({ params }) {
     const [gameId, setGameId] = useState(null);
     const [isListModalOpen, setIsListModalOpen] = useState(false);
     const [stats, setStats] = useState(null);
+    const [extras, setExtras] = useState(null);
     const [sort, setSort] = useState('recent');
     const [revealed, setRevealed] = useState(new Set()); // spoiler reviews the viewer opened
 
@@ -44,6 +53,17 @@ export default function GameDetails({ params }) {
         };
         unwrapParams();
     }, [params]);
+
+    // Screenshots, trailer and similar games come from IGDB and may be slow or missing.
+    // They load after the page, and a failure just leaves those sections out.
+    useEffect(() => {
+        if (!gameId) return;
+        let cancelled = false;
+        api.get(`/games/${gameId}/extras`)
+            .then((res) => { if (!cancelled) setExtras(res.data); })
+            .catch((err) => console.error('Failed to fetch game extras', err));
+        return () => { cancelled = true; };
+    }, [gameId]);
 
     useEffect(() => {
         if (!gameId) return;
@@ -195,6 +215,8 @@ export default function GameDetails({ params }) {
                             </div>
                         </div>
 
+                        <GameMedia extras={extras} title={game.title} />
+
                         <div className="flex flex-wrap items-center gap-4 mb-16">
                             {user ? (
                                 <Link
@@ -317,6 +339,17 @@ export default function GameDetails({ params }) {
                                 </div>
                             )}
                         </div>
+
+                        {extras?.similarGames?.length > 0 && (
+                            <div className="mt-16">
+                                <h3 className="text-2xl font-black text-white mb-6">More like this</h3>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                                    {extras.similarGames.slice(0, 8).map((similar) => (
+                                        <GameCard key={similar.igdbId} game={similar} />
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>
