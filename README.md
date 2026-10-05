@@ -91,8 +91,6 @@ npm run dev
 
 Visit `http://localhost:3000`
 
-To share a local copy with someone else, see [CLOUDFLARE_TUNNEL.md](CLOUDFLARE_TUNNEL.md).
-
 ## ✅ Quality checks
 
 ```bash

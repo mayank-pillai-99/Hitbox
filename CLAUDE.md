@@ -47,4 +47,4 @@ npm run lint && npm run build
 - The frontend sends the JWT in `x-auth-token`, not `Authorization`.
 - The frontend sends `ordering=-added` and `page_size`; the backend deliberately ignores unknown orderings and extra keys.
 - IGDB has no "Action" genre; `action` maps to Fighting (4) and Hack and slash (25).
-- Rate limiting and CORS assume the API may sit behind a tunnel (`trust proxy` is on). See `CLOUDFLARE_TUNNEL.md`.
+- Rate limiting and CORS assume the API may sit behind a tunnel (`trust proxy` is on).
