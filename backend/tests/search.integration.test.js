@@ -62,6 +62,16 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('search', () => {
         expect(lists.find((l) => l.name === 'Best RPGs')).toMatchObject({ gameCount: 1, user: { username: 'dana' } });
     });
 
+    it('keeps the five best-known games out of the candidates', async () => {
+        const candidates = Array.from({ length: 12 }, (_, i) => ({
+            ...igdbRecord(300 + i, `Wit ${i}`),
+            total_rating_count: i,
+        }));
+        post.mockResolvedValueOnce({ data: candidates });
+        const { games } = (await request(app).get('/api/search?q=wit')).body;
+        expect(games.map((g) => g.title)).toEqual(['Wit 11', 'Wit 10', 'Wit 9', 'Wit 8', 'Wit 7']);
+    });
+
     it('overlays the local id and rating on games Hitbox has saved', async () => {
         const { games } = (await request(app).get('/api/search?q=celeste')).body;
         const saved = games.find((g) => g.igdbId === 100);
@@ -72,10 +82,10 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('search', () => {
         expect(unsaved.coverImage).toBe('https://images.igdb.com/igdb/image/upload/t_cover_big/co200.jpg');
     });
 
-    it('only asks IGDB for a few results and quotes the search term', async () => {
+    it('asks IGDB for candidates and quotes the search term', async () => {
         await request(app).get('/api/search?q=%22%3B%20limit%20500');
         const query = post.mock.calls[0][1];
-        expect(query).toContain('limit 5; offset 0;');
+        expect(query).toContain('limit 20; offset 0;');
         expect(query).toContain('search "\\"; limit 500";');
     });
 

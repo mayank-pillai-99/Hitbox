@@ -2,10 +2,11 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { Search, Menu, X, ChevronDown } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Menu, X, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import Avatar from '@/components/ui/Avatar';
+import SearchBox from '@/components/SearchBox';
 
 const LINKS = [
     { href: '/games', label: 'Games' },
@@ -14,34 +15,6 @@ const LINKS = [
 ];
 
 const isActive = (pathname, href) => pathname === href || pathname.startsWith(`${href}/`);
-
-function SearchForm({ className = '', inputClassName = '', onDone }) {
-    const router = useRouter();
-    const [search, setSearch] = useState('');
-
-    const submit = (e) => {
-        e.preventDefault();
-        const query = search.trim();
-        if (!query) return;
-        router.push(`/games?search=${encodeURIComponent(query)}`);
-        onDone?.();
-    };
-
-    return (
-        <form onSubmit={submit} role="search" className={`relative ${className}`}>
-            <label htmlFor="site-search" className="sr-only">Search games</label>
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dim pointer-events-none" aria-hidden="true" />
-            <input
-                id="site-search"
-                type="search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search games"
-                className={`field pl-9 ${inputClassName}`}
-            />
-        </form>
-    );
-}
 
 // Account menu: a disclosure button that closes on Escape, on outside click and when a link is used.
 function AccountMenu({ user, logout }) {
@@ -115,7 +88,7 @@ export default function Navbar() {
                     </div>
 
                     <div className="hidden md:flex items-center gap-3">
-                        <SearchForm className="w-48 lg:w-64" />
+                        <SearchBox id="site-search" className="w-52 lg:w-72" />
                         {user ? (
                             <AccountMenu user={user} logout={logout} />
                         ) : (
@@ -138,7 +111,7 @@ export default function Navbar() {
             {mobileOpen && (
                 <div id="mobile-menu" className="md:hidden border-t border-line bg-ink">
                     <div className="px-4 py-4 space-y-4">
-                        <SearchForm onDone={closeMenu} />
+                        <SearchBox id="site-search-mobile" onNavigate={closeMenu} />
 
                         <ul>
                             {LINKS.map(({ href, label }) => (

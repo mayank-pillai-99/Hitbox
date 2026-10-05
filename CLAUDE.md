@@ -48,6 +48,21 @@ npm run lint && npm run build
 - Write tests with each change. Tests that need MongoDB go in `tests/integration.test.js` and seed games directly; IGDB is never called from tests.
 - Keep `docs/security.md` current when security behaviour changes.
 
+## Frontend design system
+
+The look is flat "graphic realism" (inspired by marathonthegame.com): solid panels with hard 1px borders, square corners, a neon accent set, heavy display type with mono labels, hazard-stripe dividers. No frosted glass, blur or glow.
+
+- All tokens and primitives live in `frontend/src/app/globals.css` (`@theme` colours and fonts; `.panel`, `.label`, `.display`, `.numeral`, `.btn-primary`, `.btn-ghost`, `.field`, `.stripes`, `.brackets`). They are in `@layer components` on purpose: unlayered CSS would beat Tailwind utilities (`hidden`, `text-neon`) and break responsive classes. Use the tokens (`text-neon`, `bg-panel`, `border-line`), not raw zinc/lime. `lime-*` is remapped to the neon, so old classes still follow the theme.
+- Neon colours carry meaning: lime = primary/emphasis, cyan = info/following, magenta = likes/destructive, amber = spoilers/warnings.
+- Build pages from `components/ui/` (`PageShell`, `SectionHeader`, `Avatar`, `StatTile`, `Skeleton*`, `EmptyState`, `ErrorState`, `Pager`, `ToggleGroup`, `Modal`) and the domain cards (`ReviewCard`, `ListCard`, `MemberCard`, `GameCard`). Don't copy card markup into pages.
+- Data: `hooks/useApi` for GETs (loading, error, `reload()` that keeps old data, stale responses ignored). Pages that need a login call `hooks/useRequireAuth`. Show failures with `useToast()` or `ErrorState`, never `alert()`.
+- Every dialog uses `ui/Modal` (labelled, Esc, focus trap, focus returns). Icon-only buttons need `aria-label`; interactive targets are at least 44px; muted text must use `text-muted`/`text-dim` (both pass AA), not `text-zinc-600`.
+- Filters, sort and page live in the URL (`useSearchParams`) so views survive reload and sharing.
+- Game, list and member pages are a server `page.js` (with `generateMetadata`) wrapping a client component, keyed by id.
+- `<img>` is deliberate (IGDB's CDN, user avatars), so `@next/next/no-img-element` is off; don't switch to `next/image` without weighing Vercel's image-optimisation quota.
+- `next build` and `next dev` share `.next`: stop the dev server (and delete `.next`) before building, or dev serves 404s.
+- Tests: `npm test` in `frontend/` (vitest + Testing Library; spies on rejected promises: use plain functions, not `vi.fn()`, or vitest reports them unhandled).
+
 ## Gotchas
 
 - A game is addressed by local Mongo `_id` or by IGDB id (numeric). `findOrCreateGame` saves an IGDB game locally the first time anyone reviews, lists or tracks it; community ratings only exist for saved games.

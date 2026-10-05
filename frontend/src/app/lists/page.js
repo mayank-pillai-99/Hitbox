@@ -9,6 +9,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import ErrorState from '@/components/ui/ErrorState';
 import Pager from '@/components/ui/Pager';
 import ToggleGroup from '@/components/ui/ToggleGroup';
+import FilterSearch from '@/components/ui/FilterSearch';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
 import ListCard from '@/components/ListCard';
 import useApi from '@/hooks/useApi';
@@ -24,6 +25,7 @@ function ListsContent() {
 
     const sort = searchParams.get('sort') === 'recent' ? 'recent' : 'popular';
     const page = Math.max(1, Number(searchParams.get('page')) || 1);
+    const q = searchParams.get('q') || '';
 
     const update = (changes) => {
         const next = new URLSearchParams(searchParams.toString());
@@ -35,7 +37,7 @@ function ListsContent() {
         router.push(query ? `${pathname}?${query}` : pathname);
     };
 
-    const { data, loading, error, reload } = useApi('/lists/discover', { sort, page, limit: LIMIT });
+    const { data, loading, error, reload } = useApi('/lists/discover', { sort, page, limit: LIMIT, ...(q && { q }) });
     const lists = data?.lists ?? [];
 
     return (
@@ -51,7 +53,8 @@ function ListsContent() {
                     </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 md:items-center">
+                    <FilterSearch key={q} label="Search lists" value={q} onSubmit={(value) => update({ q: value })} placeholder="Search lists" />
                     <ToggleGroup
                         label="Sort lists"
                         options={[['popular', 'Popular'], ['recent', 'Recent']]}
@@ -73,10 +76,14 @@ function ListsContent() {
             ) : lists.length === 0 ? (
                 <EmptyState
                     icon={ListX}
-                    title="No lists yet"
-                    action={user ? <Link href="/lists/new" className="btn-primary">Create the first list</Link> : <Link href="/signup" className="btn-primary">Join to create one</Link>}
+                    title={q ? 'No lists found' : 'No lists yet'}
+                    action={
+                        q ? <button onClick={() => update({ q: '' })} className="btn-primary">Clear search</button>
+                        : user ? <Link href="/lists/new" className="btn-primary">Create the first list</Link>
+                        : <Link href="/signup" className="btn-primary">Join to create one</Link>
+                    }
                 >
-                    Be the first to share a collection.
+                    {q ? `No lists match "${q}".` : 'Be the first to share a collection.'}
                 </EmptyState>
             ) : (
                 <>

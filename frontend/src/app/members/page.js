@@ -8,6 +8,7 @@ import EmptyState from '@/components/ui/EmptyState';
 import ErrorState from '@/components/ui/ErrorState';
 import Pager from '@/components/ui/Pager';
 import ToggleGroup from '@/components/ui/ToggleGroup';
+import FilterSearch from '@/components/ui/FilterSearch';
 import { CardGridSkeleton } from '@/components/ui/Skeleton';
 import MemberCard from '@/components/MemberCard';
 import useApi from '@/hooks/useApi';
@@ -21,6 +22,7 @@ function MembersContent() {
 
     const sort = searchParams.get('sort') === 'recent' ? 'recent' : 'reviews';
     const page = Math.max(1, Number(searchParams.get('page')) || 1);
+    const q = searchParams.get('q') || '';
 
     const update = (changes) => {
         const next = new URLSearchParams(searchParams.toString());
@@ -32,7 +34,7 @@ function MembersContent() {
         router.push(query ? `${pathname}?${query}` : pathname);
     };
 
-    const { data, loading, error, reload } = useApi('/users', { sort, page, limit: LIMIT });
+    const { data, loading, error, reload } = useApi('/users', { sort, page, limit: LIMIT, ...(q && { q }) });
     const members = data?.members ?? [];
 
     return (
@@ -48,12 +50,15 @@ function MembersContent() {
                     </p>
                 </div>
 
-                <ToggleGroup
-                    label="Sort members"
-                    options={[['reviews', 'Most reviews'], ['recent', 'Newest']]}
-                    value={sort}
-                    onChange={(value) => update({ sort: value === 'reviews' ? '' : value })}
-                />
+                <div className="flex flex-col sm:flex-row gap-3 md:items-center">
+                    <FilterSearch key={q} label="Search members" value={q} onSubmit={(value) => update({ q: value })} placeholder="Search members" />
+                    <ToggleGroup
+                        label="Sort members"
+                        options={[['reviews', 'Most reviews'], ['recent', 'Newest']]}
+                        value={sort}
+                        onChange={(value) => update({ sort: value === 'reviews' ? '' : value })}
+                    />
+                </div>
             </header>
 
             {loading ? (
@@ -61,7 +66,13 @@ function MembersContent() {
             ) : error ? (
                 <ErrorState message="Failed to load members." onRetry={reload} />
             ) : members.length === 0 ? (
-                <EmptyState icon={UserX} title="No members found">Check back soon.</EmptyState>
+                <EmptyState
+                    icon={UserX}
+                    title="No members found"
+                    action={q && <button onClick={() => update({ q: '' })} className="btn-primary">Clear search</button>}
+                >
+                    {q ? `No members match "${q}".` : 'Check back soon.'}
+                </EmptyState>
             ) : (
                 <>
                     <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

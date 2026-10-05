@@ -100,7 +100,7 @@ npm test                                   # unit and API tests, no database nee
 MONGO_TEST_URI=mongodb://127.0.0.1:27017/hitbox-test npm test   # adds the MongoDB integration tests (wipes that database)
 
 cd ../frontend
-npm run lint && npm run build
+npm run lint && npm test && npm run build
 ```
 
 CI runs all of these on every push. The security decisions are written up in [docs/security.md](docs/security.md).

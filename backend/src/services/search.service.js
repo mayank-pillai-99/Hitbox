@@ -14,9 +14,15 @@ const cache = new Map(); // lowercased query -> { value, expires }
 
 export const clearSearchCache = () => cache.clear();
 
+// IGDB orders short search terms by text relevance, which surfaces obscure titles first ("wit" finds
+// "Wit's" before "The Witcher 3"). IGDB doesn't allow sorting a search, so ask for more candidates
+// and keep the best-known ones.
+const CANDIDATES = 20;
+
 const searchGames = async (q) => {
-    const { data } = await igdb.post('/games', buildBrowseQuery({ search: q, limit: PER_KIND }));
-    return withLocalData(data.map(mapIGDBGame));
+    const { data } = await igdb.post('/games', buildBrowseQuery({ search: q, limit: CANDIDATES }));
+    const best = [...data].sort((a, b) => (b.total_rating_count || 0) - (a.total_rating_count || 0)).slice(0, PER_KIND);
+    return withLocalData(best.map(mapIGDBGame));
 };
 
 const searchMembers = (q) =>
