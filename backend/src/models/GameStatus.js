@@ -27,5 +27,7 @@ const gameStatusSchema = new mongoose.Schema(
 gameStatusSchema.index({ user: 1, game: 1 }, { unique: true });
 // Per-game status counts on the game page.
 gameStatusSchema.index({ game: 1, status: 1 });
+// A member's latest status changes, for the activity feed.
+gameStatusSchema.index({ user: 1, updatedAt: -1 });
 
 export default mongoose.model('GameStatus', gameStatusSchema);

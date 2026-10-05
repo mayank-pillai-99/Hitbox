@@ -4,8 +4,11 @@ import Review from '../models/Review.js';
 import List from '../models/List.js';
 import GameStatus from '../models/GameStatus.js';
 import Game from '../models/Game.js';
+import Follow from '../models/Follow.js';
+import auth from '../middleware/auth.js';
+import optionalAuth from '../middleware/optionalAuth.js';
 import validate from '../middleware/validate.js';
-import { notFound } from '../lib/errors.js';
+import { badRequest, notFound } from '../lib/errors.js';
 import { getUserStats, pagination } from '../services/stats.service.js';
 import * as schemas from '../schemas/index.js';
 
@@ -91,12 +94,67 @@ router.get('/', validate({ query: schemas.users.membersQuery }), async (req, res
     });
 });
 
-router.get('/:username', validate({ params: schemas.users.params }), async (req, res) => {
+router.get('/:username', optionalAuth, validate({ params: schemas.users.params }), async (req, res) => {
     const user = await findUserByName(req.valid.params.username);
     const { password, email, ...profile } = user.toObject(); // eslint-disable-line no-unused-vars
 
-    res.json({ ...profile, stats: await getUserStats(user._id) });
+    const [stats, followersCount, followingCount, follow] = await Promise.all([
+        getUserStats(user._id),
+        Follow.countDocuments({ following: user._id }),
+        Follow.countDocuments({ follower: user._id }),
+        req.user ? Follow.exists({ follower: req.user.id, following: user._id }) : null,
+    ]);
+
+    res.json({ ...profile, stats, followersCount, followingCount, isFollowing: Boolean(follow) });
 });
+
+// Following is idempotent: repeating either call leaves the same end state.
+router.post('/:username/follow', auth, validate({ params: schemas.users.params }), async (req, res) => {
+    const target = await findUserByName(req.valid.params.username);
+    if (target.id === req.user.id) throw badRequest('You cannot follow yourself');
+
+    await Follow.updateOne(
+        { follower: req.user.id, following: target._id },
+        { $setOnInsert: { follower: req.user.id, following: target._id } },
+        { upsert: true },
+    );
+
+    res.json({ following: true, followersCount: await Follow.countDocuments({ following: target._id }) });
+});
+
+router.delete('/:username/follow', auth, validate({ params: schemas.users.params }), async (req, res) => {
+    const target = await findUserByName(req.valid.params.username);
+
+    await Follow.deleteOne({ follower: req.user.id, following: target._id });
+
+    res.json({ following: false, followersCount: await Follow.countDocuments({ following: target._id }) });
+});
+
+// side: which end of the relationship belongs to the profile being viewed.
+const followList = (side) => async (req, res) => {
+    const user = await findUserByName(req.valid.params.username);
+    const { page, limit } = req.valid.query;
+    const [match, other] = side === 'followers' ? ['following', 'follower'] : ['follower', 'following'];
+
+    const [follows, total] = await Promise.all([
+        Follow.find({ [match]: user._id })
+            .populate(other, 'username profilePicture bio')
+            .sort({ createdAt: -1 })
+            .skip((page - 1) * limit)
+            .limit(limit)
+            .lean(),
+        Follow.countDocuments({ [match]: user._id }),
+    ]);
+
+    res.json({
+        users: follows.map((f) => f[other]).filter(Boolean),
+        pagination: pagination(page, limit, total),
+    });
+};
+const followListValidation = validate({ params: schemas.users.params, query: schemas.users.followListQuery });
+
+router.get('/:username/followers', followListValidation, followList('followers'));
+router.get('/:username/following', followListValidation, followList('following'));
 
 router.get(
     '/:username/reviews',

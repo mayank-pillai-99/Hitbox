@@ -11,6 +11,7 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('API with MongoDB', () => {
     const password = 'correct-horse-battery';
     let alice;
     let bob;
+    let carol;
     let games;
 
     const register = async (username) => {
@@ -239,7 +240,6 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('API with MongoDB', () => {
         });
     });
     describe('game page stats', () => {
-        let carol;
         const celeste = () => String(games[0]._id);
 
         it('returns zeros for games nobody has touched, saved or not', async () => {
@@ -299,6 +299,120 @@ describe.skipIf(!process.env.MONGO_TEST_URI)('API with MongoDB', () => {
             expect(liked[0].user.password).toBeUndefined();
 
             expect((await request(app).get('/api/reviews/game/1?sort=random')).status).toBe(400);
+        });
+    });
+    describe('following and the activity feed', () => {
+        const feed = (user, query = '') => request(app).get(`/api/feed${query}`).set(as(user));
+
+        it("won't follow yourself or an unknown member", async () => {
+            const self = await request(app).post('/api/users/alice/follow').set(as(alice));
+            expect(self.status).toBe(400);
+            expect(self.body.message).toBe('You cannot follow yourself');
+            expect((await request(app).post('/api/users/nobody/follow').set(as(alice))).status).toBe(404);
+        });
+
+        it('follows idempotently and reports counts and isFollowing', async () => {
+            const first = await request(app).post('/api/users/bob/follow').set(as(alice));
+            const again = await request(app).post('/api/users/bob/follow').set(as(alice));
+            expect(first.body).toEqual({ following: true, followersCount: 1 });
+            expect(again.body).toEqual({ following: true, followersCount: 1 });
+
+            const asAlice = await request(app).get('/api/users/bob').set(as(alice));
+            expect(asAlice.body).toMatchObject({ followersCount: 1, followingCount: 0, isFollowing: true });
+            expect(asAlice.body.password).toBeUndefined();
+
+            const anonymous = await request(app).get('/api/users/bob');
+            expect(anonymous.body).toMatchObject({ followersCount: 1, isFollowing: false });
+            const badToken = await request(app).get('/api/users/bob').set({ 'x-auth-token': 'junk' });
+            expect(badToken.status).toBe(200);
+        });
+
+        it('lists followers and following', async () => {
+            const followers = await request(app).get('/api/users/bob/followers');
+            expect(followers.body.users.map((u) => u.username)).toEqual(['alice']);
+            expect(followers.body.users[0].password).toBeUndefined();
+            expect(followers.body.pagination.count).toBe(1);
+
+            const following = await request(app).get('/api/users/alice/following');
+            expect(following.body.users.map((u) => u.username)).toEqual(['bob']);
+        });
+
+        it("shows only followed members' activity, newest first", async () => {
+            const Review = mongoose.model('Review');
+            const GameStatus = mongoose.model('GameStatus');
+            const at = (iso) => ({ createdAt: new Date(iso), updatedAt: new Date(iso) });
+            const bobId = (await mongoose.model('User').findOne({ username: 'bob' }))._id;
+            const carolId = (await mongoose.model('User').findOne({ username: 'carol' }))._id;
+
+            // Fixed timestamps keep the expected order deterministic.
+            await Review.collection.updateOne({ user: bobId, game: games[0]._id }, { $set: at('2020-01-01') });
+            await GameStatus.collection.updateOne({ user: bobId, game: games[0]._id }, { $set: at('2020-01-02') });
+            await Review.collection.updateOne({ user: carolId, game: games[0]._id }, { $set: at('2020-01-03') });
+
+            const res = await feed(alice);
+            expect(res.status).toBe(200);
+            expect(res.body.following).toBe(1);
+            // Bob's list "Small" was created earlier in this file, so it is his newest item.
+            expect(res.body.items.map((i) => `${i.user.username}:${i.type}`)).toEqual([
+                'bob:list',
+                'bob:status',
+                'bob:review',
+            ]);
+            expect(res.body.items[1]).toMatchObject({ status: 'played', game: { title: 'Celeste' } });
+            expect(res.body.items[2]).toMatchObject({ rating: 3, game: { title: 'Celeste' } });
+            expect(res.body.items[0].user.password).toBeUndefined();
+
+            await request(app).post('/api/users/carol/follow').set(as(alice));
+            const both = await feed(alice);
+            expect(both.body.items.map((i) => `${i.user.username}:${i.type}`)).toEqual([
+                'bob:list',
+                'carol:review',
+                'bob:status',
+                'bob:review',
+            ]);
+        });
+
+        it('never sends spoiler text in the feed', async () => {
+            const carolsReview = (await feed(alice)).body.items.find((i) => i.user.username === 'carol');
+            expect(carolsReview).toMatchObject({ type: 'review', spoiler: true });
+            expect(carolsReview.text).toBeUndefined();
+        });
+
+        it('includes new lists and pages without gaps or repeats', async () => {
+            const list = await request(app)
+                .post('/api/lists')
+                .set(as(bob))
+                .send({ name: 'Cozy picks', description: 'warm' });
+            expect(list.status).toBe(200);
+
+            const seen = [];
+            let before = '';
+            for (let i = 0; i < 10; i++) {
+                const res = await feed(alice, `?limit=2${before}`);
+                seen.push(...res.body.items.map((x) => `${x.type}:${x._id}`));
+                if (!res.body.nextBefore) break;
+                before = `&before=${encodeURIComponent(res.body.nextBefore)}`;
+            }
+
+            expect(seen).toHaveLength(5);
+            expect(new Set(seen).size).toBe(5);
+            expect(seen[0].startsWith('list:')).toBe(true);
+            const listItem = (await feed(alice)).body.items[0];
+            expect(listItem.list).toMatchObject({ name: 'Cozy picks', gameCount: 0 });
+        });
+
+        it('has an empty feed when you follow nobody', async () => {
+            const res = await feed(carol);
+            expect(res.body).toEqual({ items: [], nextBefore: null, following: 0 });
+        });
+
+        it('stops showing a member after you unfollow them', async () => {
+            const res = await request(app).delete('/api/users/bob/follow').set(as(alice));
+            expect(res.body).toEqual({ following: false, followersCount: 0 });
+            expect((await request(app).delete('/api/users/bob/follow').set(as(alice))).status).toBe(200);
+
+            const items = (await feed(alice)).body.items;
+            expect(items.map((i) => i.user.username)).toEqual(['carol']);
         });
     });
 });

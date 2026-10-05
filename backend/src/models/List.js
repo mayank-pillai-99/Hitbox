@@ -16,5 +16,6 @@ const listSchema = new mongoose.Schema(
 // Ensure a user can't have duplicate list names (optional, but good for default lists)
 listSchema.index({ user: 1, name: 1 }, { unique: true });
 listSchema.index({ createdAt: -1 });
+listSchema.index({ user: 1, createdAt: -1 });
 
 export default mongoose.model('List', listSchema);

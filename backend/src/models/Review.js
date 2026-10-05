@@ -19,5 +19,7 @@ reviewSchema.index({ user: 1, game: 1 }, { unique: true });
 // Game pages list a game's reviews newest first; the home page lists the newest overall.
 reviewSchema.index({ game: 1, createdAt: -1 });
 reviewSchema.index({ createdAt: -1 });
+// A member's newest reviews, for the activity feed.
+reviewSchema.index({ user: 1, createdAt: -1 });
 
 export default mongoose.model('Review', reviewSchema);

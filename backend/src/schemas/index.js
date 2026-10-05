@@ -105,4 +105,12 @@ export const users = {
     membersQuery: z.object({ page, limit: limit(50, 20), sort: z.enum(['reviews', 'recent']).default('reviews') }),
     reviewsQuery: z.object({ page, limit: limit(50, 10) }),
     params: z.object({ username: z.string().min(1).max(30) }),
+    followListQuery: z.object({ page, limit: limit(50, 20) }),
+};
+
+export const feed = {
+    query: z.object({
+        before: z.coerce.date({ message: 'Invalid date' }).optional(),
+        limit: limit(50, 20),
+    }),
 };

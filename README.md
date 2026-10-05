@@ -153,13 +153,14 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 |--------|----------|-------------|
 | GET | `/api/games` | Browse and search games (`search`, `ordering`, `genres`, `platforms`, `dates`, `page`) |
 | GET | `/api/games/:id` | Game details (local id or IGDB id) |
+| GET | `/api/games/:id/stats` | Rating histogram, average and played/playing/want-to-play counts |
 
 ### Reviews
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/reviews/recent` | Latest reviews |
 | GET | `/api/reviews/my` | Your reviews |
-| GET | `/api/reviews/game/:id` | Get game reviews |
+| GET | `/api/reviews/game/:id` | Get game reviews (`sort=recent|liked`) |
 | POST | `/api/reviews` | Create review |
 | PUT | `/api/reviews/:id` | Update review |
 | DELETE | `/api/reviews/:id` | Delete review |
@@ -201,6 +202,11 @@ Authenticated routes expect the JWT in an `x-auth-token` header. Errors are JSON
 | GET | `/api/users/:username` | Public profile |
 | GET | `/api/users/:username/reviews` | A member's reviews |
 | GET | `/api/users/:username/lists` | A member's lists |
+| POST | `/api/users/:username/follow` | Follow a member |
+| DELETE | `/api/users/:username/follow` | Unfollow |
+| GET | `/api/users/:username/followers` | A member's followers |
+| GET | `/api/users/:username/following` | Who a member follows |
+| GET | `/api/feed` | Activity feed from members you follow (`before`, `limit`) |
 | GET | `/api/stats` | Site-wide counts |
 | GET | `/health` | Liveness check |
 

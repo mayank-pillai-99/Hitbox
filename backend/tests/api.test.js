@@ -95,4 +95,15 @@ describe('input validation', () => {
         const res = await request(app).get('/api/games/1;%20limit%20500');
         expect(res.status).toBe(400);
     });
+    it('requires login to follow, unfollow or read the feed', async () => {
+        expect((await request(app).post('/api/users/bob/follow')).status).toBe(401);
+        expect((await request(app).delete('/api/users/bob/follow')).status).toBe(401);
+        expect((await request(app).get('/api/feed')).status).toBe(401);
+    });
+
+    it('rejects a malformed feed cursor', async () => {
+        const res = await request(app).get('/api/feed?before=yesterday').set('x-auth-token', token());
+        expect(res.status).toBe(400);
+        expect(res.body.message).toBe('Invalid date');
+    });
 });

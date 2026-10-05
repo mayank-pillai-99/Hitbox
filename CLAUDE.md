@@ -36,6 +36,9 @@ npm run lint && npm run build
 - Never return a `User` document unfiltered. Use `.select('-password')`, and `populate('user', 'username profilePicture')` for other people's data.
 - Do sorting, paging and counting in MongoDB, not in JavaScript over one page. No per-row queries in a loop; batch with `$in` or `$group`.
 - Use atomic updates (`$addToSet`, `$pull`, conditional `findOneAndUpdate`) for arrays that users modify concurrently.
+- The activity feed (`services/feed.service.js`) is fan-out on read: it queries reviews, lists and game statuses of followed members when asked and merges them with `mergeActivity`. There is no activity collection to keep in sync. Spoiler review text is never included.
+- Public routes whose response depends on the viewer use `optionalAuth` (a bad token means anonymous), not `auth`.
+- Mongoose ignores writes to `createdAt`; tests that need fixed timestamps write through `Model.collection`.
 - Log with pino (`lib/logger.js`), not `console`. Never log tokens, passwords or request bodies.
 - Read config from `config/env.js`, not `process.env`. Add new variables to its schema and to `.env.example`.
 - Write tests with each change. Tests that need MongoDB go in `tests/integration.test.js` and seed games directly; IGDB is never called from tests.
