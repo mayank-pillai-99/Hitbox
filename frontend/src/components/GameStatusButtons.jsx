@@ -12,7 +12,7 @@ const STATUS_OPTIONS = [
     { key: 'want_to_play', label: 'Want to Play', icon: BookmarkPlus, color: 'amber' }
 ];
 
-export default function GameStatusButtons({ gameId }) {
+export default function GameStatusButtons({ gameId, onChange }) {
     const { user } = useAuth();
     const toast = useToast();
     const [currentStatus, setCurrentStatus] = useState(null);
@@ -51,10 +51,12 @@ export default function GameStatusButtons({ gameId }) {
                 // Remove status if clicking same one
                 await api.delete(`/game-status/${gameId}`);
                 setCurrentStatus(null);
+                onChange?.();
             } else {
                 // Set new status
                 await api.post('/game-status', { gameId, status });
                 setCurrentStatus(status);
+                onChange?.();
             }
         } catch (err) {
             console.error("Failed to update status", err);

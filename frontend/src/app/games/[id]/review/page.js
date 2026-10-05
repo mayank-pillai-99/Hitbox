@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 export default function ReviewEditor({ params }) {
     const [rating, setRating] = useState(0);
     const [text, setText] = useState('');
+    const [spoiler, setSpoiler] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [gameId, setGameId] = useState(null);
     const [gameTitle, setGameTitle] = useState('');
@@ -46,7 +47,8 @@ export default function ReviewEditor({ params }) {
             await api.post('/reviews', {
                 gameId,
                 rating,
-                text
+                text,
+                spoiler
             });
             router.push(`/games/${gameId}`);
         } catch (err) {
@@ -112,6 +114,15 @@ export default function ReviewEditor({ params }) {
                                 className="w-full px-4 py-3 bg-zinc-950 border border-zinc-700 rounded-lg text-white placeholder-zinc-600 focus:outline-none focus:border-lime-400 focus:ring-1 focus:ring-lime-400 transition-colors resize-none"
                                 placeholder="Write your thoughts on the game..."
                             ></textarea>
+                            <label className="mt-3 flex items-center gap-2 text-sm text-zinc-400 cursor-pointer select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={spoiler}
+                                    onChange={(e) => setSpoiler(e.target.checked)}
+                                    className="accent-lime-400"
+                                />
+                                This review contains spoilers
+                            </label>
                         </div>
 
                         {/* Actions */}

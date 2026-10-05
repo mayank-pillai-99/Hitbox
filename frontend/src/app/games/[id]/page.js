@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { Star, Calendar, Globe, User, Loader2, Heart, MessageSquare, Share2 } from 'lucide-react';
+import { Star, Calendar, Globe, User, Loader2, Heart, MessageSquare, Share2, EyeOff } from 'lucide-react';
 import Navbar from '@/components/Navbar';
 import AddToListModal from '@/components/AddToListModal';
 import GameStatusButtons from '@/components/GameStatusButtons';
+import RatingHistogram from '@/components/RatingHistogram';
 import api from '@/utils/api';
 import { useAuth } from '@/context/AuthContext';
 import Footer from '@/components/Footer';
@@ -18,6 +19,23 @@ export default function GameDetails({ params }) {
     const { user } = useAuth();
     const [gameId, setGameId] = useState(null);
     const [isListModalOpen, setIsListModalOpen] = useState(false);
+    const [stats, setStats] = useState(null);
+    const [sort, setSort] = useState('recent');
+    const [revealed, setRevealed] = useState(new Set()); // spoiler reviews the viewer opened
+
+    const fetchReviews = useCallback(async (id, order) => {
+        const res = await api.get(`/reviews/game/${id}`, { params: { sort: order } });
+        setReviews(res.data);
+    }, []);
+
+    const fetchStats = useCallback(async (id) => {
+        try {
+            const res = await api.get(`/games/${id}/stats`);
+            setStats(res.data);
+        } catch (err) {
+            console.error('Failed to fetch game stats', err);
+        }
+    }, []);
 
     useEffect(() => {
         const unwrapParams = async () => {
@@ -32,12 +50,12 @@ export default function GameDetails({ params }) {
 
         const fetchData = async () => {
             try {
-                const [gameRes, reviewsRes] = await Promise.all([
+                const [gameRes] = await Promise.all([
                     api.get(`/games/${gameId}`),
-                    api.get(`/reviews/game/${gameId}`)
+                    fetchReviews(gameId, 'recent'),
+                    fetchStats(gameId)
                 ]);
                 setGame(gameRes.data);
-                setReviews(reviewsRes.data);
                 setLoading(false);
             } catch (err) {
                 console.error("Failed to fetch game details", err);
@@ -47,7 +65,16 @@ export default function GameDetails({ params }) {
         };
 
         fetchData();
-    }, [gameId]);
+    }, [gameId, fetchReviews, fetchStats]);
+
+    const changeSort = async (order) => {
+        setSort(order);
+        try {
+            await fetchReviews(gameId, order);
+        } catch (err) {
+            console.error('Failed to sort reviews', err);
+        }
+    };
 
     if (loading) {
         return (
@@ -112,8 +139,10 @@ export default function GameDetails({ params }) {
                         </div>
 
                         <div className="mt-6">
-                            <GameStatusButtons gameId={gameId} />
+                            <GameStatusButtons gameId={gameId} onChange={() => fetchStats(gameId)} />
                         </div>
+
+                        <RatingHistogram stats={stats} />
                     </div>
 
                     <div className="flex-1 min-w-0 animate-fade-in-up stagger-1">
@@ -200,6 +229,21 @@ export default function GameDetails({ params }) {
                                 <span className="text-sm font-bold text-zinc-500 uppercase tracking-widest">{reviews.length} Reviews</span>
                             </div>
 
+                            {reviews.length > 1 && (
+                                <div className="flex gap-2 mb-6" role="group" aria-label="Sort reviews">
+                                    {[['recent', 'Newest'], ['liked', 'Most liked']].map(([value, label]) => (
+                                        <button
+                                            key={value}
+                                            onClick={() => changeSort(value)}
+                                            aria-pressed={sort === value}
+                                            className={`px-3 py-1.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-colors ${sort === value ? 'bg-lime-400 text-black' : 'bg-white/5 text-zinc-400 hover:text-white'}`}
+                                        >
+                                            {label}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+
                             {reviews.length === 0 ? (
                                 <div className="backdrop-blur-sm bg-white/5 border border-dashed border-zinc-700 rounded-2xl p-12 text-center">
                                     <p className="text-zinc-500 font-medium mb-4">No reviews yet.</p>
@@ -233,7 +277,17 @@ export default function GameDetails({ params }) {
                                                 </div>
                                             </div>
 
-                                            {review.text && <p className="text-zinc-300 text-sm leading-relaxed mb-4">{review.text}</p>}
+                                            {review.text && (review.spoiler && !revealed.has(review._id) ? (
+                                                <button
+                                                    onClick={() => setRevealed(new Set(revealed).add(review._id))}
+                                                    className="flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 mb-4 font-medium"
+                                                >
+                                                    <EyeOff className="w-4 h-4" />
+                                                    Contains spoilers. Click to show.
+                                                </button>
+                                            ) : (
+                                                <p className="text-zinc-300 text-sm leading-relaxed mb-4">{review.text}</p>
+                                            ))}
 
                                             <div className="flex items-center justify-end border-t border-white/5 pt-4">
                                                 <button
@@ -247,8 +301,7 @@ export default function GameDetails({ params }) {
                                                             } else {
                                                                 await api.post(`/reviews/${review._id}/like`);
                                                             }
-                                                            const res = await api.get(`/reviews/game/${gameId}`);
-                                                            setReviews(res.data);
+                                                            await fetchReviews(gameId, sort);
                                                         } catch (err) {
                                                             console.error('Failed to toggle like', err);
                                                         }
