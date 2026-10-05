@@ -2,6 +2,7 @@ import { Inter, Archivo, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
+import { SITE_URL } from '@/utils/site';
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 // Archivo has a width axis, which the display style uses for its wide, heavy headings.
@@ -9,9 +10,14 @@ const archivo = Archivo({ subsets: ["latin"], axes: ["wdth"], variable: "--font-
 const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono-face" });
 
 export const metadata = {
-    title: "Hitbox",
-    description: "Track your gaming journey",
+    metadataBase: new URL(SITE_URL),
+    title: { default: "Hitbox: track, review and share the games you play", template: "%s | Hitbox" },
+    description: "Log the games you play, write reviews, build lists and follow other players.",
+    openGraph: { siteName: "Hitbox", type: "website" },
+    twitter: { card: "summary" },
 };
+
+export const viewport = { themeColor: "#0b0b0c", colorScheme: "dark" };
 
 export default function RootLayout({ children }) {
     return (

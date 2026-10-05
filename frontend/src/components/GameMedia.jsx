@@ -9,6 +9,7 @@ export default function GameMedia({ extras, title }) {
     const [playing, setPlaying] = useState(false);
     const [open, setOpen] = useState(null); // index of the screenshot shown in the lightbox
     const closeRef = useRef(null);
+    const dialogRef = useRef(null);
 
     const screenshots = extras?.screenshots || [];
     const video = extras?.videos?.[0];
@@ -16,15 +17,30 @@ export default function GameMedia({ extras, title }) {
     useEffect(() => {
         if (open === null) return;
 
+        // Return focus to the thumbnail that opened the lightbox when it closes.
+        const opener = document.activeElement;
+        closeRef.current?.focus();
+
         const onKey = (e) => {
             if (e.key === 'Escape') setOpen(null);
             if (e.key === 'ArrowRight') setOpen((i) => (i + 1) % screenshots.length);
             if (e.key === 'ArrowLeft') setOpen((i) => (i - 1 + screenshots.length) % screenshots.length);
+            if (e.key === 'Tab') {
+                // Keep Tab inside the lightbox's own buttons.
+                const items = [...(dialogRef.current?.querySelectorAll('button') ?? [])];
+                if (items.length === 0) return;
+                const first = items[0];
+                const last = items[items.length - 1];
+                if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
         };
         window.addEventListener('keydown', onKey);
-        closeRef.current?.focus();
-        return () => window.removeEventListener('keydown', onKey);
-    }, [open, screenshots.length]);
+        return () => {
+            window.removeEventListener('keydown', onKey);
+            if (opener instanceof HTMLElement) opener.focus();
+        };
+    }, [open === null, screenshots.length]); // eslint-disable-line react-hooks/exhaustive-deps -- only open/close matters, not which image
 
     if (!video && screenshots.length === 0) return null;
 
@@ -81,6 +97,7 @@ export default function GameMedia({ extras, title }) {
 
             {open !== null && (
                 <div
+                    ref={dialogRef}
                     role="dialog"
                     aria-modal="true"
                     aria-label={`${title} screenshot ${open + 1} of ${screenshots.length}`}
